@@ -1794,6 +1794,7 @@ mod tests {
         let restored = Some(crate::engine::CacheTierAttribution {
             g1_reused_input_tokens: 0,
             host_reused_input_tokens: 4,
+            g3_reused_input_tokens: Some(0),
         });
 
         // Worker 1 computes the block; scale-in marks it while its D2H runs.

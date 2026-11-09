@@ -194,12 +194,31 @@ impl ReplayEngineConfig {
                 }
             }
             ReplayTopology::Disaggregated { .. } => {
-                let [prefill, decode] =
-                    [WorkerStage::Prefill, WorkerStage::Decode].map(|stage| self.role(stage).rank);
-                if prefill.g3_offload.is_some() || decode.g3_offload.is_some() {
+                let prefill_role = self.role(WorkerStage::Prefill);
+                let prefill_dp_size = prefill_role.dp_size;
+                let prefill = prefill_role.rank;
+                let decode = self.role(WorkerStage::Decode).rank;
+                if decode.g3_offload.is_some() {
                     return Err(ReplayError::InvalidSpec(
-                        "g3_offload supports only aggregated replay".to_string(),
+                        "g3_offload is not supported on decode workers".into(),
                     ));
+                }
+                if prefill.g3_offload.is_some() {
+                    if prefill_dp_size != 1 {
+                        return Err(ReplayError::InvalidSpec(
+                            "prefill g3_offload requires dp_size=1".into(),
+                        ));
+                    }
+                    if decode
+                        .native_host_offload
+                        .as_ref()
+                        .is_some_and(|host| host.scope != G2Scope::DpRankLocal)
+                    {
+                        return Err(ReplayError::InvalidSpec(
+                            "prefill g3_offload requires dp_rank_local G2 when decode uses G2"
+                                .into(),
+                        ));
+                    }
                 }
                 // Decode resumes from the transferred state, so both roles model it.
                 if prefill.state_cache.is_some() != decode.state_cache.is_some() {

@@ -47,19 +47,22 @@ use crate::engine::kv_manager::{
     BlockRequestLease, DestinationReservation, G1Acquire, G1Manager, SourceReleaseOrder,
     SourceReuseDependency,
 };
-use crate::engine::{HostOffloadObserver, KvHintSource, NativeHostOffloadConfig};
+use crate::engine::{
+    CacheTierAttribution, HostOffloadObserver, KvHintSource, NativeHostOffloadConfig,
+};
 
 struct LoadingPrefix {
     transfer_id: TransferId,
     keys: Vec<HostBlockKey>,
     reservation: DestinationReservation,
+    g3_block_offsets: Vec<usize>,
     original_g1_tokens: usize,
     loaded_prefix_blocks: usize,
     request_footprint_blocks: usize,
 }
 
-#[derive(Clone, Copy)]
 struct ActivatedPrefix {
+    g3_block_offsets: Vec<usize>,
     original_g1_tokens: usize,
     loaded_prefix_blocks: usize,
     loaded_blocks: usize,
@@ -212,8 +215,8 @@ impl VllmHostRequestState {
         }
     }
 
-    fn activated(&self) -> Option<ActivatedPrefix> {
-        match self.load {
+    fn activated(&self) -> Option<&ActivatedPrefix> {
+        match &self.load {
             Some(LoadState::Activated(load)) => Some(load),
             _ => None,
         }
@@ -586,6 +589,17 @@ impl VllmHostOffloadAdapter {
         if let Some(kvcr) = &self.kvcr {
             kvcr.note_loaded(tier.take_kvcr_origin(&hit.keys));
         }
+        let g3_block_offsets = if self.g3.is_some() && !request.first_admission_recorded {
+            hit.keys
+                .iter()
+                .enumerate()
+                .filter_map(|(offset, key)| {
+                    tier.was_restored_from_g3_for(*key, uuid).then_some(offset)
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
         drop(tier);
 
         if self.rules.waits_for_loads {
@@ -609,6 +623,7 @@ impl VllmHostOffloadAdapter {
             transfer_id,
             keys: hit.keys,
             reservation,
+            g3_block_offsets,
             original_g1_tokens: hit.original_g1_tokens,
             loaded_prefix_blocks: hit.base_g1_blocks + hashes.len(),
             request_footprint_blocks: hit.request_footprint_blocks,
@@ -713,6 +728,7 @@ impl VllmHostOffloadAdapter {
         );
         kv_manager.activate_native_destination(uuid, sequence, lease, load.reservation);
         request.load = Some(LoadState::Activated(ActivatedPrefix {
+            g3_block_offsets: load.g3_block_offsets,
             original_g1_tokens: load.original_g1_tokens,
             loaded_prefix_blocks: load.loaded_prefix_blocks,
             loaded_blocks: load.keys.len(),
@@ -746,7 +762,7 @@ impl VllmHostOffloadAdapter {
         request: &mut VllmHostRequestState,
         reused_tokens: usize,
         block_size: usize,
-    ) -> Option<(usize, usize)> {
+    ) -> Option<CacheTierAttribution> {
         request.restore_rounds.reset();
         let attribution = match request.load.take() {
             Some(LoadState::Activated(load)) => {
@@ -755,10 +771,15 @@ impl VllmHostOffloadAdapter {
                 let g2 = reused_tokens - g1;
                 assert!(g2 <= load.loaded_blocks * block_size);
                 request.next_store_block = reused_tokens / block_size;
-                (g1, g2)
+                let g3 = load
+                    .g3_block_offsets
+                    .iter()
+                    .map(|offset| g2.saturating_sub(offset * block_size).min(block_size))
+                    .sum();
+                (g1, g2, g3)
             }
             Some(LoadState::Loading(_)) => panic!("loading request cannot be admitted"),
-            None => (reused_tokens, 0),
+            None => (reused_tokens, 0, 0),
         };
         if self.rules.stores_eagerly {
             // SimpleCPU scans every admitted request from block 0, a loaded or
@@ -770,7 +791,13 @@ impl VllmHostOffloadAdapter {
             None
         } else {
             request.first_admission_recorded = true;
-            Some(attribution)
+            let (g1, host, g3) = attribution;
+            Some(CacheTierAttribution {
+                g1_reused_input_tokens: g1,
+                host_reused_input_tokens: host,
+                // KVCR can also fill G2, so this two-source split is unavailable there.
+                g3_reused_input_tokens: self.kvcr.is_none().then_some(g3),
+            })
         }
     }
 

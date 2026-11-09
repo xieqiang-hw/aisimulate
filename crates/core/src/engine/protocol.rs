@@ -259,6 +259,8 @@ pub struct CacheTierAttribution {
     pub g1_reused_input_tokens: usize,
     /// Additional reused prompt tokens restored from the native host tier.
     pub host_reused_input_tokens: usize,
+    /// Host reuse promoted from SSD for this admission's request. None with KVCR.
+    pub g3_reused_input_tokens: Option<usize>,
 }
 
 /// Request admission exposed at pass start.

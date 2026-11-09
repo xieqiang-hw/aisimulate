@@ -1771,3 +1771,16 @@ The modified behavior and synthetic tests in `crates/core/src/engine/kv_manager/
 Running-request cancellation retains its KV lease until the in-flight forward
 is observed, adapting `Scheduler.abort_request` and result-time
 `release_kv_cache` from the same pinned scheduler and batch-result sources.
+
+## Local P-side G3 validation configuration
+
+Repository-root `experiments/disk/configs/p_g3_local_validation.yaml` and
+`experiments/disk/configs/p_g3_local.yaml` and its four capacity variants
+`experiments/disk/configs/p_g3_local_{4x,16x,64x,128x}.yaml` and DRAM variants
+`experiments/disk/configs/p_g3_local_dram_{2048,4096,8192,32768}.yaml` and read-bandwidth variants
+`experiments/disk/configs/p_g3_local_dram_{4096,8192}_read_{2p5,5}.yaml` and
+`experiments/disk/configs/p_local_8ssd_p{384,256,128}gb_{1,2,8}x.yaml` adapt
+`experiments/pd_unified/configs/dsv32_i4_g8_p1d3.yaml` through the local HBM baseline.
+Source: https://github.com/HWACSLab/aisimulate/tree/4f1b31c941c4a434f66b9f23359e9259b963ec21 .
+Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES (repository notice) and
+HWACSLab contributors, Apache-2.0 (see LICENSE). Modified for synthetic 1P1D G3 validation and full FreeInference replay.

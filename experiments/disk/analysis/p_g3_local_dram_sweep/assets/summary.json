@@ -1,0 +1,62 @@
+[
+  {
+    "dram_blocks": 2048,
+    "completed": 665415,
+    "sla_pass": 643861,
+    "sla_percent": 96.76081843661474,
+    "mean_ttft_s": 0.9508431593257557,
+    "p95_ttft_s": 2.7087825570106507,
+    "p99_ttft_s": 14.42636191368103,
+    "max_gap_s": 572.1115507831573,
+    "ssd_read_tb": 93.189493702656,
+    "ssd_write_tb": 139.60594612224,
+    "g3_bypassed_restores": 7,
+    "trace_sha256": "da0f1ac00fa5eb96ca7ef970c5c8bf23c21aef8d56d19cff7e7171f3dea3d034",
+    "report": "/home/xieqiang/project/results/glm52-1p1d-p-g3-dram/20261106T034430.383604Z/p_g3_local_dram_2048/20261106T034448.033175Z/prediction/prediction.json"
+  },
+  {
+    "dram_blocks": 4096,
+    "completed": 665415,
+    "sla_pass": 644417,
+    "sla_percent": 96.84437531465326,
+    "mean_ttft_s": 0.9157554818200722,
+    "p95_ttft_s": 2.6467966651916504,
+    "p99_ttft_s": 13.780768832564354,
+    "max_gap_s": 544.0583175735474,
+    "ssd_read_tb": 89.66553403392,
+    "ssd_write_tb": 139.751308689408,
+    "g3_bypassed_restores": 0,
+    "trace_sha256": "da0f1ac00fa5eb96ca7ef970c5c8bf23c21aef8d56d19cff7e7171f3dea3d034",
+    "report": "/home/xieqiang/project/results/glm52-1p1d-p-g3-dram/20261106T034430.383604Z/p_g3_local_dram_4096/20261106T041651.828808Z/prediction/prediction.json"
+  },
+  {
+    "dram_blocks": 8192,
+    "completed": 665415,
+    "sla_pass": 644428,
+    "sla_percent": 96.84602841835546,
+    "mean_ttft_s": 0.93050938808488,
+    "p95_ttft_s": 2.627183304786682,
+    "p99_ttft_s": 13.822930804252625,
+    "max_gap_s": 298.0595828170776,
+    "ssd_read_tb": 49.860441686016,
+    "ssd_write_tb": 139.758899724288,
+    "g3_bypassed_restores": 0,
+    "trace_sha256": "da0f1ac00fa5eb96ca7ef970c5c8bf23c21aef8d56d19cff7e7171f3dea3d034",
+    "report": "/home/xieqiang/project/results/glm52-1p1d-p-g3-capacity/20261106T012822.616008Z/p_g3_local_128x/20261106T030805.664037Z/prediction/prediction.json"
+  },
+  {
+    "dram_blocks": 32768,
+    "completed": 665415,
+    "sla_pass": 644450,
+    "sla_percent": 96.84933462575987,
+    "mean_ttft_s": 0.9334919291874744,
+    "p95_ttft_s": 2.6009539070129395,
+    "p99_ttft_s": 13.832045953273774,
+    "max_gap_s": 305.50057810115817,
+    "ssd_read_tb": 10.64409735168,
+    "ssd_write_tb": 139.758899724288,
+    "g3_bypassed_restores": 0,
+    "trace_sha256": "da0f1ac00fa5eb96ca7ef970c5c8bf23c21aef8d56d19cff7e7171f3dea3d034",
+    "report": "/home/xieqiang/project/results/glm52-1p1d-p-g3-dram/20261106T034430.383604Z/p_g3_local_dram_32768/20261106T044738.972371Z/prediction/prediction.json"
+  }
+]

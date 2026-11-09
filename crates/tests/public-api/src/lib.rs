@@ -1306,6 +1306,9 @@ pub fn rebuild_replay_report_literals(
             first_admission_g1_reused_input_tokens: record.first_admission_g1_reused_input_tokens,
             first_admission_host_reused_input_tokens: record
                 .first_admission_host_reused_input_tokens,
+            first_admission_g2_direct_reused_input_tokens: record
+                .first_admission_g2_direct_reused_input_tokens,
+            first_admission_g3_reused_input_tokens: record.first_admission_g3_reused_input_tokens,
             prefill_worker_idx: record.prefill_worker_idx,
             decode_worker_idx: record.decode_worker_idx,
             prefill_admit_ms: record.prefill_admit_ms,

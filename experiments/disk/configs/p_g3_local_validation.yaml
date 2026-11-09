@@ -1,0 +1,89 @@
+# 功能验证。固定时延和小容量用于强制淘汰，不能用于性能评估。
+# Adapted from hbm_only.yaml; original HWACSLab/aisimulate revision
+# 4f1b31c941c4a434f66b9f23359e9259b963ec21, Apache-2.0.
+traffic:
+  source:
+    type: trace
+    format: mooncake
+    paths:
+    - __SET_BY_RUNNER__
+    block_size: 16
+  load:
+    type: trace_timestamps
+    speedup: 1.0
+engine:
+  mode: disaggregated
+  model: zai-org/GLM-5.2-FP8
+  hardware: h200_sxm
+  backend: vllm
+  backend_version: 0.24.0
+  context_length: 320
+  enable_chunked_prefill: true
+  kv_transfer:
+    bytes_per_token: auto
+    bandwidth_gb_per_second: 50.0
+    timing_mode: destination_missing
+  workers:
+    prefill:
+      parallelism:
+        replicas: 1
+        tensor: 8
+        pipeline: 1
+        attention_data: 1
+        moe_tensor: 8
+        moe_expert: 1
+      scheduler:
+        max_sequences: 1
+        max_batched_tokens: 320
+      kv_cache:
+        block_size: 64
+        prefix_caching: true
+        bytes_per_token: 60216
+        capacity:
+          type: fixed
+          blocks: 5
+        host_offload:
+          scope: dp_rank_local
+          num_host_blocks: 4
+          connector: offloading_v0_24
+        g3_offload:
+          scope: worker_local
+          num_g3_blocks: 8
+          latency_to_first_byte_ms: 0.1
+          read_bandwidth_gbps: 10.0
+          write_bandwidth_gbps: 10.0
+      timing:
+        type: fixed
+        prefill_ms: 1.0
+        decode_ms: 1.0
+      startup_seconds: 0.0
+    decode:
+      parallelism:
+        replicas: 1
+        tensor: 8
+        pipeline: 1
+        attention_data: 1
+        moe_tensor: 8
+        moe_expert: 1
+      scheduler:
+        max_sequences: 1
+        max_batched_tokens: 320
+      kv_cache:
+        block_size: 64
+        prefix_caching: true
+        bytes_per_token: 60216
+        capacity:
+          type: fixed
+          blocks: 5
+      timing:
+        type: fixed
+        prefill_ms: 1.0
+        decode_ms: 1.0
+      startup_seconds: 0.0
+evaluation:
+  sla:
+    ttft_ms: 5000.0
+    itl_ms: 50.0
+execution:
+  resources:
+    initialization_timeout_seconds: 600.0

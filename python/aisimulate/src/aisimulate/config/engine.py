@@ -1446,8 +1446,21 @@ def _validate_prediction_host_offload(engine: EnginePredictionConfig) -> None:
             raise ValueError(
                 "host_offload.connector other than offloading_v0_24 is supported only for the aggregated worker"
             )
-        if worker.kv_cache.g3_offload is not None and (role != "aggregated" or worker.parallelism.attention_data != 1):
-            raise ValueError("g3_offload is supported only for the aggregated worker with attention_data=1")
+        if (g3 := worker.kv_cache.g3_offload) is not None:
+            if worker.parallelism.attention_data != 1:
+                raise ValueError("g3_offload requires attention_data=1")
+            if role == "prefill":
+                if g3.scope != "worker_local" or worker.kv_cache.host_offload.scope != "dp_rank_local":
+                    raise ValueError("prefill g3_offload requires worker_local G3 and dp_rank_local G2")
+                decode = engine.workers.decode
+                if (
+                    decode is not None
+                    and (decode_host := decode.kv_cache.host_offload) is not None
+                    and decode_host.scope != "dp_rank_local"
+                ):
+                    raise ValueError("prefill g3_offload requires dp_rank_local G2 when decode uses G2")
+            elif role != "aggregated":
+                raise ValueError("g3_offload is supported only on aggregated or prefill workers")
         if worker.kv_cache.kvcr is not None and role == "decode":
             raise ValueError("kvcr supports aggregated and prefill workers only")
         if worker.kv_cache.kvcr is not None and worker.parallelism.pipeline > 1:

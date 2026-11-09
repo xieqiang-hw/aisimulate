@@ -192,7 +192,7 @@ impl VllmG3OffloadAdapter {
                         .stages
                         .remove(&completion.id)
                         .expect("promotion owns its G2 reservation");
-                    tier.complete_external(stage.reservation);
+                    tier.complete_external_from_g3(stage.reservation, stage.owner);
                 }
             }
             self.epoch += 1;

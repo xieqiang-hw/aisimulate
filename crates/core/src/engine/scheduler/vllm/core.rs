@@ -43,8 +43,8 @@ use crate::engine::scheduler::{
 };
 use crate::engine::trace::TraceCollector;
 use crate::engine::{
-    CacheTierAttribution, DecodeAcceptance, DecodeWork, G2Scope, HandoffId, IterationMs,
-    KvHintSource, PrefillTotals, PrefillWork, PressureEvent, PressureKind, PressureState, RankWork,
+    DecodeAcceptance, DecodeWork, G2Scope, HandoffId, IterationMs, KvHintSource, PrefillTotals,
+    PrefillWork, PressureEvent, PressureKind, PressureState, RankWork,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -3157,10 +3157,7 @@ impl VllmCore {
             Some(AdmissionEvent {
                 uuid,
                 reused_input_tokens: cached_prefix_tokens,
-                cache_tier_attribution: attribution.map(|(g1, host)| CacheTierAttribution {
-                    g1_reused_input_tokens: g1,
-                    host_reused_input_tokens: host,
-                }),
+                cache_tier_attribution: attribution,
             })
         } else {
             None
@@ -4839,6 +4836,7 @@ mod shared_g2_hold_tests {
             .collect()
     }
 
+    use crate::engine::CacheTierAttribution;
     fn admissions(pass: &EnginePassResult) -> Vec<(Uuid, usize, Option<CacheTierAttribution>)> {
         pass.admissions
             .iter()
@@ -4914,6 +4912,7 @@ mod shared_g2_hold_tests {
         let g1 = CacheTierAttribution {
             g1_reused_input_tokens: 4,
             host_reused_input_tokens: 0,
+            g3_reused_input_tokens: Some(0),
         };
         assert_eq!(admissions(&run(&mut core, 0.0)), [(request, 4, Some(g1))]);
     }
@@ -4968,6 +4967,7 @@ mod shared_g2_hold_tests {
         let g2 = CacheTierAttribution {
             g1_reused_input_tokens: 0,
             host_reused_input_tokens: 8,
+            g3_reused_input_tokens: Some(0),
         };
         assert_eq!(admissions(&admitted), [(waiting, 8, Some(g2))]);
     }

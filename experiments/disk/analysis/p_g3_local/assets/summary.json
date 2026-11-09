@@ -1,0 +1,55 @@
+{
+  "baseline": "/home/xieqiang/project/results/glm52-1p1d-g2/20261105T094503.158905Z/p_g2_shared/20261105T094520.729529Z",
+  "candidate": "/home/xieqiang/project/results/glm52-1p1d-p-g3-local/20261105T122917.107018Z",
+  "trace_sha256": "da0f1ac00fa5eb96ca7ef970c5c8bf23c21aef8d56d19cff7e7171f3dea3d034",
+  "sla": {
+    "ttft_ms": 5000.0,
+    "itl_ms": 50.0
+  },
+  "counts": {
+    "both_fail": 29109,
+    "both_pass": 628073,
+    "improved": 7941,
+    "regressed": 292
+  },
+  "net_gain": 7649,
+  "profiles": {
+    "improved": {
+      "host_reuse_increased": 2603,
+      "g2_decode_readmitted": 24,
+      "g3_decode_readmitted": 13
+    },
+    "regressed": {
+      "host_reuse_increased": 11,
+      "g2_decode_readmitted": 2,
+      "g3_decode_readmitted": 2
+    }
+  },
+  "failure_reasons": [
+    {
+      "change": "improved",
+      "reason": "ITL",
+      "requests": 6
+    },
+    {
+      "change": "improved",
+      "reason": "TTFT",
+      "requests": 7929
+    },
+    {
+      "change": "improved",
+      "reason": "TTFT+ITL",
+      "requests": 6
+    },
+    {
+      "change": "regressed",
+      "reason": "ITL",
+      "requests": 1
+    },
+    {
+      "change": "regressed",
+      "reason": "TTFT",
+      "requests": 291
+    }
+  ]
+}

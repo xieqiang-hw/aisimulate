@@ -1,0 +1,63 @@
+{
+  "sources": {
+    "hbm_only": {
+      "path": "/home/xieqiang/project/results/glm52-1p1d/20261105T090046.987839Z/prediction/prediction.json",
+      "bytes": 1865655404,
+      "mtime_ns": 1793871060197329494
+    },
+    "p_g2_shared": {
+      "path": "/home/xieqiang/project/results/glm52-1p1d-g2/20261105T094503.158905Z/p_g2_shared/20261105T094520.729529Z/prediction/prediction.json",
+      "bytes": 1993499307,
+      "mtime_ns": 1793873739055369562
+    },
+    "pd_g2_shared": {
+      "path": "/home/xieqiang/project/results/glm52-1p1d-g2/20261105T094503.158905Z/pd_g2_shared/20261105T101605.383234Z/prediction/prediction.json",
+      "bytes": 2046730819,
+      "mtime_ns": 1793875628854560042
+    }
+  },
+  "rows": [
+    {
+      "experiment": "hbm_only",
+      "requests": 665415,
+      "completed": 665415,
+      "sla_pass": 608828,
+      "sla_pass_percent": 91.49598370941443,
+      "mean_ttft_s": 3.464018408598063,
+      "p95_ttft_s": 11.390399054527283,
+      "p99_ttft_s": 64.72114985466004,
+      "mean_itl_ms": 13.039209638765175,
+      "max_token_gap_s": 196.2848608188629,
+      "mean_e2e_s": 9.474999620849053,
+      "prefix_reuse_percent": 94.31707490654088
+    },
+    {
+      "experiment": "p_g2_shared",
+      "requests": 665415,
+      "completed": 665415,
+      "sla_pass": 628365,
+      "sla_pass_percent": 94.43204616667794,
+      "mean_ttft_s": 1.4052247254187011,
+      "p95_ttft_s": 5.926505920410157,
+      "p99_ttft_s": 19.4638994102478,
+      "mean_itl_ms": 13.006725665683934,
+      "max_token_gap_s": 477.8437392597198,
+      "mean_e2e_s": 7.401231061326243,
+      "prefix_reuse_percent": 95.40737468755516
+    },
+    {
+      "experiment": "pd_g2_shared",
+      "requests": 665415,
+      "completed": 665415,
+      "sla_pass": 628709,
+      "sla_pass_percent": 94.4837432279104,
+      "mean_ttft_s": 1.3804375723853037,
+      "p95_ttft_s": 5.838243383407593,
+      "p99_ttft_s": 19.24816906642914,
+      "mean_itl_ms": 12.999478856179397,
+      "max_token_gap_s": 367.07522099113464,
+      "mean_e2e_s": 7.373103181595685,
+      "prefix_reuse_percent": 95.40748525732963
+    }
+  ]
+}

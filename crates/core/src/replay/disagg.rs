@@ -4198,6 +4198,7 @@ where
         self.collector.set_runtime_evidence(self.evidence.finish());
         // Only the prefill pool can configure KVCR.
         self.collector.kvcr = self.prefill_engine.kvcr_stats();
+        self.collector.g3_offload = self.prefill_engine.g3_stats();
         // Both roles reference the same deployment pool; report it once.
         self.collector.g2_domains = match self.prefill_engine.g2_domains() {
             domains if domains.is_empty() => self.decode_engine.g2_domains(),

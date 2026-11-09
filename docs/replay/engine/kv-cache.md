@@ -30,7 +30,7 @@ engine:
         capacity: {type: default, memory_fraction: 0.9}
         host_offload:            # optional G2
           num_host_blocks: 4096
-        g3_offload:              # optional G3: aggregated only, requires host_offload
+        g3_offload:              # optional G3: requires host_offload
           scope: cluster_shared
           num_g3_blocks: 16384
         # kvcr: {}               # optional KVCR peer fetch: not on decode, requires private host_offload, not with g3_offload
@@ -110,7 +110,14 @@ in `requests.jsonl`:
 | `reused_input_tokens` | Largest reuse across the request's prefill admissions, or across all admissions without a prefill stage. |
 | `first_admission_g1_reused_input_tokens` | Prompt tokens served from G1 when the request was first admitted. |
 | `first_admission_host_reused_input_tokens` | Prompt tokens restored from G2, including G3 restores and KVCR pulls. |
+| `first_admission_g2_direct_reused_input_tokens` | Host tokens reused at first admission whose current G2 copy was not restored from G3 for this request. |
+| `first_admission_g3_reused_input_tokens` | Host tokens reused at first admission after G3 restored the current G2 copy for this request. |
 | `admission_history` | Every admission of the request, including after preemption, with the pool it reused from. |
+
+The two source counters sum to Host reuse. A later request using a resident
+block restored for a different request counts it as direct G2 reuse. Eviction
+clears the origin. With KVCR the two counters are omitted because peer fetch
+adds another source. These counters measure reused tokens at admission.
 
 The Dynamo KV Router's overlap score is a routing estimate; these fields record
 what Replay actually reused. A readmission after preemption can reuse KV the
@@ -293,8 +300,12 @@ read/write jobs and bytes, evictions, resident blocks and
 `cross_worker_read_blocks` (blocks read by a worker other than the writer).
 
 Supported: aggregated vLLM with `attention_data: 1`, prefix caching, and either
-G2 scope; fixed or Planner-scaled workers. Rejected: `recommend`, P/D,
-native MTP, and a `host_offload.connector` other than `offloading_v0_24`.
+G2 scope; fixed or Planner-scaled workers. Native token-only P/D replay also
+supports G3 on prefill with attention DP1, `worker_local` G3 and
+`dp_rank_local` G2. Decode can also use an independent `dp_rank_local` G2 pool and receives KV
+through the usual P/D handoff. The P store is private to each worker and the report's
+`g3_offload` counters describe P-side IO. Rejected: `recommend`, AgentX,
+speculation, and a `host_offload.connector` other than `offloading_v0_24`.
 
 When a request's prefix is larger than G2 can hold, restores can keep evicting
 each other. If the rank makes no progress for 1,024 consecutive restore rounds,

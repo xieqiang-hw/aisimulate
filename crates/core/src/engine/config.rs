@@ -1259,8 +1259,11 @@ impl EngineConfig {
                 "g3_offload requires host_offload.connector=offloading_v0_24"
             );
             ensure!(
-                self.worker_type == WorkerType::Aggregated,
-                "g3_offload is supported only for worker_type=aggregated"
+                self.worker_type == WorkerType::Aggregated
+                    || (self.worker_type == WorkerType::Prefill
+                        && g3.scope == G3Scope::WorkerLocal
+                        && host.scope == G2Scope::DpRankLocal),
+                "g3_offload requires an aggregated worker or prefill with worker_local G3 and dp_rank_local G2"
             );
         }
         if let Some(kvcr) = &self.kvcr {
@@ -1929,11 +1932,11 @@ mod tests {
                 |config| {
                     config.worker_type = WorkerType::Prefill;
                     config.g3_offload = serde_json::from_value(serde_json::json!(
-                        {"scope": "worker_local", "num_g3_blocks": 1}
+                        {"scope": "cluster_shared", "num_g3_blocks": 1}
                     ))
                     .unwrap();
                 },
-                "g3_offload is supported only for worker_type=aggregated",
+                "g3_offload requires an aggregated worker or prefill",
             ),
             (
                 |config| {

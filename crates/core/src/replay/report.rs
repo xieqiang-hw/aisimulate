@@ -1011,6 +1011,10 @@ pub struct PerRequestRecord {
     pub first_admission_g1_reused_input_tokens: Option<usize>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub first_admission_host_reused_input_tokens: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub first_admission_g2_direct_reused_input_tokens: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub first_admission_g3_reused_input_tokens: Option<usize>,
     pub prefill_worker_idx: Option<usize>,
     pub decode_worker_idx: Option<usize>,
     pub prefill_admit_ms: Option<f64>,
@@ -2391,6 +2395,16 @@ impl TraceCollector {
                 first_admission_host_reused_input_tokens: detail
                     .first_admission_cache_tier_attribution
                     .map(|value| value.host_reused_input_tokens),
+                first_admission_g2_direct_reused_input_tokens: detail
+                    .first_admission_cache_tier_attribution
+                    .and_then(|value| {
+                        value
+                            .g3_reused_input_tokens
+                            .map(|g3| value.host_reused_input_tokens - g3)
+                    }),
+                first_admission_g3_reused_input_tokens: detail
+                    .first_admission_cache_tier_attribution
+                    .and_then(|value| value.g3_reused_input_tokens),
                 prefill_worker_idx: stats.prefill_worker_idx,
                 decode_worker_idx: stats.decode_worker_idx,
                 prefill_admit_ms: detail.prefill_admit_ms,
@@ -3354,6 +3368,7 @@ mod tests {
             Some(CacheTierAttribution {
                 g1_reused_input_tokens: 12,
                 host_reused_input_tokens: 8,
+                g3_reused_input_tokens: Some(0),
             }),
         );
         collector.on_decode_assigned(uuid, 0);

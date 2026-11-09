@@ -288,6 +288,8 @@ struct Client {
 pub(crate) struct HostTier {
     config: HostTierConfig,
     entries: FxHashMap<HostBlockKey, Entry>,
+    // Origin of the current residency, scoped to the requesting promotion owner.
+    g3_restore_owners: FxHashMap<HostBlockKey, Uuid>,
     /// Includes pinned residents; pending destinations count only in `entries`.
     resident_blocks: usize,
     /// Resident, currently unpinned blocks, or every present block of a
@@ -339,6 +341,7 @@ impl HostTier {
         Ok(Self {
             config,
             entries: FxHashMap::default(),
+            g3_restore_owners: FxHashMap::default(),
             resident_blocks: 0,
             lru: Lru::default(),
             transfers: FxHashMap::default(),
@@ -783,15 +786,28 @@ impl HostTier {
     }
 
     pub(crate) fn complete_external(&mut self, id: TransferId) {
-        self.complete_external_with(id, false);
+        self.complete_external_with(id, false, None);
     }
 
     /// Complete a KVCR peer fetch, marking each block as filled by it.
     pub(crate) fn complete_external_from_kvcr(&mut self, id: TransferId) {
-        self.complete_external_with(id, true);
+        self.complete_external_with(id, true, None);
     }
 
-    fn complete_external_with(&mut self, id: TransferId, kvcr_origin: bool) {
+    pub(crate) fn complete_external_from_g3(&mut self, id: TransferId, owner: Option<Uuid>) {
+        self.complete_external_with(id, false, owner);
+    }
+
+    pub(crate) fn was_restored_from_g3_for(&self, key: HostBlockKey, owner: Uuid) -> bool {
+        self.g3_restore_owners.get(&key) == Some(&owner)
+    }
+
+    fn complete_external_with(
+        &mut self,
+        id: TransferId,
+        kvcr_origin: bool,
+        g3_owner: Option<Uuid>,
+    ) {
         let transfer = self
             .transfers
             .remove(&id)
@@ -802,6 +818,9 @@ impl HostTier {
             assert_eq!(entry.state, EntryState::PendingStore { transfer_id: id });
             entry.state = EntryState::Resident;
             entry.kvcr_origin = kvcr_origin;
+            if let Some(owner) = g3_owner {
+                self.g3_restore_owners.insert(*key, owner);
+            }
             if entry.load_pins == 0 {
                 self.lru.touch(&mut entry.lru_slot, *key);
             }
@@ -837,6 +856,7 @@ impl HostTier {
         let transfer = self.transfers.remove(&id).unwrap();
         for key in transfer.blocks {
             let mut entry = self.entries.remove(&key).unwrap();
+            self.g3_restore_owners.remove(&key);
             assert_eq!(entry.load_pins, 0);
             self.lru.remove(&mut entry.lru_slot);
             self.meta.remove(&key);
