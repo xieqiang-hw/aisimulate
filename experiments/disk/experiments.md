@@ -148,3 +148,19 @@ BUNDLE 沿用实验5的路径。脚本默认串行运行九组，失败即停。
 固定 1× 全量回放。每 TP 分片 SSD 读写同档设置为 6、4、2 GB/s，分别组合 P 侧 DRAM 384、256、128 GB，共九组。沿用现有 8 盘配置的其余参数，使用原有 8 GB/s 的三组 1× 结果作对照。
 
 入口为 `scripts/run_p_local_8ssd_bandwidth_sweep.py`。每组使用独立的 `configs/p_local_8ssd_p{容量}gb_1x_ssd{带宽}gbps.yaml`。比较联合 SLA、TTFT 和 SSD 读写流量。
+
+## H100 80 GB 本地 SSD扫描
+
+模型为 MiniMax-M2.5，使用 H100 SXM 80 GiB，1P1D 各 TP8、Attention DP1、MoE TP1 / EP8。入口为 `scripts/run_h100_local_8ssd_sweep.py`，运行时通过 `--bundle` 指定新转换的数据。
+
+沿用 11 月 6 日的九组回放倍率与缓存块数，以及读写带宽和 SLA。容量档位名称沿用旧实验，MiniMax 的单块 KV 字节数可能不同。九组配置已通过结构校验。384 GB、1× 的 10 条请求小样本已使用 vLLM 0.24.0 算子数据跑通。
+
+## 128K 时间叠加负载扫描
+
+H200、GLM-5.2-FP8、1P1D，P/D 各 Attention TP8、MoE TP8／EP1。2×、4×、8× 叠加 trace 各跑三档 P 侧 DRAM，共九组。复用原 1× YAML，回放倍率固定为 1。原 1× 结果作为对照。先用 `prepare_freeinference_overlay.py` 生成数据，再用 `run_p_local_8ssd_overlay_sweep.py` 启动。
+
+16× 为单独加跑的三组。把原 16 周按周叠到第一周，使用 `--factors 16` 生成，再用 `--overlays 16` 跑三档 DRAM。默认仍跑原九组。
+
+## 8x overlay SSD read bandwidth sweep
+
+P DRAM 128 GB, SSD read 12 and 16 GB/s per TP shard, write fixed at 8 GB/s. Reuse the 8 GB/s overlay baseline. Entry point: `scripts/run_p_local_8ssd_overlay_read_sweep.py`.

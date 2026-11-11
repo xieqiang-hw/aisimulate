@@ -1,0 +1,98 @@
+# 实验配置；基于 HWACSLab/aisimulate 4f1b31c941c4a434f66b9f23359e9259b963ec21
+# experiments/pd_unified/configs/dsv32_i4_g8_p1d3.yaml 修改，Apache-2.0。
+# Capacity labels and block counts are inherited from the GLM scan; MiniMax byte capacities can differ.
+traffic:
+  source:
+    type: trace
+    format: mooncake
+    paths:
+    - __SET_BY_RUNNER__
+    block_size: 16
+  load:
+    type: trace_timestamps
+    speedup: 8.0
+engine:
+  mode: disaggregated
+  model: MiniMaxAI/MiniMax-M2.5
+  hardware: h100_sxm
+  backend: vllm
+  backend_version: 0.24.0
+  context_length: 131072
+  estimation_mode: op_level
+  fallback_policy: deny
+  database_mode: SILICON
+  enable_chunked_prefill: true
+  kv_transfer:
+    bytes_per_token: auto
+    bandwidth_gb_per_second: 50.0
+    timing_mode: destination_missing
+  workers:
+    prefill:
+      parallelism:
+        replicas: 1
+        tensor: 8
+        pipeline: 1
+        attention_data: 1
+        moe_tensor: 1
+        moe_expert: 8
+      scheduler:
+        max_batched_tokens: 8192
+        max_sequences: 4
+      kv_cache:
+        block_size: 64
+        prefix_caching: true
+        bytes_per_token: auto
+        capacity:
+          type: default
+          memory_fraction: 0.9
+        host_offload:
+          scope: dp_rank_local
+          connector: offloading_v0_24
+          num_host_blocks: 12455
+          d2h_bandwidth_gbps: 32.0
+          h2d_bandwidth_gbps: 25.0
+          latency_to_first_byte_ms: 0.0
+        g3_offload:
+          scope: worker_local
+          num_g3_blocks: 1816378
+          read_bandwidth_gbps: 8.0
+          write_bandwidth_gbps: 8.0
+          latency_to_first_byte_ms: 0.1
+      timing:
+        type: default
+      startup_seconds: 0.0
+    decode:
+      parallelism:
+        replicas: 1
+        tensor: 8
+        pipeline: 1
+        attention_data: 1
+        moe_tensor: 1
+        moe_expert: 8
+      scheduler:
+        max_batched_tokens: 8192
+        max_sequences: 256
+      kv_cache:
+        block_size: 64
+        prefix_caching: true
+        bytes_per_token: auto
+        capacity:
+          type: default
+          memory_fraction: 0.9
+        host_offload:
+          scope: dp_rank_local
+          connector: offloading_v0_24
+          num_host_blocks: 8303
+          d2h_bandwidth_gbps: 32.0
+          h2d_bandwidth_gbps: 25.0
+          latency_to_first_byte_ms: 0.0
+      timing:
+        type: default
+      startup_seconds: 0.0
+evaluation:
+  sla:
+    ttft_ms: 5000.0
+    itl_ms: 50.0
+execution:
+  resources:
+    initialization_timeout_seconds: 600.0

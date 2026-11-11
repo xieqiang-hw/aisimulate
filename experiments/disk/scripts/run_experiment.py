@@ -18,7 +18,6 @@ import time
 import yaml
 
 BASE = Path(__file__).resolve().parents[1]
-MODEL = 'zai-org/GLM-5.2-FP8'
 
 def digest(path):
     with path.open('rb') as f:
@@ -45,8 +44,11 @@ def main(*, default_config=BASE/'configs/hbm_only.yaml',
     if not manifest_path.is_file():
         p.error('manifest.json missing: conversion may still be running; use only a completed bundle')
     manifest=json.loads(manifest_path.read_text())
-    if manifest.get('model_mapping',{}).get('target_model') != MODEL:
-        p.error(f'bundle target_model must be {MODEL}')
+    config_path=args.config.expanduser().resolve()
+    config=yaml.safe_load(config_path.read_text())
+    model=config['engine']['model']
+    if manifest.get('model_mapping',{}).get('target_model') != model:
+        p.error(f'bundle target_model must be {model}')
     if manifest.get('format') not in ('mooncake','mooncake-spooled') or manifest.get('trace_block_size')!=16:
         p.error('expected converter Mooncake bundle with 16-token hash blocks')
     trace=bundle/'requests.jsonl'
@@ -55,8 +57,6 @@ def main(*, default_config=BASE/'configs/hbm_only.yaml',
     actual=digest(trace)
     if trace.stat().st_size!=expected['size'] or actual!=expected['sha256']:
         p.error('requests.jsonl size/SHA256 differs from manifest')
-    config_path=args.config.expanduser().resolve()
-    config=yaml.safe_load(config_path.read_text())
     if manifest['context_limit']>config['engine']['context_length']:
         p.error('bundle context limit exceeds configured model context')
     stamp=dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S.%fZ')
