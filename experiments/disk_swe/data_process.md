@@ -20,7 +20,7 @@
 
 | 文件 | 内容 |
 |---|---|
-| `requests.jsonl` | 每行一条调用，包含 `timestamp`（相对毫秒）、`input_length`、`output_length`、`hash_ids`。 |
+| `requests.jsonl` | 每行一条调用，包含 `timestamp`（相对毫秒）、`input_length`、`output_length`、`hash_ids`、`output_token_ids`。 |
 | `source_requests.jsonl` | 记录输出行号、源会话和响应 ID、调用顺序、时间来源、重建质量标记。 |
 | `manifest.json` | 记录数据 revision、目标模型、模板和 tokenizer 版本、上下文上限、trace 块大小、请求数、过滤计数和文件 SHA256。沿用现有回放入口所需的字段。 |
 
@@ -28,6 +28,6 @@
 
 ## 盘框实验的后续扩展
 
-在中间产物中保留计划输出 token 和调用依赖。逐 token 比较上一轮的「完整输入＋计划输出」和下一轮的完整输入，统计共同前缀中由 D 计算补齐的完整 64-token KV 块。后续可导出带 `output_token_ids` 和 `wait_for` 的 `agentic_mooncake`。先用两轮构造样本验证 D 写入和 P 读回，再用重建负载测收益。
+在中间产物中保留计划输出 token 和调用依赖。逐 token 比较上一轮的「完整输入＋计划输出」和下一轮的完整输入，统计共同前缀中由 D 计算补齐的完整 64-token KV 块。后续可利用已有输出 token ID，补充 `wait_for` 后导出 `agentic_mooncake`。先用两轮构造样本验证 D 写入和 P 读回，再用重建负载测收益。
 
 [官方字段说明](https://huggingface.co/datasets/SALT-NLP/SWE-chat#dataset-schema)

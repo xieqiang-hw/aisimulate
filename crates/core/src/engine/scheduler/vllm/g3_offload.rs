@@ -44,6 +44,16 @@ impl VllmG3OffloadAdapter {
         }
     }
 
+    pub(super) fn observation(&self) -> (usize, usize, usize) {
+        let owners: FxHashSet<_> = self
+            .stages
+            .values()
+            .filter_map(|stage| stage.owner)
+            .collect();
+        let (reads, writes) = self.registry.lock().unwrap().pending_io_counts(self.worker);
+        (owners.len(), reads, writes)
+    }
+
     /// The rank scheduled work or emitted output: every waiting request's
     /// restore rounds start over.
     pub(super) fn note_rank_progress(&mut self) {

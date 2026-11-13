@@ -11,7 +11,7 @@ PROJECT = Path.home() / "project"
 BUNDLE = PROJECT / ("data/freeinference_agentic_trace/derived/dynosim-openloop-v1/"
                     "428f809eef5952012f9c-overlay-2x")
 OUTPUT = PROJECT / "results/glm52-overlay-2x-hbm2048-p128gb-ssd-read-sweep"
-READ_BANDWIDTHS = (12, 16, 24, 32, 40)
+READ_BANDWIDTHS = (12, 16, 24, 32, 40, 48, 56)
 
 
 def main():

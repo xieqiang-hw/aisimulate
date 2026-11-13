@@ -11,6 +11,7 @@ use std::time::Duration;
 use rustc_hash::{FxHashMap, FxHashSet};
 use uuid::Uuid;
 
+use super::observation::{AdmissionDetail, Event, Identity, Iteration, PassObservation, Snapshot};
 use crate::engine::HostOffloadObserver;
 use crate::engine::belady::BeladyOracle;
 use crate::engine::common::protocols::{
@@ -679,6 +680,8 @@ pub(crate) struct VllmCore {
     attention_dp_size: u32,
     prefill_capacity_bound: bool,
     passes_executed: u64,
+    observation_worker_id: u64,
+    recorder: Option<super::observation::Recorder>,
     belady_oracle: Option<BeladyOracle>,
     /// The scheduled pass awaiting its forward time.
     unpriced: Option<UnpricedPass>,
@@ -690,6 +693,7 @@ pub(crate) struct VllmCore {
 struct UnpricedPass {
     now_ms: f64,
     compute_start_ms: f64,
+    observation: Option<PassObservation>,
     forward: ForwardWork,
     /// Native host offload advanced its retry state during this pass, so an
     /// instantaneous pass asks for a same-timestamp retry.
@@ -880,7 +884,10 @@ impl VllmCore {
         } else {
             (None, KvEventPublishers::default())
         };
-        Self::new_internal(args, dp_rank, seed_offset, buffer, publishers, g2_binding)
+        let mut core =
+            Self::new_internal(args, dp_rank, seed_offset, buffer, publishers, g2_binding)?;
+        core.observation_worker_id = _worker_id;
+        Ok(core)
     }
 
     fn new_internal(
@@ -978,6 +985,8 @@ impl VllmCore {
             attention_dp_size: 1,
             prefill_capacity_bound: false,
             passes_executed: 0,
+            observation_worker_id: 0,
+            recorder: super::observation::Recorder::from_env()?,
             unpriced: None,
         })
     }
@@ -1989,6 +1998,44 @@ impl VllmCore {
             None => self.forward_time(pass.forward)?,
         };
         let end_ms = forward_time.end_ms(pass.compute_start_ms);
+        let identity = self.recorder.as_ref().map(|_| self.observation_identity());
+        if let (Some(recorder), Some(mut observation)) = (&mut self.recorder, pass.observation) {
+            let row = &mut observation.iteration;
+            row.iteration_id = self.passes_executed;
+            row.start_ms = pass.now_ms;
+            row.compute_start_ms = pass.compute_start_ms;
+            row.end_ms = end_ms;
+            row.preemptions_this_pass = pass.result.pressure_events.len();
+            let stream_id = recorder.record_pass(identity.unwrap(), *row, observation.snapshot)?;
+            for pressure in &pass.result.pressure_events {
+                recorder.event(&Event {
+                    schema_version: 2,
+                    stream_id,
+                    event: "preemption",
+                    at_ms: pressure.at_ms,
+                    request_id: pressure.request_id,
+                    num_preemptions: None,
+                    reused_input_tokens: None,
+                    detail: Some(pressure),
+                })?;
+            }
+            for admission in &observation.admissions {
+                recorder.event(&Event {
+                    schema_version: 2,
+                    stream_id,
+                    event: if admission.num_preemptions.is_some_and(|n| n > 0) {
+                        "readmission"
+                    } else {
+                        "admission"
+                    },
+                    at_ms: pass.now_ms,
+                    request_id: admission.request_id,
+                    num_preemptions: admission.num_preemptions,
+                    reused_input_tokens: Some(admission.reused_input_tokens),
+                    detail: None,
+                })?;
+            }
+        }
         let mut result = pass.result;
         result.end_ms = end_ms;
         if let Some(fpm) = &mut result.fpm {
@@ -2522,6 +2569,22 @@ impl VllmCore {
                     .filter(|uuid| scheduled.contains_key(uuid)),
             );
         }
+        let mut observation = self.recorder.as_ref().map(|_| PassObservation {
+            snapshot: self.observation_snapshot(),
+            iteration: Iteration::default(),
+            admissions: admissions
+                .iter()
+                .map(|admission| AdmissionDetail {
+                    request_id: admission.uuid,
+                    num_preemptions: self
+                        .state
+                        .requests
+                        .get(&admission.uuid)
+                        .map(|r| r.num_preemptions),
+                    reused_input_tokens: admission.reused_input_tokens,
+                })
+                .collect(),
+        });
         let mut decode_acceptance = DecodeAcceptance::default();
         // The forward is priced once its decode work is known, since a pass
         // that computes prefill and decode together may be one forward.
@@ -2587,6 +2650,30 @@ impl VllmCore {
             decode_count: decode.count(),
             total_length: decode.total_length(),
         };
+        if let Some(observation) = observation.as_mut() {
+            let row = &mut observation.iteration;
+            row.prefill_bs = prefill.map_or(0, |p| p.batch_size);
+            row.prefill_new_tokens = prefill.map_or(0, |p| p.new_tokens);
+            row.prefill_prefix_tokens = prefill.map_or(0, |p| p.prefix_tokens);
+            row.decode_bs = forward.decode_count;
+            row.decode_kv_tokens_sum = forward.total_length;
+            row.decode_kv_tokens_max = decode.lengths.iter().max().copied().unwrap_or(0);
+            row.decode_generated_tokens = output_signals
+                .iter()
+                .filter(|signal| {
+                    signal.token_id.is_some()
+                        && scheduled
+                            .get(&signal.uuid)
+                            .is_some_and(|w| w.prompt_tokens == 0)
+                })
+                .count();
+            observation.snapshot.running_not_scheduled_after = self
+                .state
+                .running_members
+                .iter()
+                .filter(|uuid| !committed_requests.contains(uuid))
+                .count();
+        }
         let work = RankWork {
             dp_rank: self.dp_rank,
             prefill: prefill.map(|totals| PrefillWork {
@@ -2635,6 +2722,7 @@ impl VllmCore {
         self.unpriced = Some(UnpricedPass {
             now_ms,
             compute_start_ms,
+            observation,
             forward,
             retry_if_instant,
             result,
@@ -2781,6 +2869,62 @@ impl VllmCore {
             });
         }
         preempted
+    }
+
+    fn observation_role(&self) -> &'static str {
+        match self.args.worker_type {
+            WorkerType::Prefill => "prefill",
+            WorkerType::Decode => "decode",
+            WorkerType::Aggregated => "aggregated",
+        }
+    }
+
+    fn observation_identity(&self) -> Identity {
+        Identity {
+            role: self.observation_role(),
+            worker_id: self.observation_worker_id,
+            dp_rank: self.dp_rank,
+            hbm_total_blocks: self.args.num_gpu_blocks,
+            hbm_grouped: !self.args.kv_cache_groups.is_empty(),
+            block_size: self.args.block_size,
+            max_sequences: self.args.max_num_seqs,
+            max_batched_tokens: self.args.max_num_batched_tokens,
+        }
+    }
+
+    fn observation_snapshot(&self) -> Snapshot {
+        let h2d_loading = self
+            .state
+            .connector_waiting_members
+            .iter()
+            .filter(|uuid| {
+                self.state
+                    .requests
+                    .get(uuid)
+                    .and_then(|r| r.host_offload.as_deref())
+                    .is_some_and(VllmHostRequestState::is_loading)
+            })
+            .count();
+        let g3 = self
+            .native_host_offload
+            .as_ref()
+            .and_then(|a| a.observation_g3());
+        Snapshot {
+            running_requests: self.state.running_members.len(),
+            waiting_admission_requests: self.state.waiting_members.len(),
+            connector_waiting_requests: self.state.connector_waiting_members.len(),
+            h2d_loading_requests: h2d_loading,
+            g3_staging_requests: g3.map(|v| v.0),
+            g3_pending_read_jobs: g3.map(|v| v.1),
+            g3_pending_write_jobs: g3.map(|v| v.2),
+            pending_destination_requests: self.pending_destinations.len(),
+            reserved_destination_requests: self.destination_holds.payloads().count(),
+            source_held_requests: self.source_holds.observation_held_count(),
+            hbm_active_blocks: self.kv_manager.num_active_blocks(),
+            hbm_inactive_blocks: self.kv_manager.num_inactive_blocks(),
+            preemptions_total: self.state.preemptions_total,
+            running_not_scheduled_after: 0,
+        }
     }
 
     fn pressure_state(&self) -> PressureState {
@@ -5149,5 +5293,151 @@ mod g3_rank_progress_tests {
         );
         assert_eq!(admitted, [(thrasher, 8.781_124_999_999_797)]);
         assert_eq!(g3_stats(&registry), (1, 1199 + 1024));
+    }
+}
+
+#[cfg(test)]
+mod observation_regressions {
+    use super::*;
+    use std::fs::File;
+    use std::io::Read;
+
+    fn run(directory: Option<&std::path::Path>, pressure: bool) -> (Vec<serde_json::Value>, u64) {
+        let args = MockEngineArgs::builder()
+            .num_gpu_blocks(if pressure { 6 } else { 32 })
+            .block_size(4)
+            .max_num_seqs(Some(2))
+            .max_num_batched_tokens(Some(if pressure { 8 } else { 4 }))
+            .enable_prefix_caching(true)
+            .build()
+            .unwrap();
+        let mut core = VllmCore::new(args);
+        core.recorder =
+            directory.map(|path| super::super::observation::Recorder::open(path).unwrap());
+        let inputs = if pressure {
+            vec![(1, 4, 20), (2, 4, 20)]
+        } else {
+            vec![(1, 12, 3)]
+        };
+        for (id, prompt, output) in inputs {
+            core.receive(DirectRequest {
+                uuid: Some(Uuid::from_u128(id)),
+                tokens: (0..prompt).map(|n| n + id as u32 * 100).collect(),
+                max_output_tokens: output,
+                ..Default::default()
+            });
+        }
+        let mut outputs = Vec::new();
+        let mut now = 0.0;
+        for _ in 0..500 {
+            if core.state.requests.is_empty() {
+                break;
+            }
+            let result = core.try_execute_hidden_pass(now).unwrap();
+            outputs.push(serde_json::json!({
+                "end_ms": result.end_ms,
+                "signals": result.output_signals,
+                "prefill": result.fpm.as_ref().map(|f| (f.num_prefill_requests, f.sum_prefill_tokens)),
+                "decode": result.fpm.as_ref().map(|f| f.num_decode_requests),
+            }));
+            now = result.end_ms;
+        }
+        assert!(core.state.requests.is_empty(), "fixture must complete");
+        (outputs, core.state.preemptions_total)
+    }
+
+    fn rows(path: &std::path::Path, name: &str) -> Vec<serde_json::Value> {
+        fn read(path: &std::path::Path) -> Vec<serde_json::Value> {
+            let mut text = String::new();
+            flate2::read::GzDecoder::new(File::open(path).unwrap())
+                .read_to_string(&mut text)
+                .unwrap();
+            text.lines()
+                .map(|line| serde_json::from_str(line).unwrap())
+                .collect()
+        }
+        let meta: serde_json::Value = serde_json::from_reader(
+            File::open(path.join("scheduler_trace_metadata.json")).unwrap(),
+        )
+        .unwrap();
+        let columns = meta["iteration_columns"].as_array().unwrap();
+        let states = read(&path.join("scheduler_states.jsonl.gz"));
+        let mut result = Vec::new();
+        for row in read(&path.join(name)) {
+            let mut row = if let Some(values) = row.as_array() {
+                serde_json::Value::Object(
+                    columns
+                        .iter()
+                        .zip(values)
+                        .map(|(k, v)| (k.as_str().unwrap().to_owned(), v.clone()))
+                        .collect(),
+                )
+            } else {
+                row
+            };
+            let stream_id = row["stream_id"].as_u64().unwrap() as usize;
+            for (key, value) in meta["streams"][stream_id].as_object().unwrap() {
+                row[key] = value.clone();
+            }
+            if name == "iteration_metrics.jsonl.gz" {
+                let state = states
+                    .iter()
+                    .rev()
+                    .find(|s| {
+                        s[0].as_u64().unwrap() as usize == stream_id
+                            && s[1].as_u64().unwrap() <= row["iteration_id"].as_u64().unwrap()
+                    })
+                    .unwrap();
+                for (key, value) in state[3].as_object().unwrap() {
+                    row[key] = value.clone();
+                }
+            }
+            result.push(row);
+        }
+        result
+    }
+
+    #[test]
+    fn observation_chunked_bs_tokens_and_outputs_are_exact() {
+        let dir = tempfile::tempdir().unwrap();
+        assert_eq!(run(None, false), run(Some(dir.path()), false));
+        let rows = rows(dir.path(), "iteration_metrics.jsonl.gz");
+        assert_eq!(
+            rows.iter()
+                .map(|r| r["prefill_new_tokens"].as_u64().unwrap())
+                .sum::<u64>(),
+            12
+        );
+        assert_eq!(rows.iter().filter(|r| r["prefill_bs"] == 1).count(), 3);
+        assert_eq!(rows.iter().filter(|r| r["decode_bs"] == 1).count(), 2);
+        assert_eq!(
+            rows.iter()
+                .map(|r| r["decode_generated_tokens"].as_u64().unwrap())
+                .sum::<u64>(),
+            2
+        );
+        for row in rows {
+            assert!(row["end_ms"].as_f64().unwrap() >= row["start_ms"].as_f64().unwrap());
+            assert!(
+                row["hbm_active_blocks"].as_u64().unwrap()
+                    + row["hbm_inactive_blocks"].as_u64().unwrap()
+                    <= 32
+            );
+        }
+    }
+
+    #[test]
+    fn observation_pressure_events_and_readmissions_preserve_results() {
+        let dir = tempfile::tempdir().unwrap();
+        let plain = run(None, true);
+        let observed = run(Some(dir.path()), true);
+        assert_eq!(plain, observed);
+        assert!(observed.1 > 0);
+        let events = rows(dir.path(), "scheduling_events.jsonl.gz");
+        assert_eq!(
+            events.iter().filter(|r| r["event"] == "preemption").count() as u64,
+            observed.1
+        );
+        assert!(events.iter().any(|r| r["event"] == "readmission"));
     }
 }

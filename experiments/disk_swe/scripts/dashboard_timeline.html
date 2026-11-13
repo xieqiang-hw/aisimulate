@@ -1,0 +1,29 @@
+
+<section id="schedulerTimeline" class="timeline-section" aria-label="P D 逐轮执行时间线">
+<div class="intro"><div><div class="eyebrow">PREFILL / DECODE · 调度观测</div><h2>沿时间看实际执行批次</h2><p>拖选图中区域放大，双击缩小；P/D 同步缩放，横轴始终为仿真时间。</p></div><span class="progress" id="tlProgress"></span></div>
+<div class="timeline-filters">
+<div class="field timeline-case"><label for="tlCase">实验组合</label><select id="tlCase"></select></div>
+<div class="field"><label for="tlWindow">时间窗口与精度</label><select id="tlWindow"></select></div>
+<div class="field"><label for="tlFrom">窗口起点 <span id="tlUnitA"></span></label><input id="tlFrom" type="number" min="0" step="1"></div>
+<div class="field"><label for="tlTo">窗口终点 <span id="tlUnitB"></span></label><input id="tlTo" type="number" min="0" step="1"></div>
+</div>
+<div class="timeline-toolbar"><button class="btn" id="tlZoomIn">放大 ×4</button><button class="btn" id="tlZoomOut">缩小 ×4</button><button class="btn" id="tlReset">重置窗口</button><button class="btn" id="tlWhole">回到全程</button><button class="btn" id="tlExport">导出当前图表 CSV</button><span id="tlSource" class="note"></span></div><div class="timeline-toolbar"><label><input id="tlShowPeak" type="checkbox"> 宽窗口叠加 BS 峰值（右轴）</label><label><input id="tlFixedBusyAxis" type="checkbox"> 繁忙占比固定 0–100%</label><span id="tlScaleStatus" class="note"></span></div>
+<div class="insight" id="tlExplain"></div>
+<div class="cards timeline-cards" id="tlCards"></div>
+<div class="duo">
+<div class="chart"><div class="charthead"><div><h3>Prefill BS 随时间变化</h3><p class="sub" id="tlPSub"></p></div><div class="legend" id="tlPLegend"></div></div><div class="canvasholder"><canvas id="tlPChart" role="img" aria-label="Prefill实际批次随仿真时间变化"></canvas></div></div>
+<div class="chart"><div class="charthead"><div><h3>Decode BS 随时间变化</h3><p class="sub" id="tlDSub"></p></div><div class="legend" id="tlDLegend"></div></div><div class="canvasholder"><canvas id="tlDChart" role="img" aria-label="Decode实际批次随仿真时间变化"></canvas></div></div>
+</div>
+<div class="timeline-filters timeline-metric-filters">
+<div class="field"><label for="tlMetric">辅助指标</label><select id="tlMetric">
+<option value="prefill">Prefill 新计算 token 数</option><option value="duration">Decode 每轮执行耗时</option><option value="context">Decode KV 上下文长度</option><option value="queue">等待队列与运行请求</option><option value="restore">H2D / SSD 恢复任务</option><option value="hbm">HBM KV 占用</option><option value="busy">计算繁忙时间占比</option><option value="pressure">抢占与重新准入次数</option>
+</select></div><div class="field"><label for="tlRole">队列／恢复／HBM 观察阶段</label><select id="tlRole"><option value="prefill">P · Prefill</option><option value="decode">D · Decode</option></select></div>
+</div>
+<div class="chart"><div class="charthead"><div><h3 id="tlAuxTitle"></h3><p class="sub" id="tlAuxSub"></p></div><div class="legend" id="tlAuxLegend"></div></div><div class="canvasholder timeline-wide"><canvas id="tlAuxChart" role="img" aria-label="逐轮计算、队列、恢复或KV状态"></canvas></div></div>
+<details><summary>时间线统计口径与限制</summary><div class="definitions">
+<p><b>最忙分钟 · 原始逐轮</b><br>按每个阶段累计计算时间最多的分钟选窗，平局取首次。BS 只画 compute_start 到 end 的实际计算段，空闲不延续上一次 BS。此处展示真实逐轮点，不是平均并发。P/D 共用同一个时间窗口。</p>
+<p><b>全程 · 自动精度</b><br>宽窗口默认显示计算繁忙占比，分母为该统计桶与视窗相交的实际时长；随缩放从天／小时细化到分钟／秒。缩到 5 分钟以内显示全程精细 BS 计算段，保留微秒级显示精度和空闲间隔。相邻且 BS 相同的计算段合并。可选右轴峰值不能理解为桶内持续执行。辅助指标概览仍为小时统计，预置最忙分钟提供原始逐轮辅助细节。</p>
+<p><b>状态与等待</b><br>队列、恢复任务、HBM 均为调度采样状态。概览展示采样最大值，短窗展示状态变化点。普通等待、连接器等待和恢复任务有重叠，不相加；普通等待也不证明 KV 已就绪。</p>
+<p><b>其他边界</b><br>逐轮 Decode 耗时不是请求 ITL；BS 小不自动说明算力充足，BS 达到上限也不证明纯算力瓶颈。应结合 token 预算、KV 占用和恢复状态。无 G3 的 D 阶段显示“未启用”，不把缺失数据当作实际零。</p>
+</div></details>
+</section>

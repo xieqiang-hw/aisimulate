@@ -426,6 +426,17 @@ impl G3Tier {
         }
     }
 
+    pub(crate) fn pending_io_counts(&self, worker: usize) -> (usize, usize) {
+        let mut counts = (0, 0);
+        for job in self.jobs.values().filter(|job| job.worker == worker) {
+            match job.direction {
+                Direction::Read => counts.0 += 1,
+                Direction::Write => counts.1 += 1,
+            }
+        }
+        counts
+    }
+
     pub(crate) fn snapshot(&self) -> G3Stats {
         let mut stats = self.stats.clone();
         let entries = self.pools.values().flat_map(|pool| pool.entries.values());

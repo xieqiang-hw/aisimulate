@@ -130,6 +130,7 @@ def main():
                      "hash_ids": prefix_ids(tokens, f"{session}:{call}", index)}
             source = {key: row[key] for key in ("session_id", "call_index", "response_id",
                                                "first_response_event_at", "time_source")}
+            trace["output_token_ids"] = output
             source["output_token_ids"] = output
             emitted.append((time_ms, session, call, trace, source))
     if not emitted:

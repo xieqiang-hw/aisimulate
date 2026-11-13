@@ -1,0 +1,45 @@
+{
+  "schema_version": 2,
+  "passed": true,
+  "vllm_regression_tests_passed": 239,
+  "gzip_validation": {
+    "passed": true,
+    "run_dir": "/tmp/aisim-scheduler-observation-validation/20261112T084104.019470Z",
+    "decode_pressure_exact_match": true,
+    "decode_readmissions": 1,
+    "decode_g2_readmission_reused_tokens": 64,
+    "completed_requests": 3,
+    "per_request_exact_match_excluding_uuid": true,
+    "report_metrics_exact_match": true,
+    "iteration_rows": 11,
+    "events": {
+      "prefill/admission": 3,
+      "decode/admission": 3
+    },
+    "prefill_new_tokens": 387,
+    "decode_generated_tokens": 6,
+    "max_g3_read_jobs": 1,
+    "max_h2d_loading_requests": 1
+  },
+  "plain_validation": {
+    "passed": true,
+    "run_dir": "/tmp/aisim-scheduler-observation-validation/20261112T084106.995874Z",
+    "decode_pressure_exact_match": true,
+    "decode_readmissions": 1,
+    "decode_g2_readmission_reused_tokens": 64,
+    "completed_requests": 3,
+    "per_request_exact_match_excluding_uuid": true,
+    "report_metrics_exact_match": true,
+    "iteration_rows": 11,
+    "events": {
+      "prefill/admission": 3,
+      "decode/admission": 3
+    },
+    "prefill_new_tokens": 387,
+    "decode_generated_tokens": 6,
+    "max_g3_read_jobs": 1,
+    "max_h2d_loading_requests": 1
+  },
+  "performance_evidence": "performance.json",
+  "extension_sha256": "202890693e7fea4b7cd438750dde7a2719004e165c8c5d12e6d32b382b9ac74a"
+}

@@ -8,9 +8,11 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import hashlib
+import gzip
 import importlib.metadata
 import json
 import math
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -36,6 +38,8 @@ def main(*, default_config=BASE/'configs/hbm_only.yaml',
     p.add_argument('--max-requests', type=int, default=0, help='0 means all; otherwise chronological prefix, including tied boundary timestamps')
     p.add_argument('--dry-run', action='store_true', help='Verify bundle, save and validate config without running simulation')
     p.add_argument('--export-html', action='store_true', help='Capture telemetry and dashboard; can be large for 16 weeks')
+    p.add_argument('--capture-scheduler-trace', action='store_true', help='Stream native vLLM/TRT-LLM P/D iteration and scheduling metrics')
+    p.add_argument('--scheduler-trace-compression', choices=('gzip','none'), default='gzip')
     args=p.parse_args()
     if not math.isfinite(args.speedup) or args.speedup<=0 or args.max_requests<0:
         p.error('speedup must be finite and positive; max-requests must be nonnegative')
@@ -103,12 +107,42 @@ def main(*, default_config=BASE/'configs/hbm_only.yaml',
     if args.dry_run:
         print('Bundle and YAML validated; no simulation executed.',flush=True)
         return 0
+    child_env=os.environ.copy()
+    child_env.pop('AISIM_SCHEDULER_TRACE_DIR', None)
+    child_env.pop('AISIM_SCHEDULER_TRACE_COMPRESSION', None)
+    if args.capture_scheduler_trace:
+        child_env['AISIM_SCHEDULER_TRACE_DIR']=str(out/'prediction')
+        child_env['AISIM_SCHEDULER_TRACE_COMPRESSION']=args.scheduler_trace_compression
+    metadata['capture_scheduler_trace']=args.capture_scheduler_trace
+    metadata['scheduler_trace_compression']=args.scheduler_trace_compression
+    metadata['scheduler_trace_schema']=2 if args.capture_scheduler_trace else None
     start=time.monotonic()
     metadata['status']='running'
     save(out/'run.json',metadata)
     try:
         with (out/'run.log').open('w') as log:
-            result=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,check=False)
+            result=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,check=False,env=child_env)
+        if result.returncode==0 and args.capture_scheduler_trace:
+            prediction=out/'prediction'
+            trace_meta=json.loads((prediction/'scheduler_trace_metadata.json').read_text())
+            if trace_meta.get('schema_version')!=2 or not trace_meta.get('streams'):
+                raise RuntimeError('Missing scheduler trace v2 stream metadata')
+            suffix='.jsonl.gz' if args.scheduler_trace_compression=='gzip' else '.jsonl'
+            for stem in ('iteration_metrics','scheduler_states','scheduling_events'):
+                record=prediction/(stem+suffix)
+                if not record.is_file() or record.stat().st_size==0:
+                    raise RuntimeError(f'Scheduler observation file missing: {record}')
+                with (gzip.open(record,'rt') if suffix.endswith('.gz') else record.open()) as stream:
+                    first=stream.readline()
+                if not first:
+                    raise RuntimeError(f'Empty scheduler observation: {record}')
+                row=json.loads(first)
+                if stem=='iteration_metrics' and (not isinstance(row,list) or len(row)!=13):
+                    raise RuntimeError(f'Invalid iteration schema: {record}')
+                if stem=='scheduler_states' and (not isinstance(row,list) or len(row)!=4):
+                    raise RuntimeError(f'Invalid state-change schema: {record}')
+                if stem=='scheduling_events' and row.get('schema_version')!=2:
+                    raise RuntimeError(f'Invalid event schema: {record}')
         metadata.update(status='completed' if result.returncode==0 else 'failed',returncode=result.returncode)
     except BaseException as exc:
         metadata.update(status='interrupted' if isinstance(exc,KeyboardInterrupt) else 'failed',error=repr(exc))

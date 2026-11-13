@@ -210,7 +210,7 @@ def stage_session(db, session, relative, calls, tokenizer, template, limit, coun
                 parent = hashlib.sha256(parent + struct.pack(f"<{len(block)}I", *block)
                                         + f"{session}:{row['call_index']}".encode()).digest()
             hashes.append(ids(parent))
-        trace = {"input_length": len(tokens), "output_length": len(output), "hash_ids": hashes}
+        trace = {"input_length": len(tokens), "output_length": len(output), "hash_ids": hashes, "output_token_ids": output}
         source = {key: row[key] for key in ("session_id", "call_index", "response_id",
                                           "first_response_event_at", "time_source", "model")}
         source.update(transcript_path=relative, output_token_ids=output)
@@ -242,7 +242,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--upstream", type=Path, default=DATA / "swe_chat/upstream")
     parser.add_argument("--tokenizer", type=Path, default=DATA / "GLM_5.2_tokenizer")
-    parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, default=Path.home() / "project/data/swe_chat/derived/mooncake-v1/claude-code-main-glm52-128k")
     parser.add_argument("--context-limit", type=int, default=131072)
     parser.add_argument("--max-sessions", type=int, default=0, help="0 scans all eligible sessions")
     args = parser.parse_args()
@@ -306,7 +306,7 @@ def main():
             "max_sessions": args.max_sessions,
             "timestamp_policy": "first response event proxy, relative milliseconds",
             "history_policy": "logged messages only; system prompts and tool schemas omitted",
-            "output_policy": "rendered completion plus EOS; output IDs in sidecar only",
+            "output_policy": "rendered completion plus EOS; output IDs in replay trace and sidecar",
             "source_models_by_extracted_call": dict(models.most_common()),
             "diagnostics": dict(counts),
             "tokenizer_files": {name: sha256(args.tokenizer / name) for name in

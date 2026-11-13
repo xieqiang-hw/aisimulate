@@ -1,0 +1,102 @@
+{
+  "passed": true,
+  "selected_trace_sha256": "a5696bfa9b0af7d0b5df4ed36f631ed5efd9a5b12eae9c34262833683a2b6a9a",
+  "request_parity_all_runs": true,
+  "v1_v2_iteration_and_state_exact_match": true,
+  "verified_iteration_rows": 669481,
+  "variants": {
+    "off": {
+      "runs": [
+        {
+          "path": "/tmp/aisim-observation-benchmark/off/20261112T083154.972298Z",
+          "wall_seconds": 6.227396250003949,
+          "trace_bytes": 0,
+          "selected_requests": 3000
+        },
+        {
+          "path": "/tmp/aisim-observation-benchmark/off/20261112T083203.272849Z",
+          "wall_seconds": 6.434441391029395,
+          "trace_bytes": 0,
+          "selected_requests": 3000
+        }
+      ],
+      "median_wall_seconds": 6.330918820516672,
+      "median_trace_bytes": 0.0
+    },
+    "v1": {
+      "runs": [
+        {
+          "path": "/tmp/aisim-observation-benchmark/v1/20261112T082959.560303Z",
+          "wall_seconds": 28.195877579040825,
+          "trace_bytes": 38934395,
+          "selected_requests": 3000
+        },
+        {
+          "path": "/tmp/aisim-observation-benchmark/v1/20261112T083125.018583Z",
+          "wall_seconds": 27.86565219098702,
+          "trace_bytes": 38934387,
+          "selected_requests": 3000
+        }
+      ],
+      "median_wall_seconds": 28.030764885013923,
+      "median_trace_bytes": 38934391.0
+    },
+    "v2-gzip": {
+      "runs": [
+        {
+          "path": "/tmp/aisim-observation-benchmark/v2-gzip/20261112T084125.080542Z",
+          "wall_seconds": 6.583772407961078,
+          "trace_bytes": 14471373,
+          "selected_requests": 3000
+        },
+        {
+          "path": "/tmp/aisim-observation-benchmark/v2-gzip/20261112T084133.763892Z",
+          "wall_seconds": 6.483338547986932,
+          "trace_bytes": 14471653,
+          "selected_requests": 3000
+        }
+      ],
+      "median_wall_seconds": 6.533555477974005,
+      "median_trace_bytes": 14471513.0
+    },
+    "v2-none": {
+      "runs": [
+        {
+          "path": "/tmp/aisim-observation-benchmark/v2-none/20261112T084142.305272Z",
+          "wall_seconds": 6.3288382509490475,
+          "trace_bytes": 67973034,
+          "selected_requests": 3000
+        },
+        {
+          "path": "/tmp/aisim-observation-benchmark/v2-none/20261112T084150.677312Z",
+          "wall_seconds": 6.324934623087756,
+          "trace_bytes": 67973034,
+          "selected_requests": 3000
+        }
+      ],
+      "median_wall_seconds": 6.326886437018402,
+      "median_trace_bytes": 67973034.0
+    },
+    "off-v2": {
+      "runs": [
+        {
+          "path": "/tmp/aisim-observation-benchmark/off-v2/20261112T084159.071064Z",
+          "wall_seconds": 6.175415590056218,
+          "trace_bytes": 0,
+          "selected_requests": 3000
+        },
+        {
+          "path": "/tmp/aisim-observation-benchmark/off-v2/20261112T084207.295742Z",
+          "wall_seconds": 6.070634494069964,
+          "trace_bytes": 0,
+          "selected_requests": 3000
+        }
+      ],
+      "median_wall_seconds": 6.123025042063091,
+      "median_trace_bytes": 0.0
+    }
+  },
+  "v2_gzip_speedup_over_v1": 4.290277319831683,
+  "v2_gzip_overhead_vs_off": 0.0670469960666027,
+  "v2_gzip_trace_reduction": 0.6283102771531729
+}

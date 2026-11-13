@@ -352,3 +352,87 @@ P/D handoff order also differs by backend; see
 - Worker counts are fixed unless the Dynamo Planner scales them.
 - Attention-DP ranks are synchronized per pass. Rank-to-rank communication time
   is part of the forward-pass estimate, not a separately modeled event.
+
+## Streaming scheduler observations
+
+Native vLLM/TRT-LLM replay can optionally write per-rank, per-pass observations.
+Set `AISIM_SCHEDULER_TRACE_DIR` before starting the engine process, or use the
+disk experiment runner's `--capture-scheduler-trace`. Capture is off by default.
+The runner sets a fresh per-case `prediction/` directory and clears inherited
+trace environment settings when capture is disabled. No scheduler or timing
+configuration changes.
+
+### Compact schema v2
+
+| File | Contents |
+|---|---|
+| `scheduler_trace_metadata.json` | Schema version, column definitions, compression and static identity/configuration of each stream. |
+| `iteration_metrics.jsonl.gz` | One fixed 13-number array per attempted scheduler pass, including zero-work retries. No iterations are sampled away. |
+| `scheduler_states.jsonl.gz` | First state for each stream and subsequent changed states only; rows are `[stream_id, iteration_id, at_ms, state]`. |
+| `scheduling_events.jsonl.gz` | Sparse admission, preemption and readmission events, with request UUIDs and stream IDs. |
+
+The 13 iteration columns, in order, are `stream_id`, `iteration_id`,
+`start_ms`, `compute_start_ms`, `end_ms`, `prefill_bs`,
+`prefill_new_tokens`, `prefill_prefix_tokens`, `decode_bs`,
+`decode_kv_tokens_sum`, `decode_kv_tokens_max`, `decode_generated_tokens`
+and `preemptions_this_pass`. Fixed Rust structures serialize directly to
+tuples, with no per-pass JSON map/key allocation. Buffers batch writes
+**before** gzip as well as buffering compressed output.
+
+Stream identity stores role, worker ID, DP rank, configured HBM blocks,
+grouped-cache flag, block size, sequence limit and batch-token limit once.
+Iteration duration is `end_ms - start_ms`; compute duration is
+`end_ms - compute_start_ms`; pre-compute wait is
+`compute_start_ms - start_ms`.
+
+States are sampled after scheduling commits and before token emission, except
+`running_not_scheduled_after`, which is measured after emission as its name
+indicates. State-change records use iteration IDs as well as simulation time:
+multiple retries at the same timestamp can have different states. Reconstruct
+each stream by carrying its last state forward **in iteration order**, rather
+than joining only on timestamp.
+
+| State fields | Meaning |
+|---|---|
+| `running_requests`, `waiting_admission_requests`, `connector_waiting_requests` | Authoritative membership counts. Ordinary waiters may still need KV lookup or capacity; they are not proven compute-ready. |
+| `h2d_loading_requests` | Connector waiters with a native H2D load in its Loading state. |
+| `g3_staging_requests`, `g3_pending_read_jobs`, `g3_pending_write_jobs` | Requests owning SSD-to-G2 staging and worker-local outstanding SSD jobs. Null means G3 disabled. These overlap connector counts; do not sum them into an exclusive partition. |
+| `pending_destination_requests`, `reserved_destination_requests`, `source_held_requests` | Destination reservation waiters, reserved but not activated destinations and completed prefills retaining a source hold. |
+| `hbm_active_blocks`, `hbm_inactive_blocks` | Referenced and reusable unreferenced G1 blocks. Active does not enumerate every possible transfer pin. For grouped caches, scalar block capacity is not a physical byte budget. |
+| `running_not_scheduled_after` | Remaining running requests that committed no work this pass; does not prove compute readiness. |
+| `preemptions_total` | Cumulative pressure actions at the sample boundary. |
+
+Prefill BS counts committed prefill participants; new tokens exclude cached or
+earlier-chunk KV. Decode BS/context count actual priced decode participants,
+after speculative retraction. Decode-generated tokens exclude the first token
+produced by an aggregated prefill forward. A pure D worker can generate the
+first token during its decode forward. Per-pass duration is not request ITL.
+
+Events use schema version 2 and stream identity from metadata. Preemption
+includes the original pressure kind and occupancy. Readmission means re-entering
+the same scheduler after preemption, not the ordinary P-to-D transition.
+
+### Compression and reading
+
+The default is gzip level 1. For controlled comparisons,
+`AISIM_SCHEDULER_TRACE_COMPRESSION=none` or the experiment flag
+`--scheduler-trace-compression none` selects buffered uncompressed
+`.jsonl` files with the identical schema. The runner records the choice.
+This permits measurement of compression cost; selecting plain output requires
+budgeting the larger files. No asynchronous unbounded write queue is used.
+
+Read complete files after the engine exits. Existing files are rejected,
+writes fail the run on I/O errors, and gzip finalization errors are reported.
+Memory is bounded by stream buffers, one last state per rank and small static
+metadata, not by trace length.
+
+`experiments/disk_swe/scripts/scheduler_trace.py` provides streaming
+`iter_iterations(directory)` and `iter_events(directory)` readers for v1
+full-object and v2 compact traces. It expands metadata, state changes and derived
+durations into named fields. The validation script checks both compression modes.
+
+Rows are not necessarily globally sorted by simulation time. Plot each
+(role, worker_id, dp_rank) separately. Use compute_start_ms to end_ms for actual
+compute spans; idle gaps are zero, not the last nonzero BS. Queue and BS alone
+cannot prove compute saturation: consider token/sequence limits, KV capacity
+and transfer waits.

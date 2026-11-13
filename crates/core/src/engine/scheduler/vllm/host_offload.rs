@@ -222,6 +222,10 @@ impl VllmHostRequestState {
         }
     }
 
+    pub(super) fn is_loading(&self) -> bool {
+        matches!(self.load, Some(LoadState::Loading(_)))
+    }
+
     pub(super) fn reserved_blocks(&self) -> usize {
         match &self.load {
             Some(LoadState::Loading(load)) => load.loaded_prefix_blocks,
@@ -293,6 +297,10 @@ pub(super) struct VllmHostOffloadAdapter {
 }
 
 impl VllmHostOffloadAdapter {
+    pub(super) fn observation_g3(&self) -> Option<(usize, usize, usize)> {
+        self.g3.as_ref().map(|g3| g3.observation())
+    }
+
     /// Shared pools are sampled by the deployment registry, not once per rank.
     pub(super) fn per_rank_cache_metrics(&self) -> Option<crate::engine::HostCacheMetrics> {
         (!self.shared).then(|| {
