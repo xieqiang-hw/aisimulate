@@ -9,7 +9,7 @@ GLM-5.2-FP8，H200 SXM，1P1D。P/D 分别为 Attention TP8／DP1、MoE TP1／EP
 联合 SLA 为 TTFT ≤ 1 秒且单请求平均 TPOT ≤ 30 ms。扣排队后的两列使用逐请求 TTFT 扣除 P 首次准入前调度等待后汇总，保留 KV 恢复等待。各层复用按首次准入复用 token 占全部输入 token 的比例计算。SSD 累计读包含重复恢复。内存峰值为进程树 RSS，采用十进制 GB。
 
 <!-- results:status:start -->
-完成 58／60 组，运行 1 组，失败 0 组，待启动 1 组。最后更新 2026-11-18 14:16:03 +0800。
+完成 58／60 组，运行 0 组，失败 2 组，待启动 0 组。最后更新 2026-11-18 15:30:33 +0800。
 <!-- results:status:end -->
 
 数据目录 `/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k`  
@@ -77,5 +77,10 @@ GLM-5.2-FP8，H200 SXM，1P1D。P/D 分别为 Attention TP8／DP1、MoE TP1／EP
 | 32× | 128 GB | 8 | 已完成 | 607,190 | 39.779% | 13343.16 | 1608.04 | 18.36 | 65.658% | 0.215% | 26.630% | 92.503% | 723.106 TB | 21 分 29 秒 | 3.73 | 20.77 | 14.261 |
 | 32× | 64 GB | 1 | 已完成 | 607,190 | 1.377% | 419311.47 | 198950.08 | 18.21 | 67.576% | 0.032% | 6.578% | 74.186% | 580.706 TB | 71 分 36 秒 | 8.51 | 56.17 | 18.164 |
 | 32× | 64 GB | 2 | 已完成 | 607,190 | 1.543% | 375912.66 | 177621.81 | 18.45 | 67.060% | 0.061% | 8.262% | 75.382% | 716.751 TB | 74 分 18 秒 | 6.95 | 33.40 | 16.724 |
-| 32× | 64 GB | 4 | 运行中 | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
-| 32× | 64 GB | 8 | 待启动 | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| 32× | 64 GB | 4 | 失败 | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| 32× | 64 GB | 8 | 失败 | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+
+## 失败记录
+
+- `swe_h200_ep8_p64gb_read4_overlay_32x` · aisimulate: available host memory fell below reserved headroom
+- `swe_h200_ep8_p64gb_read8_overlay_32x` · aisimulate: requested host memory budget 22.00 GB exceeds available headroom 19.49 GB

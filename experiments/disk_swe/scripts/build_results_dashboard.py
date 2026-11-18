@@ -568,7 +568,19 @@ def build(sweep=None, markdown_path=None, output=None):
     }, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     output = Path(output) if output else root / "experiments.html"
     temporary = output.with_suffix(".html.tmp")
-    temporary.write_text(template.replace("__DATA__", payload), encoding="utf-8")
+    rendered = template.replace("__DATA__", payload)
+    workload_file = output.with_suffix(".workload.html")
+    if workload_file.is_file():
+        fragment = workload_file.read_text(encoding="utf-8")
+        marker = "<!-- workload-charts:end -->"
+        chart_markup, script_markup = fragment.split(marker, 1)
+        pattern = r'(<details id="dataDetails">.*?</details>)'
+        if len(re.findall(pattern, rendered, re.S)) != 1:
+            raise ValueError("Expected one full-data section for workload charts")
+        rendered = re.sub(pattern, lambda match: match[1] + "\n" + chart_markup + marker,
+                          rendered, count=1, flags=re.S)
+        rendered = rendered.replace("</body>", script_markup + "\n</body>", 1)
+    temporary.write_text(rendered, encoding="utf-8")
     temporary.replace(output)
     print(output, flush=True)
     return output
