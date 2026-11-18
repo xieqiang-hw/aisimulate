@@ -15,6 +15,7 @@ mod kv_manager;
 pub(crate) mod kvcr;
 mod launch;
 mod offload_lru;
+pub(crate) use protocol::PrefillKvWait;
 pub(crate) mod offload_transfer;
 mod protocol;
 mod runtime;

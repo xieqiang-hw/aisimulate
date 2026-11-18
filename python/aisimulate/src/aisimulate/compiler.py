@@ -360,6 +360,11 @@ def _deployment(
         decode_engine_args=_worker_engine_args(
             engine, decode, "decode", transfer_bytes_per_token=transfer_bytes_per_token
         ),
+        enclosure_handoff=(
+            engine.kv_transfer.enclosure.model_dump(mode="json", exclude_none=True)
+            if engine.kv_transfer is not None and engine.kv_transfer.enclosure is not None
+            else None
+        ),
         num_prefill_workers=prefill.parallelism.replicas,
         num_decode_workers=decode.parallelism.replicas,
         **common,
@@ -943,7 +948,7 @@ def _worker_engine_args(
         payload["aic_nextn"] = engine.nextn
         payload["aic_nextn_accepted"] = engine.nextn_accepted
     host_offload = cache.host_offload
-    if host_offload is not None:
+    if host_offload is not None or (engine.kv_transfer is not None and engine.kv_transfer.enclosure is not None):
         payload["kv_cache_bytes_per_token"] = _resolve_kv_bytes_per_token(
             engine,
             worker,
@@ -991,18 +996,12 @@ def _resolve_kv_bytes_per_token(
         pp_size=parallel.pipeline,
         moe_tp_size=parallel.moe_tensor,
         moe_ep_size=parallel.moe_expert,
-        **(
-            {
-                "fpm_profile": engine.fpm_profile.model_dump(mode="json"),
-                "worker_type": role,
-                "system": worker.hardware or engine.hardware,
-                "backend": engine.backend,
-                "backend_version": engine.backend_version,
-                "attention_dp_size": parallel.attention_data,
-            }
-            if engine.fpm_profile is not None
-            else {}
-        ),
+        fpm_profile=engine.fpm_profile.model_dump(mode="json") if engine.fpm_profile is not None else None,
+        worker_type=role,
+        system=worker.hardware or engine.hardware,
+        backend=engine.backend,
+        backend_version=engine.backend_version,
+        attention_dp_size=parallel.attention_data,
         kvcache_quant_mode=worker.timing.kvcache_quant_mode or engine.kvcache_quant_mode,
     )
 

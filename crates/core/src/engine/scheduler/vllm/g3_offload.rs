@@ -3,7 +3,7 @@
 
 //! G3 writes own G2 source pins; promotions own pending G2 destinations.
 //! Request termination detaches from admitted promotions rather than aborting I/O.
-use super::host_offload::{MAX_RESTORE_ROUNDS_WITHOUT_PROGRESS, RestoreRounds};
+use super::host_offload::{MAX_RESTORE_ROUNDS_WITHOUT_PROGRESS, RestoreRounds, WaitPath};
 use super::kvcr::planned_meta;
 use crate::engine::g3_offload::{Direction, Probe, SharedG3Tier};
 use crate::engine::host_offload::{
@@ -108,7 +108,19 @@ impl VllmG3OffloadAdapter {
         for key in keys.iter().copied() {
             match tier.planned_lookup(plan.as_ref(), key) {
                 Lookup::Hit => {}
-                Lookup::Pending { .. } => deferred = true,
+                Lookup::Pending { transfer_id } => {
+                    deferred = true;
+                    if let Some(wait) = &mut restore.wait
+                        && let Some((from_ssd, end)) = tier.observe_transfer(transfer_id)
+                    {
+                        let path = if from_ssd {
+                            WaitPath::LocalSsd
+                        } else {
+                            WaitPath::OtherKv
+                        };
+                        wait.observe(path, end, now);
+                    }
+                }
                 Lookup::Miss => match registry.probe(self.worker, key) {
                     Probe::Resident => {
                         // A zero-duration promotion can be evicted by a later
@@ -141,7 +153,14 @@ impl VllmG3OffloadAdapter {
                             break;
                         }
                     }
-                    Probe::Pending => deferred = true,
+                    Probe::Pending => {
+                        deferred = true;
+                        if let Some(wait) = &mut restore.wait
+                            && let Some(end) = registry.observe_pending_write(self.worker, key)
+                        {
+                            wait.observe(WaitPath::OtherKv, end, now);
+                        }
+                    }
                     Probe::Miss => break,
                 },
             }
@@ -165,6 +184,11 @@ impl VllmG3OffloadAdapter {
             tier.cancel_external(reservation);
             return deferred;
         };
+        if let Some(wait) = &mut restore.wait
+            && let Some((_, end)) = tier.observe_transfer(reservation)
+        {
+            wait.observe(WaitPath::LocalSsd, end, now);
+        }
         if restore.record_round(self.rank_progress) {
             registry.stats.bypassed_restores += 1;
             tracing::warn!(
@@ -202,7 +226,11 @@ impl VllmG3OffloadAdapter {
                         .stages
                         .remove(&completion.id)
                         .expect("promotion owns its G2 reservation");
-                    tier.complete_external_from_g3(stage.reservation, stage.owner);
+                    tier.complete_external_from_g3_at(
+                        stage.reservation,
+                        stage.owner,
+                        completion.at_ms,
+                    );
                 }
             }
             self.epoch += 1;

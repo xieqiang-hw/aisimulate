@@ -252,7 +252,7 @@ impl<Metadata: ReplayAdmissionMetadata> AdmissionQueue<Metadata> {
                 Ok(ready)
             }
             (ReplayMode::Trace, AdmissionSource::Workload { driver, .. }) => Ok(driver
-                .pop_ready_compact(now_ms, usize::MAX)
+                .try_pop_ready_compact(now_ms, usize::MAX)?
                 .into_iter()
                 .map(|ready| {
                     let session_id = ready.emit_session_metadata.then_some(ready.session_id);
@@ -303,7 +303,7 @@ impl<Metadata: ReplayAdmissionMetadata> AdmissionQueue<Metadata> {
                 // The driver owns the session cap and only ever holds active sessions'
                 // turns in its heap, so drain everything ready in heap (i.e. limit=usize MAX).
                 Ok(driver
-                    .pop_ready_compact(now_ms, usize::MAX)
+                    .try_pop_ready_compact(now_ms, usize::MAX)?
                     .into_iter()
                     .map(|ready| {
                         let session_id = ready.emit_session_metadata.then_some(ready.session_id);

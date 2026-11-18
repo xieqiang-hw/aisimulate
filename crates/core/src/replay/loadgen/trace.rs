@@ -3,7 +3,7 @@
 
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -19,8 +19,8 @@ use super::types::{
     AGENTIC_MOONCAKE_SCHEMA, AGENTIC_MOONCAKE_VERSION, AgenticDependency,
     AgenticDependencyRelation, AgenticDependencyTrigger, AgenticHashIdScope, AgenticMooncakeHeader,
     AgenticMooncakeRow, AgenticNode, AgenticPlay, AgenticSourceProvenance, AgenticTrace, DelaySpec,
-    LengthSpec, MooncakeRow, ReplayRequestHashes, SessionPartitionSpec, SessionTrace,
-    SyntheticTraceSpec, Trace, TraceFileFormat, TurnTrace, effective_replay_key,
+    LengthSpec, MooncakePrompt, MooncakeRow, ReplayRequestHashes, SessionPartitionSpec,
+    SessionTrace, SyntheticTraceSpec, Trace, TraceFileFormat, TurnTrace, effective_replay_key,
 };
 use super::{SYNTHETIC_OUTPUT_SEED, planned_output_token_ids};
 use crate::engine::ImageSpec;
@@ -459,9 +459,44 @@ fn trace_to_replay_hashes(
     Ok(ReplayRequestHashes::from_tokens(&tokens, engine_block_size))
 }
 
+impl MooncakePrompt {
+    pub(super) fn load(&self) -> Result<Vec<u32>> {
+        #[derive(Deserialize)]
+        struct ExactPrompt {
+            input_token_ids: Vec<u32>,
+        }
+
+        let load = || -> Result<Vec<u32>> {
+            let mut file = File::open(self.path.as_ref())?;
+            file.seek(SeekFrom::Start(self.offset))?;
+            let mut line = vec![0; self.line_bytes];
+            file.read_exact(&mut line)?;
+            let prompt: ExactPrompt = serde_json::from_slice(&line)?;
+            ensure!(
+                prompt.input_token_ids.len() == self.input_length,
+                "input_token_ids length changed since trace indexing"
+            );
+            Ok(prompt.input_token_ids)
+        };
+        load().with_context(|| {
+            format!(
+                "failed to load Mooncake prompt from {} at byte {}",
+                self.path.display(),
+                self.offset
+            )
+        })
+    }
+}
+
 impl TurnTrace {
     pub fn synthesize_tokens(&self, trace_block_size: usize) -> Result<Vec<u32>> {
-        synthesize_trace_tokens(self.input_length, &self.hash_ids, trace_block_size)
+        if let Some(prompt) = &self.mooncake_prompt {
+            return prompt.load();
+        }
+        match &self.input_token_ids {
+            Some(tokens) => Ok(tokens.clone()),
+            None => synthesize_trace_tokens(self.input_length, &self.hash_ids, trace_block_size),
+        }
     }
 
     pub fn to_direct_request(
@@ -526,7 +561,12 @@ impl MooncakeTraceBuilder {
         self.sessions.is_empty()
     }
 
-    fn push(&mut self, line_idx: usize, raw: MooncakeRow) -> Result<()> {
+    fn push(
+        &mut self,
+        line_idx: usize,
+        raw: MooncakeRow,
+        location: Option<(&Arc<PathBuf>, u64, usize)>,
+    ) -> Result<()> {
         let request_id = raw.request_id;
         let raw_session_id = raw.session_id;
         let session_id = raw_session_id
@@ -547,10 +587,23 @@ impl MooncakeTraceBuilder {
             input_length,
             synthesizable_capacity
         );
+        ensure!(
+            raw.input_token_ids
+                .as_ref()
+                .is_none_or(|tokens| tokens.len() == input_length),
+            "trace line {} input_token_ids length differs from input_length",
+            line_idx + 1
+        );
         let output_length = raw
             .output_length
             .ok_or_else(|| anyhow!("trace line {} is missing output_length", line_idx + 1))?;
         let output_token_ids = raw.output_token_ids;
+        ensure!(
+            raw.input_token_ids.is_none() || output_token_ids.is_some(),
+            "trace line {} exact prompts require output_token_ids",
+            line_idx + 1
+        );
+
         if let Some(output_token_ids) = output_token_ids.as_ref()
             && output_token_ids.len() != output_length
         {
@@ -638,7 +691,22 @@ impl MooncakeTraceBuilder {
 
         let hash_ids = self.hash_id_interner.intern_all(hash_ids)?;
 
+        let mooncake_prompt =
+            location
+                .filter(|_| raw.input_token_ids.is_some())
+                .map(|(path, offset, line_bytes)| MooncakePrompt {
+                    path: Arc::clone(path),
+                    offset,
+                    line_bytes,
+                    input_length,
+                });
         session.turns.push(TurnTrace {
+            input_token_ids: if mooncake_prompt.is_none() {
+                raw.input_token_ids
+            } else {
+                None
+            },
+            mooncake_prompt,
             input_length,
             max_output_tokens: output_length,
             output_token_ids,
@@ -667,23 +735,43 @@ impl MooncakeTraceBuilder {
 
 impl Trace {
     pub fn from_mooncake(path: &Path, trace_block_size: usize) -> Result<Self> {
+        Self::read_mooncake(path, trace_block_size, false)
+    }
+
+    /// Index exact prompts by byte position. Keep the trace unchanged during replay.
+    pub fn from_mooncake_lazy(path: &Path, trace_block_size: usize) -> Result<Self> {
+        Self::read_mooncake(path, trace_block_size, true)
+    }
+
+    fn read_mooncake(path: &Path, trace_block_size: usize, lazy: bool) -> Result<Self> {
         if trace_block_size == 0 {
             bail!("trace_block_size must be greater than 0");
         }
 
         let file = File::open(path)
             .with_context(|| format!("failed to open trace file {}", path.display()))?;
-        let reader = BufReader::new(file);
+        let mut reader = BufReader::new(file);
         let mut builder = MooncakeTraceBuilder::new(trace_block_size);
+        let source = lazy
+            .then(|| std::path::absolute(path).map(Arc::new))
+            .transpose()?;
+        let mut line = String::new();
+        let mut offset = 0_u64;
 
-        for (line_idx, line) in reader.lines().enumerate() {
-            let line = line.with_context(|| {
+        for line_idx in 0.. {
+            line.clear();
+            let line_bytes = reader.read_line(&mut line).with_context(|| {
                 format!(
                     "failed to read line {} from {}",
                     line_idx + 1,
                     path.display()
                 )
             })?;
+            if line_bytes == 0 {
+                break;
+            }
+            let position = offset;
+            offset += line_bytes as u64;
             if line.trim().is_empty() {
                 continue;
             }
@@ -695,7 +783,11 @@ impl Trace {
                     path.display()
                 )
             })?;
-            builder.push(line_idx, row)?;
+            builder.push(
+                line_idx,
+                row,
+                source.as_ref().map(|path| (path, position, line_bytes)),
+            )?;
         }
 
         if builder.is_empty() {
@@ -711,7 +803,7 @@ impl Trace {
         }
         let mut builder = MooncakeTraceBuilder::new(trace_block_size);
         for (line_idx, row) in rows.into_iter().enumerate() {
-            builder.push(line_idx, row)?;
+            builder.push(line_idx, row, None)?;
         }
         if builder.is_empty() {
             bail!("Mooncake rows did not contain any requests");

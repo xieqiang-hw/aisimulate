@@ -264,6 +264,7 @@ pub struct HandoffCoordinatorCore {
     transfer: TransferProgress,
     completion: Option<HandoffCompletion>,
     fallback_transfer_delay_ms: f64,
+    early_destination: bool,
 }
 
 impl HandoffCoordinatorCore {
@@ -288,7 +289,12 @@ impl HandoffCoordinatorCore {
             transfer: TransferProgress::default(),
             completion: None,
             fallback_transfer_delay_ms,
+            early_destination: false,
         }
+    }
+
+    pub(crate) fn enable_early_destination(&mut self) {
+        self.early_destination = true;
     }
 
     pub fn start(&mut self) -> Result<Vec<IssuedHandoffAction>> {
@@ -440,7 +446,7 @@ impl HandoffCoordinatorCore {
 
     fn advance_active(&mut self) -> Result<Vec<IssuedHandoffAction>> {
         if self.order == HandoffOrder::SourceFirst
-            && self.source.held
+            && (self.source.held || (self.early_destination && self.source.submitted))
             && !self.destination.reserve_issued
         {
             return Ok(vec![self.issue_reserve_destination()]);

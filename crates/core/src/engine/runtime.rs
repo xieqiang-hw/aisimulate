@@ -75,6 +75,10 @@ impl EngineFactory {
         })
     }
 
+    pub(crate) fn config(&self) -> &EngineConfig {
+        &self.config
+    }
+
     pub(crate) fn reset_timing_evidence(&self) -> Result<()> {
         self.timing.reset_evidence()
     }

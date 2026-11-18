@@ -335,6 +335,7 @@ def test_kv_quantization_auto_aliases_preserve_model_dtype(monkeypatch, alias):
     from aisimulate.capacity import estimate_kv_bytes_per_token
     from aisimulate_core.sdk.memory import NaiveKVCacheEstimator
 
+    monkeypatch.setattr(NaiveKVCacheEstimator, "_load_config", lambda *a, **k: {"architectures": ["UnknownForTest"]})
     estimator = SimpleNamespace(dtype_bytes=2)
     estimator.kv_bytes_per_token = lambda: 100 * estimator.dtype_bytes
     monkeypatch.setattr(NaiveKVCacheEstimator, "from_model_path", lambda *a, **k: estimator)

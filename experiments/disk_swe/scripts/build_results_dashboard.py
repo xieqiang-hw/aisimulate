@@ -2,6 +2,7 @@ from pathlib import Path
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import json
+import re
 import argparse
 
 TEMPLATE = r'''
@@ -43,13 +44,13 @@ details{border:1px solid var(--line);border-radius:14px;background:#fff;margin:0
 </section>
 <nav class="tabs" aria-label="实验"><button class="tab" data-mode="baseline">DRAM 基线</button><button class="tab" data-mode="hbm">HBM 容量</button><button class="tab" data-mode="overlay">会话叠加</button><button class="tab active" data-mode="bandwidth">SSD 带宽</button></nav>
 <div class="intro"><div><h2 id="title"></h2><p id="description"></p></div><div class="progress" id="progress"></div></div>
-<div class="filters"><div class="field"><label for="factor">标称叠加倍率</label><select id="factor"></select></div><div class="field"><label for="dram">P 侧 DRAM</label><select id="dram"></select></div><div class="field"><label for="metric">主图指标</label><select id="metric"><option value="sla">联合 SLA 达标率</option><option value="p99">P99 TTFT</option><option value="mean">平均 TTFT</option><option value="tpot">平均 TPOT</option><option value="ssd">SSD 累计读量</option></select></div><div class="field"><label for="axis">坐标范围</label><select id="axis"><option value="zero">从 0 开始</option><option value="local" selected>最小值附近 · 局部刻度</option></select></div></div>
+<div class="filters"><div class="field"><label for="factor">标称叠加倍率</label><select id="factor"></select></div><div class="field"><label for="dram">P 侧 DRAM</label><select id="dram"></select></div><div class="field"><label for="metric">主图指标</label><select id="metric"><option value="sla">联合 SLA 达标率</option><option value="p99">P99 TTFT</option><option value="mean">平均 TTFT</option><option value="noQueueMean" hidden>扣排队后平均 TTFT</option><option value="noQueueP99" hidden>扣排队后 P99 TTFT</option><option value="tpot">平均 TPOT</option><option value="ssd">SSD 累计读量</option></select></div><div class="field"><label for="axis">坐标范围</label><select id="axis"><option value="zero">从 0 开始</option><option value="local" selected>最小值附近 · 局部刻度</option></select></div></div>
 <div class="notice" id="density"></div>
 <div class="cards" id="cards"></div>
 <div class="chart"><div class="charthead"><div><h3 id="mainTitle"></h3><p class="sub" id="mainSub"></p></div><div class="legend" id="mainLegend"></div></div><div class="canvasholder"><canvas id="mainChart" role="img" aria-label="所选实验指标对比图"></canvas></div></div>
 <div class="insight" aria-live="polite"><strong id="insightTitle">当前对照</strong><p id="insight"></p></div>
 <div class="duo"><div class="chart"><div class="charthead"><div><h3>前缀复用来自哪一层</h3><p class="sub">首次准入复用 token ÷ 全部输入 token</p></div></div><div class="legend"><span><i class="dot" style="background:#19745c"></i>HBM</span><span><i class="dot" style="background:#5279ba"></i>DRAM 直接</span><span><i class="dot" style="background:#bb8540"></i>SSD 恢复</span><span><i class="dot" style="background:#e3e8e1"></i>未复用</span></div><div class="canvasholder"><canvas id="reuseChart" role="img" aria-label="HBM DRAM SSD 前缀复用比例"></canvas></div></div><div class="chart"><div class="charthead"><div><h3>累计 SSD 读取</h3><p class="sub">同一批请求的全程读流量，单位 TB；刻度范围跟随上方选项</p></div></div><div class="canvasholder"><canvas id="ssdChart" role="img" aria-label="SSD 累计读取量"></canvas></div></div></div>
-<details id="dataDetails"><summary id="tableSummary">查看所选组合的完整数据</summary><div class="tablewrap"><table><thead><tr><th>配置</th><th>状态</th><th>SLA 达标</th><th>P99 TTFT / s</th><th>平均 TTFT / s</th><th>TPOT / ms</th><th>HBM / %</th><th>DRAM / %</th><th>SSD / %</th><th>总复用 / %</th><th>SSD 累计读 / TB</th></tr></thead><tbody id="rows"></tbody></table></div></details>
+<details id="dataDetails"><summary id="tableSummary">查看所选组合的完整数据</summary><div class="tablewrap"><table><thead><tr><th>配置</th><th>状态</th><th>SLA 达标</th><th>P99 TTFT / s</th><th>平均 TTFT / s</th><th>TPOT / ms</th><th>HBM / %</th><th>DRAM / %</th><th>SSD / %</th><th>总复用 / %</th><th>SSD 累计读 / TB</th><th data-wait-metric hidden>扣排队后平均 TTFT / s</th><th data-wait-metric hidden>扣排队后 P99 TTFT / s</th></tr></thead><tbody id="rows"></tbody></table></div></details>
 <details><summary>统计口径与实验边界</summary><div class="definitions"><p><b>延迟与 SLA</b><br>每条请求同时满足 TTFT ≤ 1 秒和平均 TPOT ≤ 30 ms 即达标。TPOT = (E2E − TTFT) ÷ (输出 token 数 − 1)。表中的平均 TPOT 再对请求取平均。仅输出 1 token 的请求跳过 TPOT 判定。</p><p><b>缓存与带宽</b><br>三层复用按输入 token 加权。SSD 恢复包含经 DRAM 中转的复用。累计读量可能包含重复恢复。带宽统一为 GB/s／TP 分片，容量和流量使用十进制 GB、TB。</p><p><b>会话叠加</b><br>每个会话按首条保留请求分段，所有请求统一平移。保留跨切点尾部，因此标称倍率与全程平均密度可能不同，32× 和 64× 的全程平均值尤其受尾部影响。</p><p><b>对照配置</b><br>叠加和带宽实验固定 P 侧 HBM KV 2,048 块。带宽实验固定 P 侧 DRAM 128 GB、SSD 写带宽 8 GB/s／TP 分片；256 GB／8 GB/s 为容量对照。基线和 HBM 容量实验使用各自独立的配置。</p></div></details>
 <div class="note" id="sourceStatus"></div><footer><span>数据源 <a href="experiments.md">experiments.md</a> · 内嵌数据快照</span><span id="stamp"></span></footer>
 </main><div class="tip" id="tip"></div>
@@ -57,14 +58,14 @@ details{border:1px solid var(--line);border-radius:14px;background:#fff;margin:0
 <script>
 "use strict";
 const $=id=>document.getElementById(id);
-const meta=JSON.parse($("source").textContent), colors={128:"#19745c",256:"#5279ba",384:"#bb8540"};
+const meta=JSON.parse($("source").textContent), colors={32:"#a64d63",512:"#4f7285",64:"#905ba7",128:"#19745c",256:"#5279ba",384:"#bb8540"};
 let sourceText=meta.markdown, data=[], mode="baseline", filtered=[];
-const metrics={sla:{name:"联合 SLA 达标率",unit:"%",digits:3},p99:{name:"P99 TTFT",unit:"秒",digits:2},mean:{name:"平均 TTFT",unit:"秒",digits:2},tpot:{name:"平均 TPOT",unit:"ms",digits:2},ssd:{name:"SSD 累计读量",unit:"TB",digits:3}};
+const metrics={sla:{name:"联合 SLA 达标率",unit:"%",digits:3},p99:{name:"P99 TTFT",unit:"秒",digits:2},mean:{name:"平均 TTFT",unit:"秒",digits:2},noQueueMean:{name:"扣排队后平均 TTFT",unit:"秒",digits:2},noQueueP99:{name:"扣排队后 P99 TTFT",unit:"秒",digits:2},tpot:{name:"平均 TPOT",unit:"ms",digits:2},ssd:{name:"SSD 累计读量",unit:"TB",digits:3}};
 const descriptions={baseline:["原速 1× · DRAM 容量基线","自动 HBM 容量，SSD 读写各 8 GB/s／TP 分片。"],hbm:["原速 1× · HBM KV 容量扫描","P 侧 DRAM 固定 384 GB，对比自动容量与三档固定 KV 块数。"],overlay:["会话叠加 · 三档 DRAM","P 侧 HBM 固定 2,048 块，SSD 读写各 8 GB/s／TP 分片。"],bandwidth:["SSD 读带宽 · 容量替代对照","P 侧 HBM 固定 2,048 块，SSD 写带宽固定 8 GB/s／TP 分片。"]};
 function number(v){if(!v||v.includes("—"))return null; const n=parseFloat(v.replaceAll(",",""));return Number.isFinite(n)?n:null}
 function parseMarkdown(text){
  let section=0,header=[],result=[];
- const modes={1:"baseline",2:"hbm",3:"overlay",4:"bandwidth"};
+ const modes=meta.ep8?{1:"bandwidth"}:meta.dataset?{1:"baseline",2:"overlay",3:"bandwidth"}:{1:"baseline",2:"hbm",3:"overlay",4:"bandwidth"};
  for(const line of text.split(/\r?\n/)){
   const heading=line.match(/^## (\d+)\./);if(heading){section=+heading[1];header=[];continue}
   if(!line.trim().startsWith("|")||!modes[section])continue;
@@ -76,63 +77,104 @@ function parseMarkdown(text){
   const lookup=key=>row[header.find(h=>h.includes(key))];
   const state=lookup("状态");
   if(!state)continue;
-  result.push({mode:modes[section],dram:section===2?384:number(lookup("P 侧 DRAM")),
-   factor:section<3?1:number(lookup("叠加倍率")),bw:section===4?number(lookup("SSD 读带宽")):8,
-   hbm:section===2?(number(lookup("KV 块数"))??"auto"):(section>=3?2048:"auto"),
+  result.push({mode:modes[section],dram:modes[section]==="hbm"?384:number(lookup("P 侧 DRAM")),
+   factor:number(lookup("叠加倍率"))??1,bw:number(lookup("SSD 读带宽"))??8,
+   hbm:meta.ep8?"auto":modes[section]==="hbm"?(number(lookup("KV 块数"))??"auto"):(["overlay","bandwidth"].includes(modes[section])?2048:"auto"),
    status:state,count:number(lookup("完成请求")),sla:number(lookup("联合 SLA")),p99:number(lookup("P99 TTFT")),
-   mean:number(lookup("平均 TTFT")),tpot:number(lookup("TPOT")),g1:number(lookup("HBM 复用")),
+   mean:number(lookup("平均 TTFT")),noQueueMean:number(lookup("扣排队后平均 TTFT")),noQueueP99:number(lookup("扣排队后 P99 TTFT")),tpot:number(lookup("TPOT")),g1:number(lookup("HBM 复用")),
    g2:number(lookup("DRAM 直接")),g3:number(lookup("SSD 恢复")),total:number(lookup("总复用")),ssd:number(lookup("SSD 累计读"))});
  }
- if(![1,2,3,4].every(n=>result.some(r=>r.mode===modes[n])))throw Error("需要包含第 1～4 节的实验记录");
+ if(!Object.values(modes).every(kind=>result.some(r=>r.mode===kind)))throw Error("缺少实验结果表");
  if(result.some(r=>r.sla!==null&&(r.sla<0||r.sla>100)))throw Error("SLA 数据超出范围");
  return result;
 }
 function fmt(v,d=2){return v===null||v===undefined?"—":v.toLocaleString("zh-CN",{minimumFractionDigits:d,maximumFractionDigits:d})}
 function options(el,values,preferred){el.replaceChildren(...values.map(([value,label])=>new Option(label,value)));if(values.some(x=>String(x[0])===String(preferred)))el.value=preferred}
 function configure(){
+ const hasWaitMetrics=data.some(r=>r.noQueueMean!==null||r.noQueueP99!==null);
+ for(const opt of $("metric").options){
+  if(!["noQueueMean","noQueueP99"].includes(opt.value))continue;
+  opt.hidden=!hasWaitMetrics;
+  if(!hasWaitMetrics&&opt.selected)$("metric").value=meta.ep8?"p99":"sla";
+ }
+ document.querySelectorAll("[data-wait-metric]").forEach(cell=>{cell.hidden=!hasWaitMetrics});
+
  const rows=data.filter(r=>r.mode===mode);const factors=[...new Set(rows.map(r=>r.factor))].sort((a,b)=>a-b);
- options($("factor"),[["all","全部倍率"],...factors.map(x=>[String(x),x===1?"原速 1×":x+"× 叠加"])],mode==="bandwidth"?String(factors.at(-1)):"all");
+ options($("factor"),[...(meta.ep8?[]:[["all","全部倍率"]]),...factors.map(x=>[String(x),x===1?"原速 1×":x+"× 叠加"])],mode==="bandwidth"?String(factors.at(-1)):"all");
  $("factor").disabled=factors.length===1;if(factors.length===1)$("factor").value=String(factors[0]);
- const drams=[...new Set(rows.map(r=>r.dram))].sort((a,b)=>a-b);
- options($("dram"),[["all","全部 DRAM 档位"],...drams.map(x=>[String(x),x+" GB"])],"all");
- $("dram").disabled=drams.length===1;
- document.querySelectorAll(".tab").forEach(b=>{b.classList.toggle("active",b.dataset.mode===mode);b.setAttribute("aria-pressed",String(b.dataset.mode===mode))});
+ const filterValues=[...new Set(rows.map(r=>meta.ep8?r.bw:r.dram))].sort((a,b)=>a-b);
+ const filterLabel=meta.ep8?"全部读带宽":"全部 DRAM 档位";
+ const filterUnit=meta.ep8?" GB/s":" GB";
+ options($("dram"),[["all",filterLabel],...filterValues.map(x=>[String(x),x+filterUnit])],"all");
+ $("dram").disabled=filterValues.length===1;
+ document.querySelectorAll(".tab[data-mode]").forEach(b=>{b.classList.toggle("active",b.dataset.mode===mode);b.setAttribute("aria-pressed",String(b.dataset.mode===mode))});
  render();
 }
 function label(r){if(mode==="hbm")return r.hbm==="auto"?"自动容量":r.hbm.toLocaleString()+" 块";if(mode==="bandwidth")return r.dram+" GB · "+r.bw+" GB/s";if(mode==="overlay")return r.factor+"× · "+r.dram+" GB";return r.dram+" GB"}
 function currentRows(){
- return data.filter(r=>r.mode===mode&&($("factor").value==="all"||r.factor===+$("factor").value)&&($("dram").value==="all"||r.dram===+$("dram").value))
+ if(meta.ep8&&ep8Comparison){
+  const bw=Number($("ep8ReferenceBw").value);
+  return ep8FactorRows().filter(r=>(r.dram===Number($("ep8Curve").value)&&r.bw>=bw)||
+   (r.dram===Number($("ep8Reference").value)&&r.bw===bw))
+   .sort((a,b)=>a.dram-b.dram||a.bw-b.bw);
+ }
+ return data.filter(r=>r.mode===mode&&($("factor").value==="all"||r.factor===+$("factor").value)&&($("dram").value==="all"||(meta.ep8?r.bw:r.dram)===+$("dram").value))
  .sort((a,b)=>mode==="hbm"?((a.hbm==="auto"?1e6:a.hbm)-(b.hbm==="auto"?1e6:b.hbm)):a.factor-b.factor||a.dram-b.dram||a.bw-b.bw);
 }
 function makeLegend(el,items){el.replaceChildren(...items.map(([text,color])=>{const span=document.createElement("span"),i=document.createElement("i");i.className="dot";i.style.background=color;span.append(i,document.createTextNode(text));return span}))}
 function configuration(){
- const dram=$("dram").value==="all"?(mode==="hbm"?"384 GB":mode==="bandwidth"?"128 GB（容量对照为 256 GB）":"128 / 256 / 384 GB"):$("dram").value+" GB";
- const hbm=mode==="baseline"?"自动容量（memory_fraction=0.9）":mode==="hbm"?"自动容量、4,096 / 3,072 / 2,048 块":"2,048 块（整个 TP8 实例约 63.14 GB）";
+ const dram=meta.ep8?[...new Set(data.filter(r=>r.factor===+$("factor").value).map(r=>r.dram))].sort((a,b)=>a-b).join(" / ")+" GB":$("dram").value==="all"?(mode==="hbm"?"384 GB":mode==="bandwidth"?"128 GB（容量对照为 256 GB）":"128 / 256 / 384 GB"):$("dram").value+" GB";
+ const hbm=meta.ep8||mode==="baseline"?"自动容量（memory_fraction=0.9）":mode==="hbm"?"自动容量、4,096 / 3,072 / 2,048 块":"2,048 块（整个 TP8 实例约 63.14 GB）";
  $("configP").textContent="HBM "+hbm+"；独立本地 DRAM ≈"+dram;
  $("configSSD").textContent="约 56 TB，worker_local；"+(mode==="bandwidth"?"读带宽 8 / 16 / 32 / 48 / 64 / 128 GB/s":"读带宽 8 GB/s")+"，写带宽 8 GB/s";
  const factor=$("factor").value;
+ if(meta.ep8){
+  const rates=[...new Set(data.filter(r=>r.factor===Number(factor)).map(r=>r.bw))].sort((a,b)=>a-b);
+  $("configSSD").textContent="约 56 TB，worker_local；读带宽 "+rates.join(" / ")+" GB/s，写带宽 8 GB/s";
+ }
  $("configTimeline").textContent=["overlay","bandwidth"].includes(mode)?(factor==="all"?"比较多个标称叠加倍率；所有叠加 trace 用 speedup=1 回放。":"标称 "+factor+"× 会话叠加；engine speedup=1。"):"原速 1×，按 trace 时间戳回放。";
 }
 function render(){
  configuration();
+ if(meta.ep8&&ep8Comparison)updateEp8CapacityOptions();
  filtered=currentRows();const complete=filtered.filter(r=>r.sla!==null);
  const all=data.filter(r=>r.mode===mode),done=all.filter(r=>r.sla!==null).length;
  $("title").textContent=descriptions[mode][0];$("description").textContent=descriptions[mode][1];
  $("progress").textContent=done+" / "+all.length+" 行已有结果";
- const density={1:1,2:1.987,4:3.676,8:6.801,16:10.488,32:13.695,64:13.695,128:15.336};
- $("density").textContent=["overlay","bandwidth"].includes(mode)?($("factor").value==="all"?"标称倍率按会话分段折叠；全程平均密度会被越界尾部拉低。":"标称 "+$("factor").value+"× · 含尾部的全程平均密度约 "+density[$("factor").value]+"× · 会话内间隔保留"):"每组 174,438 条请求；三档使用相同的原速时间轴。";
- const m=metrics[$("metric").value],best=complete.length?Math.max(...complete.map(r=>r.sla)):null;
+ const density=meta.dataset?.density??{1:1,2:1.987,4:3.676,8:6.801,16:10.488,32:13.695,64:13.695,128:15.336};
+ $("density").textContent=["overlay","bandwidth"].includes(mode)?($("factor").value==="all"?"标称倍率按会话分段折叠；全程平均密度会被越界尾部拉低。":"标称 "+$("factor").value+"× · 含尾部的全程平均密度约 "+density[$("factor").value]+"× · 会话内间隔保留"):"每组 "+(meta.dataset?.requests??174438).toLocaleString("zh-CN")+" 条请求；三档使用相同的原速时间轴。";
+ if($("cards")){
+ const best=complete.length?Math.max(...complete.map(r=>r.sla)):null;
  const low=complete.length?Math.min(...complete.map(r=>r.p99)):null;
  const maxRead=complete.length?Math.max(...complete.map(r=>r.ssd)):null;
  $("cards").replaceChildren(...[["最高联合达标率",fmt(best,3)+"%","当前筛选范围"],["最低 P99 TTFT",fmt(low)+" 秒","当前筛选范围"],["最大累计 SSD 读",fmt(maxRead,3)+" TB","当前筛选范围"]].map(x=>{const card=document.createElement("div");card.className="card";const l=document.createElement("label"),v=document.createElement("strong"),p=document.createElement("p");l.textContent=x[0];v.textContent=x[1];p.textContent=x[2];card.append(l,v,p);return card}));
+ }
+ const m=metrics[$("metric").value];
+ if(meta.ep8&&ep8Comparison){
+  renderEp8Comparison();
+ }else if(meta.ep8){
+  $("mainTitle").textContent="DRAM 容量对复用率与性能的影响";
+  $("mainSub").textContent="上图显示所选缓存层级的复用率，下图显示所选性能指标。颜色表示 SSD 读带宽。";
+  $("ep8MetricTitle").textContent=m.name;
+  $("ep8MetricNote").textContent=$("metric").value.startsWith("noQueue")?"逐请求扣除 P 首次准入前的调度等待。":"";
+  makeLegend($("mainLegend"),Object.entries(ep8BandwidthColors).filter(([bw])=>filtered.some(r=>r.bw===Number(bw))).map(([bw,color])=>[bw+" GB/s",color]));
+  ep8HoveredDram=null;
+  $("tip").style.display="none";
+  drawEp8Charts();
+ }else{
  $("mainTitle").textContent=m.name+"对比";
- $("mainSub").textContent=mode==="bandwidth"?"横轴为 SSD 读带宽；256 GB 对照使用 8 GB/s，图中画为水平虚线。":"横轴按所选实验配置排列，刻度范围可在上方切换。";
+ $("mainSub").textContent=mode==="bandwidth"?(meta.ep8?"横轴为 SSD 读带宽，每条曲线是一档 DRAM。":"横轴为 SSD 读带宽；256 GB 对照使用 8 GB/s，图中画为水平虚线。"):"横轴按所选实验配置排列，刻度范围可在上方切换。";
  $("mainSub").textContent+=" "+($("axis").value==="local"?"当前为局部刻度，柱形长度由轴下限起算。":"当前坐标从 0 起算。");
- const groups=makeSeries(complete,$("metric").value);
+ const selectedMetric=$("metric").value;
+ if(["noQueueMean","noQueueP99"].includes(selectedMetric)){
+  $("mainSub").textContent+=" 逐请求扣除 P 首次准入前的调度等待，保留 KV 恢复和后续耗时。";
+ }
+ const groups=makeSeries(complete.filter(r=>r[selectedMetric]!==null),selectedMetric);
  makeLegend($("mainLegend"),groups.map(x=>[x.name,x.color]));
  plot($("mainChart"),groups,m.unit);
+ }
  reuse(complete);ssdBars(complete);insight(complete);
- $("rows").replaceChildren(...filtered.map(r=>{const tr=document.createElement("tr");if(r.sla===null)tr.className="pending";const values=[label(r)+(mode==="bandwidth"&&$("factor").value==="all"?" · "+r.factor+"×":""),r.status,fmt(r.sla,3)+"%",fmt(r.p99),fmt(r.mean),fmt(r.tpot),fmt(r.g1,3),fmt(r.g2,3),fmt(r.g3,3),fmt(r.total,3),fmt(r.ssd,3)];for(const value of values){const td=document.createElement("td");td.textContent=value;tr.append(td)}return tr}));
+ $("rows").replaceChildren(...filtered.map(r=>{const tr=document.createElement("tr");if(r.sla===null)tr.className="pending";const values=[label(r)+(mode==="bandwidth"&&$("factor").value==="all"?" · "+r.factor+"×":""),r.status,fmt(r.sla,3)+"%",fmt(r.p99),fmt(r.mean),fmt(r.tpot),fmt(r.g1,3),fmt(r.g2,3),fmt(r.g3,3),fmt(r.total,3),fmt(r.ssd,3)];for(const value of values){const td=document.createElement("td");td.textContent=value;tr.append(td)}if(data.some(row=>row.noQueueMean!==null||row.noQueueP99!==null)){for(const value of [r.noQueueMean,r.noQueueP99]){const td=document.createElement("td");td.textContent=fmt(value);tr.append(td)}}return tr}));
  $("tableSummary").textContent="查看所选组合的完整数据（"+filtered.length+" 行）";
 }
 function makeSeries(rows,key){
@@ -165,25 +207,163 @@ function tickFormat(value,range){
  const digits=Math.min(6,Math.max(0,Math.ceil(-Math.log10(range/5))+1));
  return value.toLocaleString("zh-CN",{minimumFractionDigits:digits,maximumFractionDigits:digits});
 }
-function plot(canvas,series,unit){
+function plot(canvas,series,unit,{ticks=null,xTitle="",digits=metrics[$("metric").value].digits}={}){
  const {c,w,h}=context(canvas),all=series.flatMap(s=>s.points);if(!all.length){empty(c,w,h);return}
  const left=62,right=22,top=25,bottom=50,W=w-left-right,H=h-top-bottom,ys=all.map(p=>p.y);
  let [ymin,ymax]=axisBounds(ys,unit==="%");
  canvas.dataset.axisMin=ymin;canvas.dataset.axisMax=ymax;
  const Y=y=>top+H*(1-((y-ymin)/(ymax-ymin)));
- const xs=[...new Set(all.map(p=>p.x))].sort((a,b)=>a-b);
+ const xs=ticks??[...new Set(all.map(p=>p.x))].sort((a,b)=>a-b);
  const bars=series.every(s=>s.bar),xmin=xs[0],xmax=xs.at(-1);
  const X=x=>bars?left+W*(xs.indexOf(x)+.5)/xs.length:left+(xmax===xmin?W/2:W*(x-xmin)/(xmax-xmin));
  c.fillStyle="#61736c";c.textAlign="left";c.fillText(unit+($("axis").value==="local"?" · 局部刻度":""),left,13);
  for(let i=0;i<=5;i++){const y=ymin+(ymax-ymin)*i/5,py=Y(y);c.strokeStyle="#e8ede6";c.lineWidth=1;c.setLineDash([]);c.beginPath();c.moveTo(left,py);c.lineTo(w-right,py);c.stroke();c.textAlign="right";c.fillText(tickFormat(y,ymax-ymin),left-9,py+4)}
  const labels=new Map(all.map(p=>[p.x,p.label]));c.textAlign="center";
- xs.forEach(x=>c.fillText(labels.get(x),X(x),h-24));
+ xs.forEach(x=>c.fillText(ticks?String(x):(labels.get(x)??String(x)),X(x),h-24));
+ if(xTitle)c.fillText(xTitle,(left+w-right)/2,h-7);
  for(const s of series){
   c.strokeStyle=s.color;c.fillStyle=s.color;c.lineWidth=2.5;c.setLineDash(s.dashed?[6,5]:[]);
   if(s.bar){const p=s.points[0],bw=Math.min(66,W/xs.length*.46);c.fillRect(X(p.x)-bw/2,Y(p.y),bw,top+H-Y(p.y))}
-  else{c.beginPath();s.points.forEach((p,i)=>{if(i)c.lineTo(X(p.x),Y(p.y));else c.moveTo(X(p.x),Y(p.y))});c.stroke()}
-  s.points.forEach(p=>{if(!s.dashed){c.beginPath();c.arc(X(p.x),Y(p.y),4,0,Math.PI*2);c.fill()}hover.get(canvas).push({x:X(p.x),y:Y(p.y),r:p.record,text:s.name+"\n"+(s.dashed?"容量对照":p.label)+" · "+fmt(p.y,metrics[$("metric").value].digits)+" "+unit})});
+  else{c.beginPath();s.points.forEach((p,i)=>{if(i)c.lineTo(X(p.x),Y(p.y));else c.moveTo(X(p.x),Y(p.y))});if(s.dashed&&s.points.length===1){const y=Y(s.points[0].y);c.moveTo(left,y);c.lineTo(w-right,y)}c.stroke()}
+  s.points.forEach(p=>{if(!s.dashed){c.beginPath();c.arc(X(p.x),Y(p.y),4,0,Math.PI*2);c.fill()}hover.get(canvas).push({x:X(p.x),y:Y(p.y),r:p.record,text:s.name+"\n"+(s.dashed?"容量对照":p.label)+" · "+fmt(p.y,digits)+" "+unit})});
  }c.setLineDash([]);
+}
+let ep8Comparison=false;
+
+function ep8FactorRows(){
+ return data.filter(r=>r.factor===Number($("factor").value));
+}
+function updateEp8CapacityOptions(){
+ const ref=$("ep8Reference"),line=$("ep8Curve");
+ const capacities=[...new Set(ep8FactorRows().map(r=>r.dram))].sort((a,b)=>a-b);
+ const format=gb=>[String(gb),gb+" GB"];
+ options(ref,capacities.slice(1).map(format),ref.value||"256");
+ options(line,capacities.filter(gb=>gb<Number(ref.value)).map(format),line.value||"128");
+ const bw=$("ep8ReferenceBw");
+ const rates=[...new Set(ep8FactorRows().filter(r=>r.dram===Number(ref.value)).map(r=>r.bw))].sort((a,b)=>a-b);
+ options(bw,rates.map(rate=>[String(rate),rate+" GB/s"]),bw.value||"2");
+}
+function setEp8View(comparison){
+ ep8Comparison=comparison;
+ $("ep8DramTab").setAttribute("aria-pressed",String(!comparison));
+ $("ep8CompareTab").setAttribute("aria-pressed",String(comparison));
+ $("ep8DramTab").classList.toggle("active",!comparison);
+ $("ep8CompareTab").classList.toggle("active",comparison);
+ $("dram").closest(".field").hidden=comparison;
+ $("ep8Reuse").closest(".field").hidden=comparison;
+ $("ep8Reference").closest(".field").hidden=!comparison;
+ $("ep8Curve").closest(".field").hidden=!comparison;
+ $("ep8ReferenceBw").closest(".field").hidden=!comparison;
+ $("ep8ReferenceBw").closest(".filters").classList.toggle("ep8-compare-filters",comparison);
+ $("ep8Lower").hidden=comparison;
+ $("ep8ReuseTitle").hidden=comparison;
+ document.querySelector('label[for="metric"]').textContent=comparison?"纵轴指标":"下图指标";
+ $("tip").style.display="none";
+ render();
+}
+function renderEp8Comparison(){
+ const metricKey=$("metric").value,metric=metrics[metricKey];
+ const ref=Number($("ep8Reference").value),line=Number($("ep8Curve").value);
+ const bw=Number($("ep8ReferenceBw").value);
+ const rows=ep8FactorRows(),base=rows.find(r=>r.dram===ref&&r.bw===bw);
+ const ticks=[...new Set([bw,...rows.filter(r=>r.dram===line&&r.bw>=bw).map(r=>r.bw)])].sort((a,b)=>a-b);
+ const series=[],canvas=$("mainChart");
+ ep8CapacityTicks.delete(canvas);
+ canvas.setAttribute("aria-label",metric.name+"随 SSD 读带宽变化");
+ $("mainTitle").textContent=metric.name+"随 SSD 读带宽变化";
+ $("mainSub").textContent="虚线对照固定在 "+ref+" GB DRAM、"+bw+" GB/s。折线展示该带宽及以上的结果。"+
+  (!Number.isFinite(base?.[metricKey])?" 当前指标的对照值待出，暂不绘制虚线。":"");
+ const points=rows.filter(r=>r.dram===line&&r.bw>=bw&&Number.isFinite(r[metricKey]))
+  .sort((a,b)=>a.bw-b.bw).map(r=>({x:r.bw,label:r.bw+" GB/s",y:r[metricKey],record:r}));
+ if(points.length)series.push({name:line+" GB DRAM",color:"#19745c",points});
+ if(ticks.length&&Number.isFinite(base?.[metricKey])){
+  series.push({name:ref+" GB DRAM · "+bw+" GB/s 基准",color:"#5279ba",dashed:true,
+   points:(ticks.length===1?[{x:bw,label:bw+" GB/s",y:base[metricKey],record:base}]:[ticks[0],ticks.at(-1)].map(x=>({x,label:x+" GB/s",y:base[metricKey],record:base})))});
+ }
+ makeLegend($("mainLegend"),series.map(group=>[group.name,group.color]));
+ plot(canvas,series,metric.unit,{ticks,xTitle:"SSD 读带宽（GB/s／TP 分片）"});
+}
+const ep8BandwidthColors={1:"#905ba7",2:"#19745c",4:"#5279ba",8:"#a86221"};
+
+let ep8HoveredDram=null;
+const ep8CapacityTicks=new Map();
+const ep8ReuseNames={g1:"HBM 复用率",g2:"DRAM 直接复用率",g3:"SSD 恢复复用率"};
+function drawEp8Charts(){
+ const drams=[...new Set(filtered.map(r=>r.dram))].sort((a,b)=>a-b);
+ const key=$("metric").value;
+ const metric=metrics[key];
+ $("ep8MetricChart").setAttribute("aria-label",metric.name+"随 P 侧 DRAM 容量变化");
+ const reuseKey=$("ep8Reuse").value;
+ const reuseName=ep8ReuseNames[reuseKey];
+ $("ep8ReuseTitle").textContent=reuseName;
+ $("mainChart").setAttribute("aria-label",reuseName+"随 P 侧 DRAM 容量变化");
+ plotEp8Dram($("mainChart"),drams,reuseKey,{name:reuseName,unit:"%",digits:3},false);
+ plotEp8Dram($("ep8MetricChart"),drams,key,metric,true);
+}
+function plotEp8Dram(canvas,drams,key,metric,showXTitle){
+ const {c,w,h}=context(canvas);
+ const left=70,right=24,top=26,bottom=h-(showXTitle?50:32);
+ ep8CapacityTicks.set(canvas,[]);
+ if(!drams.length||w<=left+right||bottom<=top)return;
+ const step=(w-left-right)/drams.length;
+ const x=gb=>left+step*(drams.indexOf(gb)+0.5);
+ ep8CapacityTicks.set(canvas,drams.map(gb=>({gb,x:x(gb),radius:step/2})));
+ c.fillStyle="#61736c";c.textAlign="center";
+ drams.forEach(gb=>c.fillText(String(gb),x(gb),bottom+17));
+ if(showXTitle)c.fillText("P 侧 DRAM 容量 (GB)",(left+w-right)/2,h-8);
+ const values=filtered.map(r=>r[key]).filter(Number.isFinite);
+ if(values.length){
+  const [min,max]=axisBounds(values,metric.unit==="%");
+  const range=Math.max(max-min,0.000001);
+  const y=value=>bottom-(bottom-top)*(value-min)/range;
+  c.textAlign="left";
+  c.fillText(metric.unit+($("axis").value==="local"?" · 局部刻度":""),left,14);
+  for(let tick=0;tick<=5;tick++){
+   const value=min+range*tick/5,py=y(value);
+   c.strokeStyle="#e8ede6";c.lineWidth=1;c.beginPath();
+   c.moveTo(left,py);c.lineTo(w-right,py);c.stroke();
+   c.textAlign="right";c.fillText(tickFormat(value,range),left-8,py+4);
+  }
+  for(const [bw,color] of Object.entries(ep8BandwidthColors)){
+   const byDram=new Map(filtered.filter(r=>r.bw===Number(bw)).map(r=>[r.dram,r[key]]));
+   c.strokeStyle=color;c.fillStyle=color;c.lineWidth=2.5;c.beginPath();
+   let open=false;
+   for(const gb of drams){
+    const value=byDram.get(gb);
+    if(!Number.isFinite(value)){open=false;continue}
+    if(open)c.lineTo(x(gb),y(value));else c.moveTo(x(gb),y(value));
+    open=true;
+   }
+   c.stroke();
+   for(const [gb,value] of byDram){
+    if(!Number.isFinite(value))continue;
+    c.beginPath();c.arc(x(gb),y(value),gb===ep8HoveredDram?6:4,0,Math.PI*2);c.fill();
+   }
+  }
+ }else{empty(c,w,h)}
+ if(ep8HoveredDram!==null){
+  const px=x(ep8HoveredDram);
+  c.strokeStyle="#61736c";c.lineWidth=1;c.setLineDash([4,4]);c.beginPath();
+  c.moveTo(px,top);c.lineTo(px,bottom);c.stroke();c.setLineDash([]);
+ }
+}
+function hoverEp8Chart(canvas,e){
+ const x=e.clientX-canvas.getBoundingClientRect().left;
+ const tick=ep8CapacityTicks.get(canvas)?.find(point=>Math.abs(x-point.x)<point.radius);
+ const gb=tick?.gb??null;
+ if(ep8HoveredDram!==gb){ep8HoveredDram=gb;drawEp8Charts()}
+ const tip=$("tip");
+ if(gb===null){tip.style.display="none";return}
+ const key=$("metric").value,metric=metrics[key];
+ const rows=filtered.filter(r=>r.dram===gb).sort((a,b)=>a.bw-b.bw);
+ const reuseKey=$("ep8Reuse").value;
+ tip.textContent=[gb+" GB DRAM",...rows.map(r=>r.bw+" GB/s · "+ep8ReuseNames[reuseKey]+" "+fmt(r[reuseKey],3)+(r[reuseKey]===null?"":"%")+" · "+metric.name+" "+fmt(r[key],metric.digits)+(r[key]===null?"":" "+metric.unit))].join("\n");
+ positionTip(tip,e);
+}
+function positionTip(tip,e){
+ tip.style.display="block";
+ tip.style.left=Math.max(8,Math.min(e.clientX+12,innerWidth-tip.offsetWidth-12))+"px";
+ tip.style.top=Math.max(8,Math.min(e.clientY+12,innerHeight-tip.offsetHeight-12))+"px";
 }
 function rowLabel(r){if(mode==="bandwidth")return ($("factor").value==="all"?r.factor+"× ":"")+r.dram+"G / "+r.bw;if(mode==="overlay")return r.factor+"× / "+r.dram+"G";return label(r)}
 function reuse(rows){
@@ -215,7 +395,7 @@ function ssdBars(rows){
 }
 function insight(rows){
  if(!rows.length){$("insight").textContent="所选范围还没有完整结果。可在下方明细表查看待完成组合。";return}
- if(mode==="bandwidth"&&$("factor").value!=="all"){
+ if(!meta.ep8&&mode==="bandwidth"&&$("factor").value!=="all"){
   const b=rows.find(r=>r.bw===8&&r.dram===128),ref=rows.find(r=>r.dram===256),high=rows.filter(r=>r.dram===128).sort((a,b)=>b.bw-a.bw)[0];
   if(b&&high&&high.bw>b.bw){$("insight").textContent="128 GB DRAM 的读带宽从 8 提到 "+high.bw+" GB/s，联合达标率变化 "+fmt(high.sla-b.sla,3)+" 个百分点，P99 TTFT 从 "+fmt(b.p99)+" 秒变为 "+fmt(high.p99)+" 秒。"+(ref?"同倍率 256 GB / 8 GB/s 对照的达标率为 "+fmt(ref.sla,3)+"%，P99 TTFT 为 "+fmt(ref.p99)+" 秒。":"");return}
  }
@@ -223,14 +403,25 @@ function insight(rows){
  $("insight").textContent="当前 "+rows.length+" 个已有结果组合的联合 SLA 达标率为 "+fmt(min,3)+"%～"+fmt(max,3)+"%。结合下方分层复用与 SSD 读量，可查看性能变化是否伴随缓存复用来源转移。";
 }
 for(const canvas of document.querySelectorAll("canvas")){
- canvas.addEventListener("mousemove",e=>{const box=canvas.getBoundingClientRect(),x=e.clientX-box.left,y=e.clientY-box.top,points=hover.get(canvas)||[];let best=null,dist=Infinity;for(const p of points){const d=p.wide?Math.abs(y-p.y):Math.hypot(x-p.x,y-p.y);if(d<dist){dist=d;best=p}}const tip=$("tip");if(!best||dist>(best.wide?14:28)){tip.style.display="none";return}tip.textContent=best.text;tip.style.display="block";tip.style.left=Math.max(8,Math.min(e.clientX+12,innerWidth-tip.offsetWidth-12))+"px";tip.style.top=Math.max(8,Math.min(e.clientY+12,innerHeight-tip.offsetHeight-12))+"px"});
- canvas.addEventListener("mouseleave",()=>{$("tip").style.display="none"});
+ canvas.addEventListener("mousemove",e=>{if(meta.ep8&&ep8CapacityTicks.has(canvas)){hoverEp8Chart(canvas,e);return}const box=canvas.getBoundingClientRect(),x=e.clientX-box.left,y=e.clientY-box.top,points=hover.get(canvas)||[];let best=null,dist=Infinity;for(const p of points){const d=p.wide?Math.abs(y-p.y):Math.hypot(x-p.x,y-p.y);if(d<dist){dist=d;best=p}}const tip=$("tip");if(!best||dist>(best.wide?14:28)){tip.style.display="none";return}tip.textContent=best.text;positionTip(tip,e)});
+ canvas.addEventListener("mouseleave",()=>{
+  $("tip").style.display="none";
+  if(meta.ep8&&ep8CapacityTicks.has(canvas)&&ep8HoveredDram!==null){
+   ep8HoveredDram=null;drawEp8Charts();
+  }
+ });
 }
-document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.mode;configure()}));
+document.querySelectorAll(".tab[data-mode]").forEach(b=>b.addEventListener("click",()=>{mode=b.dataset.mode;configure()}));
 ["factor","dram","metric","axis"].forEach(id=>$(id).addEventListener("change",render));
+$("ep8Reuse")?.addEventListener("change",render);
+$("ep8DramTab")?.addEventListener("click",()=>setEp8View(false));
+$("ep8CompareTab")?.addEventListener("click",()=>setEp8View(true));
+$("ep8Reference")?.addEventListener("change",render);
+$("ep8Curve")?.addEventListener("change",render);
+$("ep8ReferenceBw")?.addEventListener("change",render);
 $("import").addEventListener("click",()=>$("file").click());
 $("file").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{const text=await file.text();const next=parseMarkdown(text);sourceText=text;data=next;$("sourceStatus").className="note";$("sourceStatus").textContent="已导入 "+file.name;$("stamp").textContent="本次导入 "+new Date().toLocaleString("zh-CN");configure()}catch(err){$("sourceStatus").className="note error";$("sourceStatus").textContent="导入失败："+err.message}finally{e.target.value=""}});
-$("csv").addEventListener("click",()=>{const keys=["mode","factor","dram","hbm","bw","status","count","sla","p99","mean","tpot","g1","g2","g3","total","ssd"];const content="\ufeff"+[keys,...filtered.map(r=>keys.map(k=>r[k]??""))].map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(",")).join("\r\n");const url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="swe-chat-"+mode+".csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+$("csv").addEventListener("click",()=>{const keys=["mode","factor","dram","hbm","bw","status","count","sla","p99","mean","noQueueMean","noQueueP99","tpot","g1","g2","g3","total","ssd"];const content="\ufeff"+[keys,...filtered.map(r=>keys.map(k=>r[k]??""))].map(row=>row.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(",")).join("\r\n");const url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="swe-chat-"+mode+".csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
 let timer;window.addEventListener("resize",()=>{clearTimeout(timer);timer=setTimeout(render,120)});
 try{data=parseMarkdown(sourceText);$("sourceStatus").textContent="已载入本轮 "+data.length+" 行记录。后台更新后刷新浏览器可读取最新汇总。";$("stamp").textContent="页面生成于 "+meta.generated;configure()}catch(err){$("sourceStatus").className="note error";$("sourceStatus").textContent=err.message}
 </script>
@@ -240,13 +431,144 @@ def build(sweep=None, markdown_path=None, output=None):
     root = Path(__file__).resolve().parents[1]
     markdown_path = Path(markdown_path) if markdown_path else root / "experiments.md"
     markdown = markdown_path.read_text(encoding="utf-8")
+    template = TEMPLATE
+    ep8 = "<!-- report:ep8-local-ssd -->" in markdown
+    dataset = None
+    dataset_line = next((line for line in markdown.splitlines()
+                         if line.startswith("数据目录 `")), None)
+    if dataset_line:
+        bundle = Path(dataset_line.split("`")[1])
+        manifest = json.loads((bundle / "manifest.json").read_text(encoding="utf-8"))
+        overlays = {}
+        for factor in (sorted({int(value) for value in re.findall(r"^\| (\d+)× \|", markdown, re.MULTILINE)}) if ep8 else (8, 16, 32)):
+            target = bundle.with_name(f"{bundle.name}-overlay-{factor}x")
+            overlays[factor] = json.loads(
+                (target / "manifest.json").read_text(encoding="utf-8"))["overlay"]
+        first = next(iter(overlays.values()))
+        dataset = {
+            "requests": manifest["request_count"],
+            "density": {factor: round(o["effective_density_multiplier"], 3)
+                        for factor, o in overlays.items()},
+        }
+        diagnostics = manifest["diagnostics"]
+        replacements = {
+            "174,438 条模型请求 · 11,103 个会话<br>491 个可识别用户 ID；3,186 个会话缺少用户 ID":
+                f'{manifest["request_count"]:,} 条模型请求 · {first["session_count"]:,} 个回放会话',
+            "2026-01-16 04:30 — 2026-09-04 22:49<br>北京时间，约 232 天":
+                f'原速回放跨度约 {first["source_span_ms"] / 86_400_000:.1f} 天',
+            "拆出 190,397 条调用，过滤 15,951 条超限请求":
+                f'拆出 {diagnostics["extracted_calls"]:,} 条调用，过滤 {diagnostics["over_context_limit"]:,} 条超限请求',
+            "遇到上下文压缩或调用边界不明确时停止该会话后续提取。":
+                "校验请求 ID 和工具关联后合并交错日志。遇到压缩或不明确的边界时暂停，可从明确的新用户根消息恢复。",
+            "，32× 和 64× 的全程平均值尤其受尾部影响": "",
+            "基线和 HBM 容量实验使用各自独立的配置。": "1× 基线使用 HBM 自动容量。",
+            "8 / 16 / 32 / 48 / 64 / 128 GB/s": "8 / 16 / 32 / 48 / 64 GB/s",
+            'mode="baseline", filtered=[]': 'mode="overlay", filtered=[]',
+            '<button class="tab" data-mode="hbm">HBM 容量</button>': "",
+            'href="experiments.md">experiments.md</a>': f'href="{markdown_path.name}">{markdown_path.name}</a>',
+        }
+        for before, after in replacements.items():
+            template = template.replace(before, after)
+    if ep8:
+        changes = {
+            '<h1>DRAM 容量与 SSD 带宽，<br>怎样影响前缀复用？</h1>':
+                '<h1>SWE-chat 分层 KV 缓存实验</h1>',
+            '在同一份 Agent 请求上比较缓存容量、会话叠加和 SSD 读带宽。选择实验与组合，查看延迟、SLA 和各层复用的变化。':
+                'H200 1P1D 本地缓存实验，比较 P 侧 DRAM 容量与 SSD 读带宽对前缀复用和请求性能的影响。',
+            '<div class="sla"><small>联合 SLA · 逐请求判定</small><strong>TTFT ≤ 1 s</strong><span>且平均 TPOT ≤ 30 ms</span></div>': "",
+            'mode="overlay", filtered=[]': 'mode="bandwidth", filtered=[]',
+            'MoE TP8 / EP1': 'MoE TP1 / EP8',
+            '独立本地 DRAM ≈256 GB': '仅使用 HBM',
+            'D2H 32 GB/s': 'D2H 25 GB/s',
+            '8,192 token': '16,384 token',
+            '4 / 256</dd>': '32 / 256</dd>',
+            '8 / 16 / 32 / 48 / 64 GB/s': '2 / 4 / 8 GB/s',
+            'SSD 读带宽 · 容量替代对照': 'DRAM 容量与 SSD 读带宽扫描',
+            'P 侧 HBM 固定 2,048 块，SSD 写带宽固定 8 GB/s／TP 分片。':
+                '联合 SLA 按请求判定，TTFT ≤ 1 s 且平均 TPOT ≤ 30 ms。',
+            '叠加和带宽实验固定 P 侧 HBM KV 2,048 块。带宽实验固定 P 侧 DRAM 128 GB、SSD 写带宽 8 GB/s／TP 分片；256 GB／8 GB/s 为容量对照。1× 基线使用 HBM 自动容量。':
+                'P、D 使用自动 HBM KV 容量。P 侧使用本地 DRAM 和 SSD，D 侧仅使用 HBM。SSD 写带宽固定 8 GB/s／TP 分片。',
+        }
+        for before, after in changes.items():
+            template = template.replace(before, after)
+        template = re.sub(r'<nav class="tabs"[^>]*>.*?</nav>\n', '', template, count=1)
+        template = template.replace('<div class="hero">', '<div class="hero" style="grid-template-columns:1fr">')
+        template = template.replace(
+            '<div class="canvasholder"><canvas id="mainChart"',
+            '<div class="charthead"><div><h3 id="ep8ReuseTitle"></h3></div></div>'
+            '<div class="canvasholder"><canvas id="mainChart"',
+            1,
+        )
+        template = template.replace('<div class="filters">', '<div class="filters ep8-filters">', 1)
+        template = template.replace(
+            "</style>",
+            """
+.ep8-filters{grid-template-columns:repeat(5,minmax(0,1fr))}
+.ep8-filters .field{min-width:0}
+@media(min-width:861px){.ep8-compare-filters{grid-template-columns:repeat(6,minmax(0,1fr))}}
+@media(max-width:860px){.ep8-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.ep8-filters{grid-template-columns:minmax(0,1fr)}}
+</style>""",
+            1,
+        )
+        template = template.replace('<div class="cards" id="cards"></div>', '', 1)
+        template = template.replace(
+            '<div class="intro">',
+            '<nav class="tabs" aria-label="图表视图">'
+            '<button class="tab active" id="ep8DramTab" aria-pressed="true">DRAM 容量扫描</button>'
+            '<button class="tab" id="ep8CompareTab" aria-pressed="false">带宽对照</button></nav>'
+            '<div class="intro">',
+            1,
+        )
+        template = template.replace(
+            '<div class="field"><label for="metric">主图指标',
+            '<div class="field" hidden><label for="ep8Reference">基准 DRAM 容量</label>'
+            '<select id="ep8Reference"></select></div>'
+            '<div class="field" hidden><label for="ep8ReferenceBw">基准 SSD 读带宽</label>'
+            '<select id="ep8ReferenceBw"></select></div>'
+            '<div class="field" hidden><label for="ep8Curve">缩容后 DRAM 容量</label>'
+            '<select id="ep8Curve"></select></div>'
+            '<div class="field"><label for="metric">主图指标',
+            1,
+        )
+        performance_options = (
+            '<option value="p99" selected>P99 TTFT</option>'
+            '<option value="mean">平均 TTFT</option>'
+            '<option value="noQueueP99" hidden>扣排队后 P99 TTFT</option>'
+            '<option value="noQueueMean" hidden>扣排队后平均 TTFT</option>'
+            '<option value="sla">联合 SLA 达标率</option>'
+            '<option value="tpot">平均 TPOT</option>'
+            '<option value="ssd">SSD 累计读量</option>'
+        )
+        start = template.index('<select id="metric">') + len('<select id="metric">')
+        end = template.index("</select>", start)
+        template = template[:start] + performance_options + template[end:]
+        template = template.replace('for="metric">主图指标', 'for="metric">下图指标')
+        template = template.replace(
+            '<div class="field"><label for="metric">下图指标',
+            '<div class="field"><label for="ep8Reuse">上图复用率</label><select id="ep8Reuse">'
+            '<option value="g1">HBM 复用率</option><option value="g2" selected>DRAM 直接复用率</option>'
+            '<option value="g3">SSD 恢复复用率</option></select></div>'
+            '<div class="field"><label for="metric">下图指标',
+        )
+        template = template.replace(
+            '<canvas id="mainChart" role="img" aria-label="所选实验指标对比图"></canvas></div>',
+            '<canvas id="mainChart" role="img" aria-label="DRAM 直接复用率随 P 侧 DRAM 容量变化"></canvas></div>'
+            '<div id="ep8Lower"><div class="charthead"><div><h3 id="ep8MetricTitle"></h3>'
+            '<p class="sub" id="ep8MetricNote"></p></div></div>'
+            '<div class="canvasholder"><canvas id="ep8MetricChart" role="img"></canvas></div></div>',
+        )
+        template = template.replace('for="dram">P 侧 DRAM', 'for="dram">SSD 读带宽（GB/s／TP 分片）')
+
     payload = json.dumps({
+        "ep8": ep8,
+        "dataset": dataset,
         "markdown": markdown,
         "generated": datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S"),
     }, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     output = Path(output) if output else root / "experiments.html"
     temporary = output.with_suffix(".html.tmp")
-    temporary.write_text(TEMPLATE.replace("__DATA__", payload), encoding="utf-8")
+    temporary.write_text(template.replace("__DATA__", payload), encoding="utf-8")
     temporary.replace(output)
     print(output, flush=True)
     return output

@@ -305,6 +305,7 @@ impl TestDisaggConfig {
             num_prefill_workers: self.num_prefill_workers,
             num_decode_workers: self.num_decode_workers,
             handoff_latency_ms: 0.0,
+            enclosure: None,
         })
     }
 }
@@ -1155,6 +1156,51 @@ fn prefill_truncates_the_output_plan_without_mutating_decode() {
             .as_deref(),
         Some(original_output_token_ids.as_slice())
     );
+}
+
+#[test]
+fn deferred_prefill_retains_compact_input_and_reconstructs_identical_decode() {
+    let input_length = 65_536;
+    let hashes = vec![31; input_length / 16];
+    let output = vec![11, 12, 13];
+    let payload = ReplayRequestPayload::deferred(
+        DirectRequest {
+            max_output_tokens: output.len(),
+            output_token_ids: Some(output.clone()),
+            uuid: Some(Uuid::from_u128(90_022)),
+            ..Default::default()
+        },
+        input_length,
+        hashes,
+        16,
+    );
+    let expected = payload.prompt_tokens();
+    let mut state = DisaggRequestState::new(
+        payload,
+        0.0,
+        HandoffId::new(Uuid::from_u128(90_023)),
+        HandoffOrder::SourceFirst,
+        0.0,
+        None,
+        None,
+    );
+    for _ in 0..2 {
+        let prefill = state.build_prefill_request().unwrap();
+        assert_eq!(prefill.tokens, expected);
+        assert_eq!(prefill.output_token_ids.as_deref(), Some(&[11][..]));
+        assert_eq!(state.input_length().unwrap(), input_length);
+        assert!(state.materialized_tokens().unwrap().is_none());
+        let ReplayRequestPayload::Deferred { hash_ids, .. } = state.request_payload().unwrap()
+        else {
+            panic!("P submission retained an expanded input");
+        };
+        assert_eq!(hash_ids.len() * 16, input_length);
+    }
+    let decode = state.materialize_original_request().unwrap();
+    assert_eq!(decode.tokens, expected);
+    assert_eq!(decode.output_token_ids.as_deref(), Some(output.as_slice()));
+    state.complete_decode();
+    assert!(state.request_payload().is_err());
 }
 
 #[test]
@@ -2841,7 +2887,7 @@ fn shared_g2_outlives_a_prefill_role_scaled_to_zero_and_back() {
 }
 
 #[test]
-fn source_first_workload_stays_compact_until_prefill_worker_submission() {
+fn source_first_workload_stays_compact_after_prefill_worker_submission() {
     let mut config = disagg_config();
     config.num_prefill_workers = 1;
     let trace = Trace {
@@ -2884,7 +2930,7 @@ fn source_first_workload_stays_compact_until_prefill_worker_submission() {
             .unwrap()
             .materialized_tokens()
             .unwrap()
-            .is_some()
+            .is_none()
     );
 }
 
@@ -4261,4 +4307,142 @@ fn prefill_placement_receives_replay_hashes_in_both_handoff_orders(
     .run()
     .unwrap();
     assert_eq!(*seen.borrow(), expected);
+}
+
+#[test]
+fn enclosure_handoff_reuses_stored_prefix_and_transfers_private_tail() {
+    let mut config = disagg_config();
+    config.num_prefill_workers = 1;
+    config.num_decode_workers = 1;
+    config.prefill_args.kv_cache_bytes_per_token = Some(16);
+    config.decode_args.kv_cache_bytes_per_token = Some(16);
+    // Disable the D-local prefix cache so the second handoff must fetch
+    // the complete shared block from the enclosure.
+    config.decode_args.enable_prefix_caching = false;
+    let mut config = config.runtime_config(false).unwrap();
+    config.enclosure = Some(crate::replay::EnclosureHandoffConfig {
+        num_blocks: 8,
+        read_bandwidth_gbps: 1.0,
+        write_bandwidth_gbps: 1.0,
+        combined_bandwidth_gbps: Some(1.0),
+        prefill_write_bandwidth_gbps: None,
+        decode_read_bandwidth_gbps: None,
+        latency_to_first_byte_ms: 0.1,
+    });
+    let requests = VecDeque::from([request(1, 65, 2, 0.0), request(2, 65, 2, 100.0)]);
+    let mut runtime =
+        RoundRobinDisaggRuntime::new_round_robin(&config, requests, ReplayMode::Trace).unwrap();
+    let second = Uuid::from_u128(2);
+    let mut saw_early_read = false;
+    while let ReplayStepOutcome::Settled { .. } = runtime.step().unwrap() {
+        let source_held =
+            runtime.stats.transition_log.iter().any(
+                |event| matches!(event, DisaggTransition::SourceHeld { uuid } if *uuid == second),
+            );
+        let io = runtime.flow.enclosure.as_ref().unwrap().stats();
+        if !source_held && io.read.submitted_jobs == 2 {
+            saw_early_read = true;
+        }
+    }
+    assert!(
+        saw_early_read,
+        "second request must submit a read before P finishes"
+    );
+
+    let requests = VecDeque::from([request(1, 65, 2, 0.0), request(2, 65, 2, 100.0)]);
+    let runtime =
+        RoundRobinDisaggRuntime::new_round_robin(&config, requests, ReplayMode::Trace).unwrap();
+    let (collector, stats) = runtime.run().unwrap();
+    assert_eq!(stats.decode_assignments.len(), 2);
+    for uuid in [Uuid::from_u128(1), Uuid::from_u128(2)] {
+        let reserved = stats
+            .transition_log
+            .iter()
+            .position(|transition| {
+                matches!(
+                    transition, DisaggTransition::DestinationReserved { uuid: id } if *id == uuid
+                )
+            })
+            .unwrap();
+        let source = stats
+            .transition_log
+            .iter()
+            .position(|transition| {
+                matches!(
+                    transition, DisaggTransition::SourceHeld { uuid: id } if *id == uuid
+                )
+            })
+            .unwrap();
+        let active = stats
+            .transition_log
+            .iter()
+            .position(|transition| {
+                matches!(
+                    transition, DisaggTransition::DestinationActivated { uuid: id } if *id == uuid
+                )
+            })
+            .unwrap();
+        assert!(reserved < source && source < active);
+    }
+    let io = collector.finish().g3_offload.unwrap();
+    assert_eq!(io.read.completed_bytes, 4 * 64 * 16);
+    assert_eq!(io.write.completed_bytes, 3 * 64 * 16);
+    assert_eq!(io.resident_blocks, 1);
+    assert_eq!(io.pending_blocks, 0);
+}
+
+#[test]
+fn enclosure_decode_block_is_restored_by_next_prefill() {
+    let mut config = disagg_config();
+    config.num_prefill_workers = 1;
+    config.num_decode_workers = 1;
+    config.prefill_args.kv_cache_bytes_per_token = Some(16);
+    config.decode_args.kv_cache_bytes_per_token = Some(16);
+    config.prefill_args.native_host_offload = Some(crate::engine::NativeHostOffloadConfig::new(4));
+    let mut config = config.runtime_config(false).unwrap();
+    config.enclosure = Some(crate::replay::EnclosureHandoffConfig {
+        num_blocks: 8,
+        read_bandwidth_gbps: 1.0,
+        write_bandwidth_gbps: 1.0,
+        combined_bandwidth_gbps: Some(1.0),
+        prefill_write_bandwidth_gbps: None,
+        decode_read_bandwidth_gbps: None,
+        latency_to_first_byte_ms: 0.1,
+    });
+    let mut first = request(1, 48, 17, 0.0);
+    first.output_token_ids = Some((10..27).collect());
+    let mut next = request(2, 65, 1, 100.0);
+    next.tokens[48..64].copy_from_slice(&(10..26).collect::<Vec<_>>());
+    next.tokens[64] = 99;
+    next.output_token_ids = Some(vec![30]);
+    let mut mismatch = next.clone();
+    mismatch.uuid = Some(Uuid::from_u128(3));
+    mismatch.arrival_timestamp_ms = Some(200.0);
+    mismatch.tokens[63] = 50;
+    let rows = [first, next, mismatch]
+        .into_iter()
+        .map(|request| crate::replay::loadgen::MooncakeRow {
+            input_length: Some(request.tokens.len()),
+            hash_ids: Some(vec![42; request.tokens.len().div_ceil(16)]),
+            input_token_ids: Some(request.tokens),
+            output_length: Some(request.max_output_tokens),
+            output_token_ids: request.output_token_ids,
+            timestamp: request.arrival_timestamp_ms,
+            ..Default::default()
+        })
+        .collect();
+    let trace = crate::replay::loadgen::Trace::from_mooncake_rows(rows, 16).unwrap();
+    let driver = trace.into_trace_driver_with_block_size(64).unwrap();
+    let runtime =
+        RoundRobinDisaggRuntime::new_round_robin_workload(&config, driver, ReplayMode::Trace)
+            .unwrap()
+            .with_per_request_records(true);
+    let report = runtime.run().unwrap().0.finish();
+    assert_eq!(report.request_counts.completed_requests, 3);
+    let io = report.g3_offload.unwrap();
+    assert_eq!(io.decode_writeback_blocks, 1);
+    assert_eq!(io.prefill_decode_reuse_blocks, 1);
+    let records = report.per_request;
+    assert_eq!(records[1].first_admission_g3_reused_input_tokens, Some(64));
+    assert_eq!(records[2].first_admission_g3_reused_input_tokens, Some(0));
 }

@@ -59,6 +59,64 @@ fn trace_file_cardinality_validation_is_format_neutral() {
 }
 
 #[test]
+fn ordinary_mooncake_indexes_exact_prompts_and_dispatches_eager_equivalents() {
+    use std::io::Write;
+
+    let mut file = NamedTempFile::new().unwrap();
+    // Include CRLF, an empty line, multibyte text, a hash-only row, and no
+    // trailing newline to exercise byte indexing independently of row order.
+    write!(
+        file,
+        "{}\r\n\r\n{}\n{}",
+        serde_json::json!({
+            "timestamp": 10, "session_id": "会话",
+            "input_length": 4, "output_length": 1, "hash_ids": [99],
+            "input_token_ids": [10, 20, 30, 40], "output_token_ids": [42]
+        }),
+        serde_json::json!({
+            "timestamp": 0, "input_length": 4, "output_length": 1, "hash_ids": [7]
+        }),
+        serde_json::json!({
+            "timestamp": 5, "input_length": 3, "output_length": 1, "hash_ids": [99],
+            "input_token_ids": [10, 20, 31], "output_token_ids": [43]
+        }),
+    )
+    .unwrap();
+
+    let eager = Trace::from_mooncake(file.path(), 4).unwrap();
+    let lazy = Trace::from_mooncake_lazy(file.path(), 4).unwrap();
+    let mut indexed_prompts = 0;
+    for (actual, expected) in lazy.sessions.iter().zip(&eager.sessions) {
+        for (actual, expected) in actual.turns.iter().zip(&expected.turns) {
+            assert_eq!(
+                actual.mooncake_prompt.is_some(),
+                expected.input_token_ids.is_some()
+            );
+            indexed_prompts += usize::from(actual.mooncake_prompt.is_some());
+            assert!(actual.input_token_ids.is_none());
+            assert_eq!(
+                actual.synthesize_tokens(4).unwrap(),
+                expected.synthesize_tokens(4).unwrap()
+            );
+        }
+    }
+    assert_eq!(indexed_prompts, 2);
+
+    let mut eager = WorkloadDriver::new_trace(eager, 4).unwrap();
+    let mut lazy = WorkloadDriver::new_trace(lazy, 4).unwrap();
+    for now in [0.0, 5.0, 10.0] {
+        let expected = eager.pop_ready(now, 2).pop().unwrap();
+        let actual = lazy.pop_ready(now, 2).pop().unwrap();
+        assert_eq!(actual.request.tokens, expected.request.tokens);
+        assert_eq!(
+            actual.request.output_token_ids,
+            expected.request.output_token_ids
+        );
+        assert_eq!(actual.replay_hashes, expected.replay_hashes);
+    }
+}
+
+#[test]
 fn test_from_mooncake_single_turn_loads_fields_and_canonicalizes_hashes() {
     let file = write_trace(&[serde_json::json!({
         "timestamp": 123.0,
@@ -808,6 +866,8 @@ fn test_from_applied_compute_agentic_can_share_initial_prefix_blocks_across_sess
 #[test]
 fn test_turn_to_direct_request_repeats_hash_ids_by_block_size() {
     let turn = TurnTrace {
+        mooncake_prompt: None,
+        input_token_ids: None,
         input_length: 6,
         max_output_tokens: 3,
         output_token_ids: None,

@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "fixture_segments": [
+    3,
+    3
+  ],
+  "time_precision_seconds": 1e-06,
+  "full_case_checks": [
+    {
+      "role": "prefill",
+      "segments": 172435,
+      "busy_seconds": 34873.99214491769,
+      "hourly_reference_seconds": 34873.99146,
+      "max_bs": 4
+    },
+    {
+      "role": "decode",
+      "segments": 185285,
+      "busy_seconds": 434492.4570761793,
+      "hourly_reference_seconds": 434492.457228,
+      "max_bs": 6
+    }
+  ],
+  "browser": {
+    "local_pack_loading": true,
+    "automatic_resolution_switch": true,
+    "arbitrary_minute_true_bs": true,
+    "synchronized_drag_zoom": true,
+    "optional_secondary_bs_axis": true,
+    "fixed_0_to_100_percent": true,
+    "minute_axis_unit": "seconds",
+    "busy_integral_error_seconds": 0,
+    "idle_gap_segments": 0,
+    "mobile_no_overflow": true,
+    "page_errors": []
+  }
+}

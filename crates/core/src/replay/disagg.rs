@@ -284,6 +284,7 @@ impl DisaggActionQueues {
 }
 
 struct DisaggFlowState {
+    enclosure: Option<super::enclosure::EnclosureHandoffs>,
     requests: HashMap<Uuid, DisaggRequestState>,
     requests_by_handoff: HashMap<HandoffId, Uuid>,
     next_handoff_ordinal: u128,
@@ -440,6 +441,7 @@ impl DisaggFlowState {
         capture_conformance: bool,
     ) -> Self {
         Self {
+            enclosure: None,
             requests: HashMap::new(),
             requests_by_handoff: HashMap::new(),
             next_handoff_ordinal: 1,
@@ -735,6 +737,9 @@ impl DisaggFlowState {
                             .push(NormalizedHandoffEvent::DestinationReserved);
                     }
                     collector.on_destination_reserved(uuid, now_ms);
+                    if let Some(enclosure) = &mut self.enclosure {
+                        enclosure.prefetch(handoff_id, transferable_prompt_tokens, now_ms);
+                    }
                     self.apply_handoff_fact(
                         uuid,
                         HandoffFact::DestinationReserved {
@@ -798,6 +803,9 @@ impl DisaggFlowState {
             replay_hashes,
             session_id,
         );
+        if self.enclosure.is_some() {
+            state.coordinator.enable_early_destination();
+        }
         let actions = state.coordinator.start()?;
         self.requests.insert(uuid, state);
         self.requests_by_handoff.insert(handoff_id, uuid);
@@ -863,6 +871,10 @@ impl DisaggFlowState {
         let state = self.state(uuid)?;
         let handoff_id = state.handoff_id;
         let ranks = (state.prefill_worker_idx(), state.decode_worker_idx());
+        if let Some(enclosure) = &mut self.enclosure {
+            enclosure.source_ready(handoff_id);
+            return Ok(TransferStart::Linked);
+        }
         if delay_ms > 0.0 {
             let Some(links) = &mut self.links else {
                 return Ok(TransferStart::Scheduled(ScheduledTransfer {
@@ -1034,7 +1046,7 @@ impl DisaggFlowState {
             .expect("logical in-flight request count underflow");
         // With links, every priced transfer is linked and keeps moving until
         // its handoff retires; only heap completion events can go stale.
-        if transfer_was_pending && self.links.is_none() {
+        if transfer_was_pending && self.links.is_none() && self.enclosure.is_none() {
             self.stale_transfer_events = self
                 .stale_transfer_events
                 .checked_add(1)
@@ -1063,6 +1075,9 @@ impl DisaggFlowState {
         self.state_mut(uuid)?.mark_done();
         if let Some(links) = &mut self.links {
             links.cancel(handoff_id, now_ms);
+        }
+        if let Some(enclosure) = &mut self.enclosure {
+            enclosure.cancel(handoff_id, now_ms);
         }
         let removed = self.requests_by_handoff.remove(&handoff_id);
         if removed != Some(uuid) {
@@ -1212,6 +1227,32 @@ where
             CoreAdmissionSource::total_requests(&admission),
             "offline disagg replay",
         );
+        let enclosure = if let Some(enclosure) = &config.enclosure {
+            anyhow::ensure!(
+                !capture_conformance,
+                "direct handoff conformance does not cover enclosure mode"
+            );
+            anyhow::ensure!(
+                config.num_prefill_workers == 1 && config.num_decode_workers == 1,
+                "enclosure handoff requires static 1P1D"
+            );
+            let (block_size, block_bytes) = prefill_factory
+                .enclosure_geometry()
+                .context("enclosure requires vLLM with DP1, ordinary KV blocks and no local G3")?;
+            anyhow::ensure!(
+                decode_factory.enclosure_geometry() == Some((block_size, block_bytes))
+                    && prefill_factory.gpus_per_worker()? == decode_factory.gpus_per_worker()?,
+                "enclosure requires matching P/D KV block layout"
+            );
+            Some(super::enclosure::EnclosureHandoffs::new(
+                enclosure,
+                block_size,
+                block_bytes,
+            )?)
+        } else {
+            None
+        };
+        prefill_factory.enclosure = enclosure.as_ref().map(|enclosure| enclosure.tier());
         let prefill_bandwidth = prefill_factory.kv_transfer_bandwidth();
         let decode_bandwidth = decode_factory.kv_transfer_bandwidth();
         let prefill_dp_size = prefill_factory.dp_size();
@@ -1244,6 +1285,18 @@ where
         let mut collector = TraceCollector::default();
         collector.set_gpus_per_worker(prefill_gpus, decode_gpus);
 
+        let links = if enclosure.is_some() {
+            None
+        } else {
+            TransferLinks::new(prefill_bandwidth, decode_bandwidth)
+        };
+        let mut flow = DisaggFlowState::new(
+            handoff_order,
+            config.handoff_latency_ms(),
+            links,
+            capture_conformance,
+        );
+        flow.enclosure = enclosure;
         Ok(Self {
             now_ms: 0.0,
             next_event_seq: 0,
@@ -1253,12 +1306,7 @@ where
             decode_engine,
             prefill_placement,
             decode_placement,
-            flow: DisaggFlowState::new(
-                handoff_order,
-                config.handoff_latency_ms(),
-                TransferLinks::new(prefill_bandwidth, decode_bandwidth),
-                capture_conformance,
-            ),
+            flow,
             collector,
             evidence: ReplayEvidenceCollector::default(),
             events: BinaryHeap::new(),
@@ -1595,7 +1643,29 @@ where
         action: IssuedHandoffAction,
         kv_hint: Option<KvHintSource>,
     ) -> Result<()> {
+        let exact = self.flow.enclosure.is_some()
+            && self
+                .flow
+                .state(uuid)?
+                .request_payload()?
+                .materialized_tokens()
+                .is_some();
         let (request, handoff_id) = self.flow.prepare_prefill_submission(uuid)?;
+        if let Some(enclosure) = &mut self.flow.enclosure {
+            if let Err(error) = enclosure.register_prompt(
+                handoff_id,
+                &request.tokens,
+                exact && request.output_token_ids.is_some(),
+            ) {
+                self.prefill_placement.dispatch_aborted(uuid, self.now_ms)?;
+                self.acknowledge_action(
+                    uuid,
+                    action,
+                    HandoffActionOutcome::Failed(error.to_string()),
+                )?;
+                return Ok(());
+            }
+        }
         let effects = match self.prefill_engine.apply_command(
             worker_idx,
             Command::SubmitHandoffPrefill {
@@ -1828,8 +1898,8 @@ where
         // TODO: Keep the destination side compact through decode routing and
         // reservation once decode-block hashes can be derived without prompt
         // expansion and the scheduler accepts compact metadata. Destination-
-        // first SGLang currently materializes here before prefill; source-first
-        // vLLM has already materialized at prefill worker submission.
+        // first SGLang materializes here before prefill; source-first vLLM
+        // keeps deferred input compact through P and expands it here for D.
         self.state_mut(uuid)?.materialize_original_request()?;
         let session_id = self.state(uuid)?.session_id().map(str::to_owned);
         let request = self.flow.state(uuid)?.request_payload()?;
@@ -2041,6 +2111,9 @@ where
                 )?;
             }
             HandoffAction::CancelSource { handoff_id } => {
+                if let Some(enclosure) = &mut self.flow.enclosure {
+                    enclosure.cancel(handoff_id, self.now_ms);
+                }
                 let Some(worker_idx) = self.state(uuid)?.prefill_worker_idx() else {
                     self.cancel_prefill_route(uuid)?;
                     self.acknowledge_action(uuid, issued, HandoffActionOutcome::Noop)?;
@@ -2067,6 +2140,9 @@ where
                 self.process_lifecycle_events(effects.lifecycle_events)?;
             }
             HandoffAction::CancelDestination { handoff_id } => {
+                if let Some(enclosure) = &mut self.flow.enclosure {
+                    enclosure.cancel(handoff_id, self.now_ms);
+                }
                 let Some(worker_idx) = self.state(uuid)?.decode_worker_idx() else {
                     self.cancel_decode_route(uuid)?;
                     self.acknowledge_action(uuid, issued, HandoffActionOutcome::Noop)?;
@@ -2259,6 +2335,11 @@ where
             && self.decode_engine.is_drained()
             && self.flow.action_queues.is_empty()
             && self.flow.requests_by_handoff.is_empty()
+            && self
+                .flow
+                .enclosure
+                .as_ref()
+                .is_none_or(|pool| !pool.has_writeback())
     }
 
     /// Return true once the request workload is complete, even if `WorkerReady`
@@ -2270,6 +2351,11 @@ where
             && self.decode_engine.is_drained()
             && self.flow.action_queues.is_empty()
             && self.flow.requests_by_handoff.is_empty()
+            && self
+                .flow
+                .enclosure
+                .as_ref()
+                .is_none_or(|pool| !pool.has_writeback())
             && self.only_idle_events_remain()
     }
 
@@ -2326,6 +2412,13 @@ where
             .links
             .as_ref()
             .and_then(TransferLinks::next_event_ms);
+        let next_transfer_ms = choose_next_timestamp(
+            next_transfer_ms,
+            self.flow
+                .enclosure
+                .as_ref()
+                .and_then(|enclosure| enclosure.next_event()),
+        );
         let next_event_ms = self.events.peek().map(|event| event.at_ms);
         let next_canonical_event_ms = if self.telemetry.is_some() {
             next_non_telemetry_event_ms(&mut self.events)
@@ -2466,6 +2559,14 @@ where
             && self.admission.knows_preparation_request(signal.uuid)
         {
             return Ok(());
+        }
+        if self.flow.enclosure.is_some() {
+            let id = self.flow.state(signal.uuid)?.handoff_id;
+            self.flow.enclosure.as_mut().unwrap().decode_output(
+                id,
+                signal.token_id,
+                signal.completed,
+            );
         }
         if let Some(token_id) = signal.token_id {
             self.admission.defer_output_token(signal.uuid, token_id)?;
@@ -2681,6 +2782,13 @@ where
     /// Drain transfer completions scheduled for the current logical timestamp.
     fn apply_transfer_completions(&mut self) -> Result<bool> {
         let mut changed = false;
+        if let Some(enclosure) = &mut self.flow.enclosure {
+            for handoff_id in enclosure.advance(self.now_ms) {
+                let uuid = self.flow.uuid_for_handoff(handoff_id)?;
+                self.apply_handoff_fact(uuid, HandoffFact::TransferCompleted { handoff_id })?;
+                changed = true;
+            }
+        }
         if let Some(links) = &mut self.flow.links {
             links.complete_due(self.now_ms);
             for handoff_id in std::mem::take(&mut links.completed) {
@@ -3714,6 +3822,10 @@ where
         if target_prefill != self.prefill_engine.non_draining_group_count()
             || target_decode != self.decode_engine.non_draining_group_count()
         {
+            anyhow::ensure!(
+                self.flow.enclosure.is_none(),
+                "enclosure handoff requires static workers"
+            );
             self.collector.clear_static_worker_count();
         }
         // -- prefill --
@@ -4198,7 +4310,12 @@ where
         self.collector.set_runtime_evidence(self.evidence.finish());
         // Only the prefill pool can configure KVCR.
         self.collector.kvcr = self.prefill_engine.kvcr_stats();
-        self.collector.g3_offload = self.prefill_engine.g3_stats();
+        self.collector.g3_offload = self
+            .flow
+            .enclosure
+            .as_ref()
+            .map(|enclosure| enclosure.stats())
+            .or_else(|| self.prefill_engine.g3_stats());
         // Both roles reference the same deployment pool; report it once.
         self.collector.g2_domains = match self.prefill_engine.g2_domains() {
             domains if domains.is_empty() => self.decode_engine.g2_domains(),

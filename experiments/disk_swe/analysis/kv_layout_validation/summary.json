@@ -1,0 +1,102 @@
+{
+  "enclosure": {
+    "prediction": "/home/xieqiang/project/results/kv-layout-validation/enclosure/20261116T024716.100611Z/prediction/prediction.json",
+    "requests": 276,
+    "completed": 276,
+    "output_lengths_match": true,
+    "g3_offload": {
+      "cross_worker_read_blocks": 3691,
+      "decode_writeback_blocks": 917,
+      "evictions": 0,
+      "lookup_hits": 719,
+      "lookup_pending": 0,
+      "lookup_probes": 3905,
+      "pending_blocks": 0,
+      "prefill_decode_reuse_blocks": 719,
+      "prefill_dram_promotion_blocks": 3289,
+      "prefill_dram_promotion_bytes": 12675227136,
+      "read": {
+        "cancelled_jobs": 0,
+        "completed_bytes": 113795715072,
+        "completed_jobs": 514,
+        "submitted_jobs": 514,
+        "transfer_ms": 1473.8464380241664
+      },
+      "resident_blocks": 3619,
+      "write": {
+        "cancelled_jobs": 0,
+        "completed_bytes": 119900172288,
+        "completed_jobs": 1193,
+        "submitted_jobs": 1193,
+        "transfer_ms": 1618.052154050915
+      }
+    },
+    "mean_ttft_ms": 151.1692226962785,
+    "p99_ttft_ms": 1230.7721710205078,
+    "mean_tpot_ms": 11.565554351447247
+  },
+  "local-ssd": {
+    "prediction": "/home/xieqiang/project/results/kv-layout-validation/local-ssd/20261116T024719.315402Z/prediction/prediction.json",
+    "requests": 276,
+    "completed": 276,
+    "output_lengths_match": true,
+    "g3_offload": {
+      "cross_worker_read_blocks": 0,
+      "evictions": 0,
+      "lookup_hits": 0,
+      "lookup_pending": 0,
+      "lookup_probes": 272,
+      "pending_blocks": 0,
+      "read": {
+        "cancelled_jobs": 0,
+        "completed_bytes": 0,
+        "completed_jobs": 0,
+        "submitted_jobs": 0,
+        "transfer_ms": 0.0
+      },
+      "resident_blocks": 3421,
+      "write": {
+        "cancelled_jobs": 0,
+        "completed_bytes": 13183931904,
+        "completed_jobs": 277,
+        "submitted_jobs": 277,
+        "transfer_ms": 1918.4824001096804
+      }
+    },
+    "mean_ttft_ms": 176.46161787408747,
+    "p99_ttft_ms": 1129.987364590168,
+    "mean_tpot_ms": 11.564354130533218
+  },
+  "forced-restore": {
+    "prediction": "/home/xieqiang/project/results/kv-layout-validation/forced-restore/20261116T024932.340022Z/prediction/prediction.json",
+    "requests": 6,
+    "completed": 6,
+    "output_lengths_match": true,
+    "g3_offload": {
+      "cross_worker_read_blocks": 0,
+      "evictions": 0,
+      "lookup_hits": 2,
+      "lookup_pending": 0,
+      "lookup_probes": 6,
+      "pending_blocks": 0,
+      "read": {
+        "cancelled_jobs": 0,
+        "completed_bytes": 7707648,
+        "completed_jobs": 1,
+        "submitted_jobs": 1,
+        "transfer_ms": 1.063456000003498
+      },
+      "resident_blocks": 8,
+      "write": {
+        "cancelled_jobs": 0,
+        "completed_bytes": 30830592,
+        "completed_jobs": 4,
+        "submitted_jobs": 4,
+        "transfer_ms": 4.253824000010496
+      }
+    },
+    "mean_ttft_ms": 53.492227626666796,
+    "p99_ttft_ms": 55.16525296001055,
+    "mean_tpot_ms": 11.308881999993098
+  }
+}

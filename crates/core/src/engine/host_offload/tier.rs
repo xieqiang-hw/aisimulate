@@ -4,7 +4,9 @@
 use std::cmp::Ordering;
 use std::collections::{BTreeSet, VecDeque};
 use std::num::NonZeroU32;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
+
+use crate::engine::offload_transfer::TransferEnd;
 
 use super::{HostOffloadObservation, HostOffloadObservationData, HostOffloadObserver};
 use crate::engine::common::hashing::SequenceHash;
@@ -189,6 +191,7 @@ struct Transfer {
     blocks: Vec<HostBlockKey>,
     /// Fixed completion time of a submitted private-lane transfer.
     deadline: Option<f64>,
+    observed_end: TransferEnd,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -439,6 +442,7 @@ impl HostTier {
                 Kind::Load => {
                     self.remove_queued(id);
                     let transfer = self.transfers.remove(&id).expect("owned load disappeared");
+                    transfer.observed_end.finish(self.current_time_ms);
                     self.release_load_pins(&transfer.blocks);
                 }
                 Kind::Store if self.is_submitted(id) => {}
@@ -620,6 +624,7 @@ impl HostTier {
                 request_id,
                 blocks: missing,
                 deadline: None,
+                observed_end: TransferEnd::default(),
             },
         );
         transfer_id
@@ -786,16 +791,21 @@ impl HostTier {
     }
 
     pub(crate) fn complete_external(&mut self, id: TransferId) {
-        self.complete_external_with(id, false, None);
+        self.complete_external_with(id, false, None, self.current_time_ms);
     }
 
     /// Complete a KVCR peer fetch, marking each block as filled by it.
     pub(crate) fn complete_external_from_kvcr(&mut self, id: TransferId) {
-        self.complete_external_with(id, true, None);
+        self.complete_external_with(id, true, None, self.current_time_ms);
     }
 
-    pub(crate) fn complete_external_from_g3(&mut self, id: TransferId, owner: Option<Uuid>) {
-        self.complete_external_with(id, false, owner);
+    pub(crate) fn complete_external_from_g3_at(
+        &mut self,
+        id: TransferId,
+        owner: Option<Uuid>,
+        at_ms: f64,
+    ) {
+        self.complete_external_with(id, false, owner, at_ms);
     }
 
     pub(crate) fn was_restored_from_g3_for(&self, key: HostBlockKey, owner: Uuid) -> bool {
@@ -807,12 +817,14 @@ impl HostTier {
         id: TransferId,
         kvcr_origin: bool,
         g3_owner: Option<Uuid>,
+        at_ms: f64,
     ) {
         let transfer = self
             .transfers
             .remove(&id)
             .filter(|transfer| transfer.kind == Kind::External)
             .expect("external G2 reservation missing");
+        transfer.observed_end.finish(at_ms);
         for key in &transfer.blocks {
             let entry = self.entries.get_mut(key).unwrap();
             assert_eq!(entry.state, EntryState::PendingStore { transfer_id: id });
@@ -854,6 +866,7 @@ impl HostTier {
             "external G2 reservation missing"
         );
         let transfer = self.transfers.remove(&id).unwrap();
+        transfer.observed_end.finish(self.current_time_ms);
         for key in transfer.blocks {
             let mut entry = self.entries.remove(&key).unwrap();
             self.g3_restore_owners.remove(&key);
@@ -1101,6 +1114,7 @@ impl HostTier {
                 request_id,
                 blocks: blocks.to_vec(),
                 deadline: None,
+                observed_end: TransferEnd::default(),
             },
         );
         if let Some(completes_at_ms) = self.submit(transfer_id, now_ms, now_ms.max(not_before_ms)) {
@@ -1154,6 +1168,7 @@ impl HostTier {
         }
         self.remove_queued(transfer_id);
         let transfer = self.transfers.remove(&transfer_id).unwrap();
+        transfer.observed_end.finish(observed_at_ms);
         self.release_load_pins(&transfer.blocks);
         self.observe(HostOffloadObservation {
             request_id: transfer.request_id,
@@ -1229,10 +1244,12 @@ impl HostTier {
             request_id,
             blocks,
             deadline,
+            observed_end,
         } = self
             .transfers
             .remove(&transfer_id)
             .expect("due host transfer disappeared");
+        observed_end.finish(at_ms);
         assert!(deadline.is_none_or(|deadline| deadline == at_ms));
         self.completion_epoch += 1;
         let completed = if kind == Kind::Store {
@@ -1337,6 +1354,18 @@ impl HostTier {
             .filter(|transfer| transfer.client == client)
             .filter_map(|transfer| transfer.deadline)
             .max_by(f64::total_cmp)
+    }
+
+    /// Whether the dependency is an external G2 fill, and when it ends.
+    pub(crate) fn observe_transfer(
+        &mut self,
+        id: TransferId,
+    ) -> Option<(bool, Arc<OnceLock<f64>>)> {
+        let transfer = self.transfers.get_mut(&id)?;
+        Some((
+            transfer.kind == Kind::External,
+            transfer.observed_end.observe(),
+        ))
     }
 
     pub(crate) fn has_transfer(&self, transfer_id: TransferId) -> bool {
@@ -1499,7 +1528,7 @@ impl HostTier {
         now_ms
     }
 
-    fn allocate_transfer_id(&mut self) -> TransferId {
+    pub(crate) fn allocate_transfer_id(&mut self) -> TransferId {
         let id = TransferId::new(self.next_transfer_id);
         self.next_transfer_id = self
             .next_transfer_id

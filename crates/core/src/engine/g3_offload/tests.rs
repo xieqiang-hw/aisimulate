@@ -478,3 +478,37 @@ fn cancel_after_foreign_advance_and_before_delivery_is_terminal_once() {
     assert_eq!(r.snapshot().read.cancelled_jobs, 0);
     assert_eq!(r.pools[&0].entries[&key(1)].pins, 0);
 }
+
+#[test]
+fn enclosure_io_is_visible_after_write_and_shares_one_budget() {
+    for combined in [None, Some(1.0)] {
+        let mut cfg = config(G3Scope::ClusterShared);
+        cfg.shared_read_bandwidth_gbps = 1.0;
+        cfg.shared_write_bandwidth_gbps = 1.0;
+        cfg.latency_to_first_byte_ms = 0.25;
+        let shared = G3Tier::new_enclosure(cfg, 2, 1_000_000, combined).unwrap();
+        let mut tier = shared.lock().unwrap();
+        let seed = key(1);
+        tier.submit(0, Direction::Write, &[seed, seed], 0.0)
+            .unwrap();
+        assert_eq!(tier.probe(1, seed), Probe::Pending);
+        assert!(tier.submit(1, Direction::Read, &[seed], 0.0).is_none());
+        assert!(tier.submit(1, Direction::Write, &[seed], 0.0).is_none());
+        assert_eq!(tier.take_completed(0, 1.25)[0].keys, [seed]);
+
+        let next = key(2);
+        tier.submit(0, Direction::Write, &[next], 1.25).unwrap();
+        tier.submit(1, Direction::Read, &[seed], 1.25).unwrap();
+        let deadline = if combined.is_some() { 3.5 } else { 2.5 };
+        assert!(tier.take_completed(1, deadline - 0.01).is_empty());
+        assert_eq!(tier.probe(1, next), Probe::Pending);
+        assert_eq!(tier.take_completed(1, deadline)[0].at_ms, deadline);
+        assert_eq!(tier.take_completed(0, deadline)[0].at_ms, deadline);
+        assert_eq!(tier.probe(1, next), Probe::Resident);
+
+        let stats = tier.snapshot();
+        assert_eq!(stats.read.completed_bytes, 1_000_000);
+        assert_eq!(stats.write.completed_bytes, 2_000_000);
+        assert_eq!(stats.cross_worker_read_blocks, 1);
+    }
+}

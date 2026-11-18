@@ -791,6 +791,20 @@ impl VllmCore {
         self.belady_oracle = Some(oracle);
     }
 
+    pub(crate) fn set_enclosure(&mut self, registry: crate::engine::g3_offload::SharedG3Tier) {
+        if let Some(adapter) = &mut self.native_host_offload {
+            adapter.set_enclosure(
+                registry,
+                self.args.block_size
+                    * self
+                        .args
+                        .kv_cache_bytes_per_token
+                        .expect("G2 requires KV bytes"),
+                &mut self.kv_manager,
+            );
+        }
+    }
+
     pub(crate) fn set_g3_offload(
         &mut self,
         registry: crate::engine::g3_offload::SharedG3Tier,
@@ -1536,13 +1550,17 @@ impl VllmCore {
             sequence.lease.configure_prefix_hashes(&tokens, unit);
         }
         let host_offload = self.native_host_offload.as_ref().map(|adapter| {
-            Box::new(VllmHostRequestState::new(
+            let mut host = Box::new(VllmHostRequestState::new(
                 &sequence.sequence,
                 &sequence.lease,
                 self.args.block_size,
                 adapter.publishes_residency(),
                 request.kv_hint,
-            ))
+            ));
+            if self.args.worker_type == WorkerType::Prefill {
+                host.track_prefill_wait();
+            }
+            host
         });
         VllmRequestState {
             sequence,
@@ -3292,6 +3310,7 @@ impl VllmCore {
                 .cached_prefix_tokens
                 .get_or_insert(cached_prefix_tokens);
             let attribution = request.host_offload.as_deref_mut().and_then(|host| {
+                host.settle_prefill_wait(pressure_at_ms);
                 self.native_host_offload.as_ref()?.on_admitted(
                     host,
                     cached_prefix_tokens,
@@ -5057,6 +5076,7 @@ mod shared_g2_hold_tests {
             g1_reused_input_tokens: 4,
             host_reused_input_tokens: 0,
             g3_reused_input_tokens: Some(0),
+            prefill_kv_wait: None,
         };
         assert_eq!(admissions(&run(&mut core, 0.0)), [(request, 4, Some(g1))]);
     }
@@ -5112,6 +5132,7 @@ mod shared_g2_hold_tests {
             g1_reused_input_tokens: 0,
             host_reused_input_tokens: 8,
             g3_reused_input_tokens: Some(0),
+            prefill_kv_wait: None,
         };
         assert_eq!(admissions(&admitted), [(waiting, 8, Some(g2))]);
     }

@@ -249,6 +249,7 @@ pub struct ReplayRoleFactory {
     pub(crate) g3_config: Option<crate::engine::G3OffloadConfig>,
     pub(crate) g3_block_bytes: usize,
     pub(crate) g3_tier: Option<crate::engine::g3_offload::SharedG3Tier>,
+    pub(crate) enclosure: Option<crate::engine::g3_offload::SharedG3Tier>,
     /// Replay-owned KVCR timing, taken out of the rank config like `g3_config`.
     pub(crate) kvcr_config: Option<crate::engine::KvcrConfig>,
     /// The pool's KVCR registry, which its `EngineComponent` creates.
@@ -316,6 +317,11 @@ impl ReplayRoleFactory {
             .factory
             .build(EngineIdentity::new(worker_id), self.dp_size)
             .map_err(|error| ReplayError::Engine(format!("{error:#}")))?;
+        if let Some(registry) = &self.enclosure {
+            for rank in engine.ranks_mut() {
+                rank.set_enclosure(Arc::clone(registry));
+            }
+        }
         if let Some(registry) = &self.g3_tier {
             registry
                 .lock()
@@ -384,6 +390,24 @@ impl ReplayRoleFactory {
 
     pub(crate) fn kv_cache_capacity_bytes(&self) -> Option<u64> {
         self.kv_cache_capacity_bytes
+    }
+
+    pub(crate) fn enclosure_geometry(&self) -> Option<(usize, usize)> {
+        let rank = self.factory.config();
+        if self.backend != Backend::Vllm
+            || self.dp_size() != 1
+            || self.prefill_context_parallel_size != 1
+            || rank.state_cache.is_some()
+            || rank.prefix_match_unit.is_some()
+            || self.g3_config.is_some()
+        {
+            return None;
+        }
+        Some((
+            rank.block_size,
+            self.g3_block_bytes
+                .checked_mul(self.tensor_parallel_size as usize)?,
+        ))
     }
 
     pub(crate) fn kv_transfer_bandwidth(&self) -> Option<f64> {
@@ -528,6 +552,7 @@ impl ReplayEngineFactory {
             g3_config,
             g3_block_bytes,
             g3_tier: None,
+            enclosure: None,
             kvcr_config,
             kvcr: None,
             g2_registry: None,
@@ -627,6 +652,7 @@ pub fn run_engine_handoff_conformance(
         num_prefill_workers: 1,
         num_decode_workers: 1,
         handoff_latency_ms: 0.0,
+        enclosure: None,
     };
     DisaggRuntimeImpl::<
         PoolRoundRobinPlacement<KvEventBatch>,

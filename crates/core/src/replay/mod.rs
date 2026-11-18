@@ -23,6 +23,7 @@ mod handoff;
 pub(crate) mod events {
     pub(crate) use crate::replay::event::*;
 }
+mod enclosure;
 mod engine;
 pub mod loadgen;
 mod progress;
@@ -44,6 +45,7 @@ pub(crate) struct OfflineDisaggReplayConfig {
     pub(crate) num_prefill_workers: usize,
     pub(crate) num_decode_workers: usize,
     pub(crate) handoff_latency_ms: f64,
+    pub(crate) enclosure: Option<EnclosureHandoffConfig>,
 }
 
 impl OfflineDisaggReplayConfig {
@@ -174,8 +176,8 @@ pub use scaling::{NoScaling, ReplayScalingDecision, ReplayScalingPolicy, ReplayS
 #[cfg(test)]
 mod snapshot_tests;
 pub use spec::{
-    CURRENT_REPLAY_SPEC_VERSION, EncoderSpec, ProviderSpec, ReplayAdapters, ReplayRequest,
-    ReplayRoutingMetadata, ReplaySpec, ReplayTopology, WorkerPoolSpec, WorkerStage,
+    CURRENT_REPLAY_SPEC_VERSION, EnclosureHandoffConfig, EncoderSpec, ProviderSpec, ReplayAdapters,
+    ReplayRequest, ReplayRoutingMetadata, ReplaySpec, ReplayTopology, WorkerPoolSpec, WorkerStage,
 };
 pub use telemetry::{
     ReplayPromptSourceCounters, ReplaySchedulerIntervalMetrics, ReplaySchedulerMetricsSnapshot,

@@ -232,9 +232,15 @@ impl DisaggRequestState {
     }
 
     pub(crate) fn build_prefill_request(&mut self) -> Result<DirectRequest> {
-        Ok(self
-            .materialize_original_request()?
-            .clone_with_output_limit(1))
+        // Keep a deferred prompt compact while P queues or executes it. The
+        // handoff retains the original until Decode completes, so materializing
+        // it here would keep every waiting prompt's full token array alive.
+        let original = self.request_payload()?;
+        let mut request = original.metadata().clone_with_output_limit(1);
+        if original.materialized_tokens().is_none() {
+            request.tokens = original.prompt_tokens();
+        }
+        Ok(request)
     }
 
     pub(crate) fn take_replay_hashes(&mut self) -> Option<ReplayRequestHashes> {

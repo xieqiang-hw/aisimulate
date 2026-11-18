@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "export_version": 3,
+  "fixture": {
+    "iterations": 11,
+    "prefill_new_tokens": 387,
+    "decode_generated_tokens": 6,
+    "max_prefill_bs": 1,
+    "max_decode_bs": 1
+  },
+  "cross_hour_state_carry_verified": true,
+  "compute_only_boundary_bin_verified": true,
+  "browser": {
+    "direct_wsl_unc_open": true,
+    "all_metric_switches": true,
+    "csv_download": true,
+    "desktop_no_overflow": true,
+    "mobile_no_overflow": true,
+    "page_errors": []
+  }
+}

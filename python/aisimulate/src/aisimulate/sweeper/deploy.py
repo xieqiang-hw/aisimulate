@@ -206,11 +206,9 @@ def _engine_args_payload(
 
 
 def _profile_kv_args(sample: dict[str, Any], role: str, backend_version: str) -> dict[str, Any]:
-    if sample.get("fpm_profile") is None:
-        return {}
     prefix = _role_prefix(role)
     return {
-        "fpm_profile": sample["fpm_profile"],
+        "fpm_profile": sample.get("fpm_profile"),
         "worker_type": "aggregated" if role == "agg" else role,
         "system": _role_hardware_sku(sample, role),
         "backend": sample["backend"],

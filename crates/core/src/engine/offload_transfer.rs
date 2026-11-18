@@ -6,7 +6,8 @@
 //! Each owner keeps its own instance and budgets. Callers resolve bandwidth,
 //! first-byte readiness and job IDs; this module only advances bytes through
 //! virtual time. A job draws from up to two links, each a budget shared by the
-//! moving jobs that name it in the same slot and direction: an offload tier
+//! moving jobs that name it in the same slot and direction by default. A
+//! shared enclosure can combine both directions on the second link. An offload tier
 //! uses its client's link and the pool's link, the P/D handoff its source and
 //! destination ranks' links. Rates are max-min fair: the most constrained
 //! link's jobs get equal shares, and capacity they leave unused on their other
@@ -17,6 +18,23 @@
 use std::cell::{Cell, RefCell};
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
+use std::sync::{Arc, OnceLock};
+
+/// Completion or cancellation time shared only with requests observing this I/O.
+#[derive(Default)]
+pub(crate) struct TransferEnd(Option<Arc<OnceLock<f64>>>);
+
+impl TransferEnd {
+    pub(crate) fn observe(&mut self) -> Arc<OnceLock<f64>> {
+        self.0.get_or_insert_with(Default::default).clone()
+    }
+
+    pub(crate) fn finish(self, at_ms: f64) {
+        if let Some(handle) = self.0 {
+            let _ = handle.set(at_ms);
+        }
+    }
+}
 
 use rustc_hash::FxHashMap;
 
@@ -117,7 +135,7 @@ struct RateScratch {
 #[cfg(test)]
 fn fair_rates(jobs: &[Job], now: f64) -> Vec<f64> {
     let mut rates = Vec::new();
-    fair_rates_into(jobs, now, &mut RateScratch::default(), &mut rates);
+    fair_rates_into(jobs, now, false, &mut RateScratch::default(), &mut rates);
     rates
 }
 
@@ -128,7 +146,13 @@ fn fair_rates(jobs: &[Job], now: f64) -> Vec<f64> {
 /// equal share, then charge their rate to their other link. Rates depend only
 /// on the jobs and which are past their first byte, so they stay exact until
 /// the job set changes or the clock reaches the returned first byte.
-fn fair_rates_into(jobs: &[Job], now: f64, scratch: &mut RateScratch, rates: &mut Vec<f64>) -> f64 {
+fn fair_rates_into(
+    jobs: &[Job],
+    now: f64,
+    combine_pool_directions: bool,
+    scratch: &mut RateScratch,
+    rates: &mut Vec<f64>,
+) -> f64 {
     let RateScratch {
         index,
         budgets,
@@ -154,15 +178,18 @@ fn fair_rates_into(jobs: &[Job], now: f64, scratch: &mut RateScratch, rates: &mu
                 if link.rate.is_infinite() {
                     continue;
                 }
-                let budget = *index
-                    .entry((slot, link.id, job.direction))
-                    .or_insert_with(|| {
-                        budgets.push(Budget {
-                            remaining: link.rate,
-                            active: 0,
-                        });
-                        budgets.len() - 1
+                let direction = if slot == 1 && combine_pool_directions {
+                    Direction::Read
+                } else {
+                    job.direction
+                };
+                let budget = *index.entry((slot, link.id, direction)).or_insert_with(|| {
+                    budgets.push(Budget {
+                        remaining: link.rate,
+                        active: 0,
                     });
+                    budgets.len() - 1
+                });
                 debug_assert_eq!(budgets[budget].remaining, link.rate);
                 budgets[budget].active += 1;
                 own[slot] = Some(budget);
@@ -312,6 +339,7 @@ pub(crate) struct ClientEvent {
 #[derive(Default)]
 pub(crate) struct FairTransfers {
     now: f64,
+    combine_pool_directions: bool,
     /// Submission order; completions in one step are reported in this order.
     jobs: Vec<Job>,
     /// Boxed so an idle tier stays small.
@@ -333,6 +361,13 @@ pub(crate) struct FairTransfers {
 }
 
 impl FairTransfers {
+    pub(crate) fn with_combined_pool_directions(combine_pool_directions: bool) -> Self {
+        Self {
+            combine_pool_directions,
+            ..Self::default()
+        }
+    }
+
     pub(crate) fn now(&self) -> f64 {
         self.now
     }
@@ -400,6 +435,7 @@ impl FairTransfers {
         let first_byte = fair_rates_into(
             &self.jobs,
             self.now,
+            self.combine_pool_directions,
             &mut self.scratch.borrow_mut(),
             &mut self.rates.borrow_mut(),
         );
@@ -849,7 +885,7 @@ mod tests {
                 .collect::<Vec<_>>();
             let mut scratch = RateScratch::default();
             let mut rates = Vec::new();
-            fair_rates_into(&jobs, 0.0, &mut scratch, &mut rates);
+            fair_rates_into(&jobs, 0.0, false, &mut scratch, &mut rates);
             heap_cases += usize::from(scratch.budgets.len() > SCAN_BUDGETS);
             let expected = reference_rates(&jobs);
             assert_eq!(

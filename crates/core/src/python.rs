@@ -3640,7 +3640,8 @@ fn build_runtime_input(
             "trace format {format:?} requires exactly one path"
         );
         let mut trace = match format {
-            "mooncake" | "mooncake-delta" => Trace::from_mooncake(&paths[0], trace_block_size)?,
+            "mooncake" => Trace::from_mooncake_lazy(&paths[0], trace_block_size)?,
+            "mooncake-delta" => Trace::from_mooncake(&paths[0], trace_block_size)?,
             "applied_compute_agentic" => {
                 Trace::from_applied_compute_agentic(&paths[0], trace_block_size, 0.0, 0)?
             }

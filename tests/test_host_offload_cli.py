@@ -239,6 +239,12 @@ def test_prediction_host_offload_auto_geometry_uses_aggregated_shape(
             "moe_tp_size": 1,
             "moe_ep_size": 1,
             "kvcache_quant_mode": None,
+            "fpm_profile": None,
+            "worker_type": "aggregated",
+            "system": engine["hardware"],
+            "backend": engine["backend"],
+            "backend_version": engine.get("backend_version"),
+            "attention_dp_size": 1,
         }
     ]
 

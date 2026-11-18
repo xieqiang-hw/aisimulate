@@ -1,0 +1,1287 @@
+[
+  {
+    "name": "FreeInference",
+    "n": 1222199,
+    "sessions": 14036,
+    "turns": {
+      "stats": {
+        "n": 14036,
+        "total": 1222199,
+        "mean": 87.07601880877743,
+        "min": 1,
+        "max": 5040,
+        "p50": 34,
+        "p90": 192,
+        "p95": 314,
+        "p99": 837,
+        "cv": 2.3126657519161005,
+        "top1_share": 0.18077988936335246
+      },
+      "lengths": [
+        {
+          "stats": {
+            "n": 1222199,
+            "total": 205139612266,
+            "mean": 167844.689994019,
+            "min": 300,
+            "max": 1259654,
+            "p50": 118093,
+            "p90": 380340,
+            "p95": 496085,
+            "p99": 727358,
+            "cv": 0.9210196975784952,
+            "top1_share": 0.049757911206171124
+          },
+          "bins": [
+            0,
+            71,
+            1679,
+            13990,
+            108108,
+            195237,
+            186774,
+            165256,
+            551084
+          ]
+        },
+        {
+          "stats": {
+            "n": 1222199,
+            "total": 577732463,
+            "mean": 472.6991782843874,
+            "min": 0,
+            "max": 293267,
+            "p50": 216,
+            "p90": 1053,
+            "p95": 1671,
+            "p99": 3989,
+            "cv": 2.1429324147965523,
+            "top1_share": 0.14677059094046443
+          },
+          "bins": [
+            394487,
+            537610,
+            246906,
+            40698,
+            2460,
+            26,
+            7,
+            3,
+            2
+          ]
+        }
+      ],
+      "distribution": [
+        82,
+        1130,
+        1585,
+        2161,
+        3557,
+        2519,
+        3002
+      ],
+      "groups": {
+        "0": {
+          "count": 68462,
+          "axes": [
+            {
+              "stats": {
+                "n": 68462,
+                "total": 4688546083,
+                "mean": 68483.91929829687,
+                "min": 300,
+                "max": 1081376,
+                "p50": 28808,
+                "p90": 184386,
+                "p95": 290765,
+                "p99": 476773,
+                "cv": 1.52273076531434,
+                "top1_share": 0.09445661899448157
+              },
+              "bins": [
+                0,
+                71,
+                1648,
+                7927,
+                27952,
+                12625,
+                5211,
+                3046,
+                9982
+              ]
+            },
+            {
+              "stats": {
+                "n": 68462,
+                "total": 35209064,
+                "mean": 514.2862317782127,
+                "min": 0,
+                "max": 131071,
+                "p50": 204,
+                "p90": 994,
+                "p95": 1795,
+                "p99": 5729,
+                "cv": 2.7520087234168127,
+                "top1_share": 0.20751397992289713
+              },
+              "bins": [
+                22848,
+                31172,
+                11497,
+                2567,
+                375,
+                2,
+                0,
+                1,
+                0
+              ]
+            }
+          ]
+        },
+        "1": {
+          "count": 60808,
+          "axes": [
+            {
+              "stats": {
+                "n": 60808,
+                "total": 4843102677,
+                "mean": 79645.81431719511,
+                "min": 873,
+                "max": 1084888,
+                "p50": 42343,
+                "p90": 195539,
+                "p95": 301494,
+                "p99": 494279,
+                "cv": 1.3189032075062521,
+                "top1_share": 0.08353006470855791
+              },
+              "bins": [
+                0,
+                0,
+                31,
+                3776,
+                19250,
+                17834,
+                6633,
+                3621,
+                9663
+              ]
+            },
+            {
+              "stats": {
+                "n": 60808,
+                "total": 35314154,
+                "mean": 580.7484870411788,
+                "min": 0,
+                "max": 65536,
+                "p50": 226,
+                "p90": 1235,
+                "p95": 2181,
+                "p99": 5931,
+                "cv": 2.4223358776481314,
+                "top1_share": 0.17969743803008845
+              },
+              "bins": [
+                19194,
+                26113,
+                12177,
+                3001,
+                316,
+                6,
+                1,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        "2": {
+          "count": 1092929,
+          "axes": [
+            {
+              "stats": {
+                "n": 1092929,
+                "total": 195607963506,
+                "mean": 178975.9110665011,
+                "min": 2158,
+                "max": 1259654,
+                "p50": 127509,
+                "p90": 394482,
+                "p95": 511799,
+                "p99": 737563,
+                "cv": 0.8701526734316575,
+                "top1_share": 0.047150296596779905
+              },
+              "bins": [
+                0,
+                0,
+                0,
+                2287,
+                60906,
+                164778,
+                174930,
+                158589,
+                531439
+              ]
+            },
+            {
+              "stats": {
+                "n": 1092929,
+                "total": 507209245,
+                "mean": 464.0825204564981,
+                "min": 0,
+                "max": 293267,
+                "p50": 216,
+                "p90": 1048,
+                "p95": 1642,
+                "p99": 3781,
+                "cv": 2.056713119166537,
+                "top1_share": 0.1381462023626955
+              },
+              "bins": [
+                352445,
+                480325,
+                223232,
+                35130,
+                1769,
+                18,
+                6,
+                2,
+                2
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "models": {
+      "glm-5.1": 153360,
+      "glm-5-turbo": 14288,
+      "minimax-m2.7": 21851,
+      "minimax-m2.5": 11772,
+      "deepseek-v4-pro": 1183,
+      "minimax-fast": 827,
+      "glm-4.7": 487,
+      "qwen3.6-35b": 87201,
+      "minimax-m3": 105519,
+      "kimi-k2.7-code": 51608,
+      "glm-5.2": 170676,
+      "gpt-oss-20b": 38,
+      "deepseek-v4-flash": 528165,
+      "diffusiongemma": 425,
+      "claude-opus-4-8": 582,
+      "glm-5.3": 7778,
+      "glm-5.3-flash": 66439
+    },
+    "files": [
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-05-17_2026-05-23/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-05-24_2026-05-30/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-05-31_2026-06-06/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-06-07_2026-06-13/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-06-14_2026-06-20/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-06-21_2026-06-27/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-06-28_2026-07-04/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-07-05_2026-07-11/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-07-12_2026-07-18/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-07-19_2026-07-25/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-07-26_2026-08-01/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-08-02_2026-08-08/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-08-09_2026-08-15/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-08-16_2026-08-22/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-08-23_2026-08-29/processed/requests.parquet",
+      "/home/xieqiang/project/data/freeinference_agentic_trace/upstream/release/2026-08-30_2026-09-05/processed/requests.parquet"
+    ],
+    "observed_utc": [
+      "2026-05-17T00:24:19.236000+00:00",
+      "2026-09-05T23:59:56.056000+00:00"
+    ],
+    "zero_outputs": 4727,
+    "over_128k": 553233,
+    "provider_prompt": {
+      "n": 1222199,
+      "total": 211481994898,
+      "mean": 173034.0107445678,
+      "min": 0,
+      "max": 1803712,
+      "p50": 119224,
+      "p90": 397461,
+      "p95": 521018,
+      "p99": 748621,
+      "cv": 0.9271074310839862,
+      "top1_share": 0.048634554719236146
+    },
+    "providers": {
+      "B": 342922,
+      "C": 103714,
+      "G": 5237,
+      "H": 544,
+      "J": 112,
+      "K": 19,
+      "A": 606060,
+      "F": 12310,
+      "E": 39547,
+      "I": 459,
+      "D": 111275
+    },
+    "model_sessions": {
+      "glm-5.1": 2294,
+      "glm-5-turbo": 363,
+      "minimax-m2.7": 296,
+      "minimax-m2.5": 171,
+      "deepseek-v4-pro": 14,
+      "minimax-fast": 8,
+      "glm-4.7": 12,
+      "qwen3.6-35b": 1469,
+      "minimax-m3": 1460,
+      "kimi-k2.7-code": 366,
+      "glm-5.2": 2035,
+      "gpt-oss-20b": 11,
+      "deepseek-v4-flash": 5604,
+      "diffusiongemma": 71,
+      "claude-opus-4-8": 13,
+      "glm-5.3": 168,
+      "glm-5.3-flash": 824
+    },
+    "provider_sessions": {
+      "B": 5172,
+      "C": 1642,
+      "G": 144,
+      "H": 8,
+      "J": 23,
+      "K": 6,
+      "A": 6885,
+      "F": 219,
+      "E": 312,
+      "I": 80,
+      "D": 2471
+    },
+    "user_turns": {
+      "stats": {
+        "n": 14036,
+        "total": 87508,
+        "mean": 6.2345397549159305,
+        "min": 1,
+        "max": 407,
+        "p50": 3,
+        "p90": 13,
+        "p95": 21,
+        "p99": 52,
+        "cv": 2.003412528879146,
+        "top1_share": 0.15035196782008503
+      },
+      "distribution": [
+        0,
+        2919,
+        7112,
+        2052,
+        1214,
+        592,
+        111,
+        36
+      ],
+      "method": "每个上游周内会话按 step 顺序统计 step_trigger=user 的请求。工具触发的请求归入最近一次用户输入。"
+    }
+  },
+  {
+    "name": "SWE-chat",
+    "n": 1958591,
+    "sessions": 16689,
+    "turns": {
+      "stats": {
+        "n": 16689,
+        "total": 1958591,
+        "mean": 117.35820001198394,
+        "min": 1,
+        "max": 10308,
+        "p50": 42,
+        "p90": 248,
+        "p95": 420,
+        "p99": 1255,
+        "cv": 2.6387142076584795,
+        "top1_share": 0.2057039984356101
+      },
+      "lengths": [
+        {
+          "stats": {
+            "n": 1262633,
+            "total": 272090764681,
+            "mean": 215494.73574744206,
+            "min": 5,
+            "max": 1056358,
+            "p50": 140785,
+            "p90": 499934,
+            "p95": 651510,
+            "p99": 885709,
+            "cv": 0.8960420929409919,
+            "top1_share": 0.043361384840945566
+          },
+          "bins": [
+            26,
+            0,
+            0,
+            54,
+            28479,
+            167073,
+            202989,
+            183982,
+            680030
+          ]
+        },
+        {
+          "stats": {
+            "n": 1341861,
+            "total": 776237141,
+            "mean": 578.4780547314513,
+            "min": 0,
+            "max": 65595,
+            "p50": 226,
+            "p90": 1380,
+            "p95": 2255,
+            "p99": 5226,
+            "cv": 2.075947055542562,
+            "top1_share": 0.15005339457211053
+          },
+          "bins": [
+            401387,
+            569595,
+            292861,
+            73360,
+            4569,
+            88,
+            1,
+            0,
+            0
+          ]
+        }
+      ],
+      "distribution": [
+        342,
+        1026,
+        1419,
+        2373,
+        4001,
+        3080,
+        4448
+      ],
+      "groups": {
+        "0": {
+          "count": 80490,
+          "axes": [
+            {
+              "stats": {
+                "n": 58465,
+                "total": 2668627031,
+                "mean": 45644.86497904729,
+                "min": 6,
+                "max": 611266,
+                "p50": 41452,
+                "p90": 72096,
+                "p95": 84052,
+                "p99": 114006,
+                "cv": 0.4851504186470161,
+                "top1_share": 0.03205398619077392
+              },
+              "bins": [
+                5,
+                0,
+                0,
+                54,
+                17767,
+                32088,
+                7260,
+                1039,
+                252
+              ]
+            },
+            {
+              "stats": {
+                "n": 60331,
+                "total": 27512623,
+                "mean": 456.0279624073859,
+                "min": 0,
+                "max": 64000,
+                "p50": 200,
+                "p90": 932,
+                "p95": 1657,
+                "p99": 4775,
+                "cv": 2.4608595344824593,
+                "top1_share": 0.18638411902783678
+              },
+              "bins": [
+                20665,
+                27788,
+                9609,
+                2068,
+                197,
+                4,
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        "1": {
+          "count": 73773,
+          "axes": [
+            {
+              "stats": {
+                "n": 54772,
+                "total": 3292302080,
+                "mean": 60109.21784853575,
+                "min": 6,
+                "max": 616152,
+                "p50": 54905,
+                "p90": 93688,
+                "p95": 108477,
+                "p99": 146957,
+                "cv": 0.4586462428776452,
+                "top1_share": 0.03077650669284879
+              },
+              "bins": [
+                5,
+                0,
+                0,
+                0,
+                6015,
+                29817,
+                14526,
+                3404,
+                1005
+              ]
+            },
+            {
+              "stats": {
+                "n": 56447,
+                "total": 34597965,
+                "mean": 612.9283221428951,
+                "min": 0,
+                "max": 64000,
+                "p50": 204,
+                "p90": 1450,
+                "p95": 2594,
+                "p99": 6450,
+                "cv": 2.353191231514955,
+                "top1_share": 0.17402298083138704
+              },
+              "bins": [
+                19469,
+                22595,
+                10555,
+                3487,
+                338,
+                3,
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        "2": {
+          "count": 1804328,
+          "axes": [
+            {
+              "stats": {
+                "n": 1149396,
+                "total": 266129835570,
+                "mean": 231538.85655596506,
+                "min": 5,
+                "max": 1056358,
+                "p50": 152677,
+                "p90": 521394,
+                "p95": 670833,
+                "p99": 893562,
+                "cv": 0.8421505855528646,
+                "top1_share": 0.04054480110766034
+              },
+              "bins": [
+                16,
+                0,
+                0,
+                0,
+                4697,
+                105168,
+                181203,
+                179539,
+                678773
+              ]
+            },
+            {
+              "stats": {
+                "n": 1225083,
+                "total": 714126553,
+                "mean": 582.9209555597457,
+                "min": 0,
+                "max": 65595,
+                "p50": 228,
+                "p90": 1398,
+                "p95": 2265,
+                "p99": 5186,
+                "cv": 2.044912910601393,
+                "top1_share": 0.14721163294988138
+              },
+              "bins": [
+                361253,
+                519212,
+                272697,
+                67805,
+                4034,
+                81,
+                1,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "models": {
+      "claude-opus-4-5-20251101": 21067,
+      "<synthetic>": 3828,
+      "未知": 515266,
+      "claude-sonnet-4-5-20250929": 19946,
+      "claude-haiku-4-5-20251001": 5698,
+      "claude-opus-4-6": 496407,
+      "glm-4.7": 1331,
+      "stepfun/step-3.5-flash:free": 109,
+      "anthropic/claude-sonnet-4.5": 13,
+      "exact-dodo": 355,
+      "benchmark-feedback": 15,
+      "huge-cougar": 87,
+      "claude-opus-4-20250514": 30,
+      "gpt-5.3-codex": 61,
+      "claude-sonnet-4-6": 102153,
+      "glm-5": 2329,
+      "glm-5:cloud": 68,
+      "claude-sonnet-4-20250514": 1785,
+      "GLM-4.7": 5,
+      "claude-4.6-sonnet": 70,
+      "claude-opus-4-6-thinking": 579,
+      "claude-opus-4-1-20250805": 1914,
+      "claude-sonnet-4-5": 91,
+      "kimi-for-coding": 74,
+      "claude-sonnet-4.6": 1125,
+      "gpt-5-mini": 207,
+      "gpt-5.1-codex-mini": 15,
+      "claude-opus-4.6": 371,
+      "nemotron-3-super": 2,
+      "gemini-3-pro-preview": 3,
+      "gpt-5.4-mini": 292,
+      "minimax-m2.7": 20,
+      "kimi-k2.5": 2599,
+      "MiniMax-M2.5": 1809,
+      "MiniMax-M2.7-highspeed": 44,
+      "MiniMax-M2.7": 1366,
+      "claude-haiku-4.5": 92,
+      "glm-5-turbo": 239,
+      "claude-opus-4-7": 168675,
+      "gpt-5.5": 7557,
+      "opus-4-6": 1,
+      "claude-sonnet-4.5": 37,
+      "mimo-v2.5-pro": 12,
+      "gpt-5.4": 103,
+      "gemini-3.1-pro-low": 48,
+      "gpt-4o": 14,
+      "gpt-4.1": 32,
+      "glm-5.1": 386,
+      "moonshotai/kimi-k2.6-20260420": 9,
+      "auto": 84,
+      "deepseek-v4-flash": 3186,
+      "claude-opus-4-8": 178798,
+      "neuralwatt/glm-5.1-long": 65,
+      "MiniMax-M3": 160,
+      "claude-fable-5": 76648,
+      "qwen3.6-27b": 266,
+      "deepseek/deepseek-v4-pro": 26,
+      "north-mini-code": 450,
+      "glm-5.2": 59,
+      "claude-opus-4.8": 344,
+      "zai-org/GLM-5.2": 154,
+      "claude-sonnet-5": 45418,
+      "gpt-5.6-sol": 124348,
+      "nvidia/nemotron-3-ultra-550b-a55b": 674,
+      "z-ai/glm-5.2": 895,
+      "minimaxai/minimax-m3": 38,
+      "gpt-5.6-terra": 179,
+      "kimi-k3": 2,
+      "mimo-v2.5-free": 45,
+      "deepseek-v4-flash-free": 54,
+      "claude-opus-5": 150627,
+      "grok-4.3": 36,
+      "openai/gpt-5.6-sol": 238,
+      "openai/gpt-5.6-terra": 3,
+      "hy3-free": 15,
+      "moonshotai/Kimi-K3": 9557,
+      "qwen3-coder:30b": 47,
+      "~google/gemini-flash-latest": 20,
+      "codex-gpt-5-6-sol": 2845,
+      "unsloth/Qwen3.8-27B-GGUF/Qwen3.8-27B-UD-Q8_K_XL.gguf": 60,
+      "gemini-3.1-flash-lite": 76,
+      "muse-spark-1.2-contributor": 680,
+      "gemini-3.6-flash": 416,
+      "grok-4.5": 100,
+      "gpt-5.6-luna": 568,
+      "stealth/ox-alpha": 172,
+      "openai/gpt-5.6-luna-pro": 291,
+      "deepseek-v4-flash-vision-exp": 6,
+      "gemini-3.7-flash": 244,
+      "glm-5.3-flash": 22,
+      "z-ai/glm-5.3-flash": 174,
+      "claude-fable-5-1": 2162
+    },
+    "files": [
+      "/home/xieqiang/project/data/swe_chat/upstream/conversations.parquet"
+    ],
+    "observed_utc": [
+      "2026-01-05T12:17:35.528000+00:00",
+      "2026-09-04T15:27:18.769000+00:00"
+    ],
+    "native_response_ids": 1958591,
+    "human_prompts": 229909,
+    "raw_input": {
+      "stats": {
+        "n": 16689,
+        "total": 1958591,
+        "mean": 117.35820001198394,
+        "min": 1,
+        "max": 10308,
+        "p50": 42,
+        "p90": 248,
+        "p95": 420,
+        "p99": 1255,
+        "cv": 2.6387142076584795,
+        "top1_share": 0.2057039984356101
+      },
+      "lengths": [
+        {
+          "stats": {
+            "n": 1341861,
+            "total": 2621317935,
+            "mean": 1953.4943895083022,
+            "min": 0,
+            "max": 796774,
+            "p50": 2,
+            "p90": 10,
+            "p95": 453,
+            "p99": 27728,
+            "cv": 11.27318833777224,
+            "top1_share": 0.9506254459743739
+          },
+          "bins": [
+            1237198,
+            40558,
+            39363,
+            8430,
+            3173,
+            1468,
+            2046,
+            2156,
+            7469
+          ]
+        },
+        {
+          "stats": {
+            "n": 0
+          },
+          "bins": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "distribution": [
+        342,
+        1026,
+        1419,
+        2373,
+        4001,
+        3080,
+        4448
+      ],
+      "groups": {
+        "0": {
+          "count": 80490,
+          "axes": [
+            {
+              "stats": {
+                "n": 60331,
+                "total": 51167413,
+                "mean": 848.1114683993303,
+                "min": 0,
+                "max": 424072,
+                "p50": 2,
+                "p90": 9,
+                "p95": 1247,
+                "p99": 19060,
+                "cv": 10.53285469136532,
+                "top1_share": 0.6368544565659398
+              },
+              "bins": [
+                56041,
+                856,
+                735,
+                1116,
+                1332,
+                155,
+                28,
+                18,
+                50
+              ]
+            },
+            {
+              "stats": {
+                "n": 0
+              },
+              "bins": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        "1": {
+          "count": 73773,
+          "axes": [
+            {
+              "stats": {
+                "n": 56447,
+                "total": 30230811,
+                "mean": 535.5609864120325,
+                "min": 0,
+                "max": 427042,
+                "p50": 1,
+                "p90": 8,
+                "p95": 131,
+                "p99": 5113,
+                "cv": 16.42535250237149,
+                "top1_share": 0.9295482678251669
+              },
+              "bins": [
+                53508,
+                1466,
+                583,
+                404,
+                260,
+                101,
+                54,
+                26,
+                45
+              ]
+            },
+            {
+              "stats": {
+                "n": 0
+              },
+              "bins": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        "2": {
+          "count": 1804328,
+          "axes": [
+            {
+              "stats": {
+                "n": 1225083,
+                "total": 2539919711,
+                "mean": 2073.2633715429893,
+                "min": 0,
+                "max": 796774,
+                "p50": 2,
+                "p90": 10,
+                "p95": 469,
+                "p99": 44400,
+                "cv": 11.036219852815028,
+                "top1_share": 0.9528766879985837
+              },
+              "bins": [
+                1127649,
+                38236,
+                38045,
+                6910,
+                1581,
+                1212,
+                1964,
+                2112,
+                7374
+              ]
+            },
+            {
+              "stats": {
+                "n": 0
+              },
+              "bins": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "user_prompts_per_session": {
+      "n": 17560,
+      "total": 229909,
+      "mean": 13.092767653758543,
+      "min": 1,
+      "max": 7082,
+      "p50": 5,
+      "p90": 26,
+      "p95": 42,
+      "p99": 130,
+      "cv": 5.302933902051006,
+      "top1_share": 0.2476632058771079
+    },
+    "clients": {
+      "unknown": 3308,
+      "Claude Code": 1287770,
+      "Agent": 1546,
+      "Gemini CLI": 7677,
+      "Pi Coding Agent": 1,
+      "OpenCode": 49112,
+      "Roger Roger Agent": 12,
+      "Vogon Agent": 1,
+      "Copilot CLI": 9333,
+      "Codex": 448109,
+      "Pi": 145603,
+      "Factory AI Droid": 267,
+      "opencode": 2,
+      "claude-code": 2,
+      "Oh My Pi": 5848
+    },
+    "client_sessions": {
+      "unknown": 52,
+      "Claude Code": 12185,
+      "Agent": 24,
+      "Gemini CLI": 115,
+      "Pi Coding Agent": 1,
+      "OpenCode": 1503,
+      "Roger Roger Agent": 4,
+      "Vogon Agent": 1,
+      "Copilot CLI": 218,
+      "Codex": 2193,
+      "Pi": 358,
+      "Factory AI Droid": 7,
+      "opencode": 1,
+      "claude-code": 1,
+      "Oh My Pi": 26
+    },
+    "model_sessions": {
+      "claude-opus-4-5-20251101": 286,
+      "<synthetic>": 1683,
+      "未知": 3995,
+      "claude-sonnet-4-5-20250929": 229,
+      "claude-haiku-4-5-20251001": 280,
+      "claude-opus-4-6": 5948,
+      "glm-4.7": 11,
+      "stepfun/step-3.5-flash:free": 3,
+      "anthropic/claude-sonnet-4.5": 1,
+      "exact-dodo": 2,
+      "benchmark-feedback": 1,
+      "huge-cougar": 1,
+      "claude-opus-4-20250514": 1,
+      "gpt-5.3-codex": 4,
+      "claude-sonnet-4-6": 1422,
+      "glm-5": 21,
+      "glm-5:cloud": 1,
+      "claude-sonnet-4-20250514": 10,
+      "GLM-4.7": 1,
+      "claude-4.6-sonnet": 3,
+      "claude-opus-4-6-thinking": 10,
+      "claude-opus-4-1-20250805": 3,
+      "claude-sonnet-4-5": 2,
+      "kimi-for-coding": 4,
+      "claude-sonnet-4.6": 8,
+      "gpt-5-mini": 7,
+      "gpt-5.1-codex-mini": 1,
+      "claude-opus-4.6": 4,
+      "nemotron-3-super": 1,
+      "gemini-3-pro-preview": 1,
+      "gpt-5.4-mini": 6,
+      "minimax-m2.7": 2,
+      "kimi-k2.5": 3,
+      "MiniMax-M2.5": 2,
+      "MiniMax-M2.7-highspeed": 1,
+      "MiniMax-M2.7": 6,
+      "claude-haiku-4.5": 1,
+      "glm-5-turbo": 4,
+      "claude-opus-4-7": 1443,
+      "gpt-5.5": 96,
+      "opus-4-6": 1,
+      "claude-sonnet-4.5": 1,
+      "mimo-v2.5-pro": 1,
+      "gpt-5.4": 4,
+      "gemini-3.1-pro-low": 3,
+      "gpt-4o": 2,
+      "gpt-4.1": 3,
+      "glm-5.1": 13,
+      "moonshotai/kimi-k2.6-20260420": 1,
+      "auto": 3,
+      "deepseek-v4-flash": 20,
+      "claude-opus-4-8": 1302,
+      "neuralwatt/glm-5.1-long": 1,
+      "MiniMax-M3": 3,
+      "claude-fable-5": 538,
+      "qwen3.6-27b": 2,
+      "deepseek/deepseek-v4-pro": 1,
+      "north-mini-code": 2,
+      "glm-5.2": 3,
+      "claude-opus-4.8": 5,
+      "zai-org/GLM-5.2": 3,
+      "claude-sonnet-5": 505,
+      "gpt-5.6-sol": 149,
+      "nvidia/nemotron-3-ultra-550b-a55b": 5,
+      "z-ai/glm-5.2": 26,
+      "minimaxai/minimax-m3": 2,
+      "gpt-5.6-terra": 6,
+      "kimi-k3": 2,
+      "mimo-v2.5-free": 3,
+      "deepseek-v4-flash-free": 2,
+      "claude-opus-5": 663,
+      "grok-4.3": 1,
+      "openai/gpt-5.6-sol": 7,
+      "openai/gpt-5.6-terra": 1,
+      "hy3-free": 1,
+      "moonshotai/Kimi-K3": 81,
+      "qwen3-coder:30b": 1,
+      "~google/gemini-flash-latest": 6,
+      "codex-gpt-5-6-sol": 5,
+      "unsloth/Qwen3.8-27B-GGUF/Qwen3.8-27B-UD-Q8_K_XL.gguf": 1,
+      "gemini-3.1-flash-lite": 9,
+      "muse-spark-1.2-contributor": 3,
+      "gemini-3.6-flash": 1,
+      "grok-4.5": 1,
+      "gpt-5.6-luna": 1,
+      "stealth/ox-alpha": 1,
+      "openai/gpt-5.6-luna-pro": 7,
+      "deepseek-v4-flash-vision-exp": 1,
+      "gemini-3.7-flash": 1,
+      "glm-5.3-flash": 1,
+      "z-ai/glm-5.3-flash": 2,
+      "claude-fable-5-1": 26
+    },
+    "client_models": {
+      "unknown": {
+        "claude-opus-4-5-20251101": 2623,
+        "<synthetic>": 7,
+        "未知": 17,
+        "claude-sonnet-4-5-20250929": 645,
+        "claude-haiku-4-5-20251001": 16
+      },
+      "Claude Code": {
+        "claude-opus-4-5-20251101": 16962,
+        "<synthetic>": 3818,
+        "claude-sonnet-4-5-20250929": 19199,
+        "claude-haiku-4-5-20251001": 5682,
+        "claude-opus-4-6": 496219,
+        "glm-4.7": 1331,
+        "stepfun/step-3.5-flash:free": 109,
+        "anthropic/claude-sonnet-4.5": 13,
+        "exact-dodo": 355,
+        "benchmark-feedback": 15,
+        "huge-cougar": 87,
+        "claude-opus-4-20250514": 30,
+        "gpt-5.3-codex": 54,
+        "claude-sonnet-4-6": 102153,
+        "glm-5": 2329,
+        "未知": 4930,
+        "glm-5:cloud": 68,
+        "claude-sonnet-4-20250514": 1785,
+        "GLM-4.7": 5,
+        "claude-4.6-sonnet": 70,
+        "claude-opus-4-6-thinking": 579,
+        "claude-opus-4-1-20250805": 1914,
+        "claude-sonnet-4-5": 91,
+        "kimi-for-coding": 74,
+        "nemotron-3-super": 2,
+        "minimax-m2.7": 20,
+        "kimi-k2.5": 2599,
+        "MiniMax-M2.5": 1809,
+        "MiniMax-M2.7-highspeed": 44,
+        "MiniMax-M2.7": 171,
+        "glm-5-turbo": 239,
+        "claude-opus-4-7": 168599,
+        "opus-4-6": 1,
+        "gpt-5.5": 5,
+        "mimo-v2.5-pro": 12,
+        "glm-5.1": 386,
+        "moonshotai/kimi-k2.6-20260420": 9,
+        "deepseek-v4-flash": 284,
+        "claude-opus-4-8": 177018,
+        "MiniMax-M3": 160,
+        "claude-fable-5": 75392,
+        "glm-5.2": 59,
+        "zai-org/GLM-5.2": 138,
+        "claude-sonnet-5": 45362,
+        "kimi-k3": 2,
+        "claude-opus-5": 149206,
+        "qwen3-coder:30b": 47,
+        "codex-gpt-5-6-sol": 2845,
+        "moonshotai/Kimi-K3": 3327,
+        "claude-fable-5-1": 2162
+      },
+      "Agent": {
+        "claude-opus-4-5-20251101": 1256,
+        "<synthetic>": 3,
+        "claude-sonnet-4-5-20250929": 99,
+        "claude-opus-4-6": 188
+      },
+      "Gemini CLI": {
+        "claude-sonnet-4-5-20250929": 3,
+        "claude-opus-4-5-20251101": 226,
+        "未知": 7448
+      },
+      "Pi Coding Agent": {
+        "未知": 1
+      },
+      "OpenCode": {
+        "未知": 49112
+      },
+      "Roger Roger Agent": {
+        "未知": 12
+      },
+      "Vogon Agent": {
+        "未知": 1
+      },
+      "Copilot CLI": {
+        "claude-sonnet-4.6": 1125,
+        "gpt-5-mini": 134,
+        "gpt-5.1-codex-mini": 15,
+        "claude-opus-4.6": 371,
+        "gemini-3-pro-preview": 3,
+        "gpt-5.4-mini": 3,
+        "gpt-5.3-codex": 7,
+        "claude-haiku-4.5": 92,
+        "claude-sonnet-4.5": 37,
+        "gpt-5.4": 39,
+        "gpt-5.5": 212,
+        "未知": 5365,
+        "auto": 84,
+        "claude-opus-4.8": 344,
+        "claude-fable-5": 712,
+        "deepseek-v4-flash": 14,
+        "claude-sonnet-5": 56,
+        "claude-opus-5": 339,
+        "gpt-5.6-sol": 381
+      },
+      "Codex": {
+        "未知": 448109
+      },
+      "Pi": {
+        "MiniMax-M2.7": 1195,
+        "gpt-5.5": 7340,
+        "gemini-3.1-pro-low": 48,
+        "gpt-5.4-mini": 289,
+        "gpt-4o": 14,
+        "gpt-4.1": 32,
+        "gpt-5-mini": 73,
+        "neuralwatt/glm-5.1-long": 65,
+        "qwen3.6-27b": 266,
+        "deepseek/deepseek-v4-pro": 26,
+        "north-mini-code": 450,
+        "gpt-5.4": 64,
+        "gpt-5.6-sol": 123967,
+        "nvidia/nemotron-3-ultra-550b-a55b": 674,
+        "z-ai/glm-5.2": 895,
+        "minimaxai/minimax-m3": 38,
+        "gpt-5.6-terra": 179,
+        "mimo-v2.5-free": 45,
+        "deepseek-v4-flash-free": 54,
+        "claude-opus-4-7": 76,
+        "claude-opus-4-8": 1780,
+        "grok-4.3": 36,
+        "openai/gpt-5.6-sol": 238,
+        "openai/gpt-5.6-terra": 3,
+        "hy3-free": 15,
+        "moonshotai/Kimi-K3": 6230,
+        "zai-org/GLM-5.2": 16,
+        "claude-opus-5": 406,
+        "~google/gemini-flash-latest": 20,
+        "unsloth/Qwen3.8-27B-GGUF/Qwen3.8-27B-UD-Q8_K_XL.gguf": 60,
+        "openai/gpt-5.6-luna-pro": 291,
+        "claude-fable-5": 544,
+        "z-ai/glm-5.3-flash": 174
+      },
+      "Factory AI Droid": {
+        "未知": 267
+      },
+      "opencode": {
+        "未知": 2
+      },
+      "claude-code": {
+        "未知": 2
+      },
+      "Oh My Pi": {
+        "deepseek-v4-flash": 2888,
+        "gemini-3.1-flash-lite": 76,
+        "muse-spark-1.2-contributor": 680,
+        "claude-opus-5": 676,
+        "gemini-3.6-flash": 416,
+        "grok-4.5": 100,
+        "gpt-5.6-luna": 568,
+        "stealth/ox-alpha": 172,
+        "deepseek-v4-flash-vision-exp": 6,
+        "gemini-3.7-flash": 244,
+        "glm-5.3-flash": 22
+      }
+    },
+    "user_turns": {
+      "stats": {
+        "n": 17968,
+        "total": 229909,
+        "mean": 12.795469723953696,
+        "min": 0,
+        "max": 7082,
+        "p50": 5,
+        "p90": 25,
+        "p95": 41,
+        "p99": 128,
+        "cv": 5.36635127138567,
+        "top1_share": 0.24989887303237368
+      },
+      "distribution": [
+        408,
+        3323,
+        6220,
+        3238,
+        2384,
+        1703,
+        451,
+        241
+      ],
+      "method": "按上游 sessions 索引统计每个会话的 user_prompt 事件。每条人工提示计一轮，工具回传不计。"
+    }
+  }
+]

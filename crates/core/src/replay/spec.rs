@@ -122,7 +122,25 @@ pub enum ReplayTopology {
         /// one from KV bytes and bandwidth.
         #[serde(default)]
         handoff_latency_ms: f64,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        enclosure: Option<EnclosureHandoffConfig>,
     },
+}
+
+/// Bandwidths are decimal GB/s across all TP shards.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EnclosureHandoffConfig {
+    pub num_blocks: usize,
+    pub read_bandwidth_gbps: f64,
+    pub write_bandwidth_gbps: f64,
+    #[serde(default)]
+    pub combined_bandwidth_gbps: Option<f64>,
+    #[serde(default)]
+    pub prefill_write_bandwidth_gbps: Option<f64>,
+    #[serde(default)]
+    pub decode_read_bandwidth_gbps: Option<f64>,
+    pub latency_to_first_byte_ms: f64,
 }
 
 impl ReplayTopology {
@@ -142,10 +160,19 @@ impl ReplayTopology {
                 prefill,
                 decode,
                 handoff_latency_ms,
+                enclosure,
             } => {
                 prefill.validate("prefill")?;
                 decode.validate("decode")?;
-                validate_time("handoff_latency_ms", *handoff_latency_ms)
+                validate_time("handoff_latency_ms", *handoff_latency_ms)?;
+                if enclosure.is_some()
+                    && (prefill.initial_workers != 1 || decode.initial_workers != 1)
+                {
+                    return Err(ReplayError::InvalidSpec(
+                        "enclosure handoff requires static 1P1D".into(),
+                    ));
+                }
+                Ok(())
             }
         }
     }

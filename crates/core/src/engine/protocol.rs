@@ -261,6 +261,15 @@ pub struct CacheTierAttribution {
     pub host_reused_input_tokens: usize,
     /// Host reuse promoted from SSD for this admission's request. None with KVCR.
     pub g3_reused_input_tokens: Option<usize>,
+    /// First Prefill admission's observed recovery intervals, in nanoseconds.
+    pub(crate) prefill_kv_wait: Option<PrefillKvWait>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct PrefillKvWait {
+    pub(crate) waits_ns: [u64; 4],
+    pub(crate) union_ns: u64,
+    pub(crate) overlap_ns: u64,
 }
 
 /// Request admission exposed at pass start.

@@ -1142,6 +1142,8 @@ def _materialize_engine_execution_spec(
             },
             "handoff_latency_ms": 0.0,
         }
+        if deployment.enclosure_handoff is not None:
+            topology["enclosure"] = deployment.enclosure_handoff
     else:
         raise ValueError(f"engine replay deployment_mode must be 'agg' or 'disagg', got {deployment_mode!r}")
 

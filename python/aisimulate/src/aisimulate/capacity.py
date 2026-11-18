@@ -545,7 +545,7 @@ def estimate_kv_bytes_per_token(
     backend_version: str | None = None,
     attention_dp_size: int = 1,
 ) -> int:
-    """Derive per-rank KV bytes/token from the resolved Hugging Face config."""
+    """Derive rank-local KV bytes/token from native storage or declared FPM resources."""
 
     if fpm_profile is not None:
         from aisimulate_core.sdk.fpm_profile import load_fpm_profile
@@ -568,7 +568,34 @@ def estimate_kv_bytes_per_token(
         return deployment.resources.kv_bytes_per_token
 
     from aisimulate_core.sdk.memory import NaiveKVCacheEstimator
+    from aisimulate_core.sdk import common
+    from aisimulate_core.sdk.config_builders import build_model_config
+    from aisimulate_core.sdk.models import get_model
 
+    # Supported models own their persistent KV layout and quantization defaults.
+    # In particular DSA mixes FP8 latents, BF16 RoPE and an indexer cache; the
+    # config-only MLA formula cannot represent that layout even with explicit fp8.
+    raw = NaiveKVCacheEstimator._load_config(model_name, allow_hf_config_download=True)
+    architectures = (raw or {}).get("architectures") or []
+    architecture = architectures[0] if architectures else None
+    if architecture in common.ARCHITECTURE_TO_MODEL_FAMILY or architecture in common.ModelFamily:
+        model_config = build_model_config(
+            tp_size=tp_size,
+            pp_size=pp_size,
+            attention_dp_size=attention_dp_size,
+            moe_tp_size=moe_tp_size,
+            moe_ep_size=moe_ep_size,
+            kvcache_quant_mode=_quant_mode_name("kvcache", kvcache_quant_mode),
+        )
+        model = get_model(model_name, model_config, backend)
+        value = model.get_kvcache_rank_bytes_per_sequence(1)
+        if value is None or value <= 0 or int(value) != value:
+            raise ValueError(f"model {model_name!r} has no positive integral scalar KV bytes per token")
+        return int(value)
+
+    # Preserve config-only support for architectures without a native model.
+    # Errors in a supported model deliberately propagate, rather than silently
+    # switching its storage layout to the naive approximation.
     estimator = NaiveKVCacheEstimator.from_model_path(
         model_name,
         tp_size=tp_size,

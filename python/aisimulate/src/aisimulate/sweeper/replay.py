@@ -200,6 +200,7 @@ class BackendDeploymentSpec:
     agg_engine_args: dict[str, JSONValue] | None = None
     prefill_engine_args: dict[str, JSONValue] | None = None
     decode_engine_args: dict[str, JSONValue] | None = None
+    enclosure_handoff: dict[str, JSONValue] | None = field(default=None, metadata={OMIT_IF_NONE: True})
     num_workers: int = 0
     num_prefill_workers: int = 0
     num_decode_workers: int = 0

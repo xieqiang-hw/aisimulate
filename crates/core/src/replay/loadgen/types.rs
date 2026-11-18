@@ -82,6 +82,9 @@ pub enum TraceFileFormat {
 /// in the Mocker adapter and converts into this DTO.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct MooncakeRow {
+    /// Exact prompt tokens, when the producer can supply them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub input_token_ids: Option<Vec<u32>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub request_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -214,8 +217,20 @@ pub struct SessionTrace {
     pub turns: Vec<TurnTrace>,
 }
 
+/// Location of an exact prompt in an immutable Mooncake JSONL trace.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MooncakePrompt {
+    pub(super) path: Arc<std::path::PathBuf>,
+    pub(super) offset: u64,
+    pub(super) line_bytes: usize,
+    pub(super) input_length: usize,
+}
+
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct TurnTrace {
+    #[doc(hidden)]
+    pub mooncake_prompt: Option<MooncakePrompt>,
+    pub input_token_ids: Option<Vec<u32>>,
     pub input_length: usize,
     pub max_output_tokens: usize,
     pub output_token_ids: Option<Vec<u32>>,

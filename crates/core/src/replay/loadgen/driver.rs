@@ -31,7 +31,7 @@ use super::trace::{
 use super::types::{
     AgenticDependency, AgenticDependencyRelation, AgenticDependencyTrigger, AgenticGraphIdentity,
     AgenticPlayOutcome, AgenticPlayStatus, AgenticTrace, AgenticTrajectorySnapshot,
-    CompactReadyTurn, ReadyTurn, ReplayRequestHashes, ReplayRequestPayload, Trace,
+    CompactReadyTurn, MooncakePrompt, ReadyTurn, ReplayRequestHashes, ReplayRequestPayload, Trace,
 };
 use super::{
     AgenticPlaySnapshot, AgenticReplayContext, AgenticSnapshotEvidence, PreparedAgenticSnapshots,
@@ -319,6 +319,7 @@ enum PromptTokens {
         source_index: usize,
         slot: u64,
     },
+    Mooncake(MooncakePrompt),
     Materialized(Vec<u32>),
 }
 
@@ -336,6 +337,7 @@ impl PromptTokens {
             Self::Deferred { input_length, .. } | Self::Snapshot { input_length, .. } => {
                 *input_length
             }
+            Self::Mooncake(prompt) => prompt.input_length,
             Self::Materialized(tokens) => tokens.len(),
         }
     }
@@ -346,7 +348,7 @@ impl PromptTokens {
                 input_length,
                 hash_ids,
             } => (*input_length, std::mem::take(hash_ids)),
-            Self::Snapshot { .. } | Self::Materialized(_) => {
+            Self::Snapshot { .. } | Self::Mooncake(_) | Self::Materialized(_) => {
                 unreachable!("full-prompt turns must retain their deferred representation")
             }
         }
@@ -354,7 +356,7 @@ impl PromptTokens {
 
     fn materialized(&self) -> &[u32] {
         match self {
-            Self::Deferred { .. } | Self::Snapshot { .. } => {
+            Self::Deferred { .. } | Self::Snapshot { .. } | Self::Mooncake(_) => {
                 unreachable!("delta-cumulative prompts are materialized during driver setup")
             }
             Self::Materialized(tokens) => tokens,
@@ -2542,6 +2544,12 @@ impl WorkloadDriver {
                     .into_iter()
                     .map(|mut turn| -> Result<TurnRuntime> {
                         let prompt_tokens = match prompt_mode {
+                            PromptMode::Full if turn.mooncake_prompt.is_some() => {
+                                PromptTokens::Mooncake(turn.mooncake_prompt.take().unwrap())
+                            }
+                            PromptMode::Full if turn.input_token_ids.is_some() => {
+                                PromptTokens::Materialized(turn.input_token_ids.take().unwrap())
+                            }
                             PromptMode::Full => PromptTokens::deferred(
                                 turn.input_length,
                                 std::mem::take(&mut turn.hash_ids),
@@ -2784,14 +2792,23 @@ impl WorkloadDriver {
 
     #[doc(hidden)]
     pub fn pop_ready_compact(&mut self, now_ms: f64, limit: usize) -> Vec<CompactReadyTurn> {
+        self.try_pop_ready_compact(now_ms, limit)
+            .expect("failed to dispatch replay request")
+    }
+
+    pub(crate) fn try_pop_ready_compact(
+        &mut self,
+        now_ms: f64,
+        limit: usize,
+    ) -> Result<Vec<CompactReadyTurn>> {
         let live_warmup = self.live_warmup_active();
         if let Some(preparation) = &mut self.agentic_preparation {
             match preparation.transition() {
                 None if !live_warmup => {
-                    return preparation.pop_ready(now_ms, limit, self.emit_session_metadata);
+                    return Ok(preparation.pop_ready(now_ms, limit, self.emit_session_metadata));
                 }
                 None => {}
-                Some(AgenticPreparationTransition::Aborted) => return Vec::new(),
+                Some(AgenticPreparationTransition::Aborted) => return Ok(Vec::new()),
                 Some(AgenticPreparationTransition::OpenProfile) => {}
             }
         }
@@ -2800,11 +2817,11 @@ impl WorkloadDriver {
                 .deadlines()
                 .is_some_and(|(cutoff, _, _)| now_ms >= cutoff)
         }) {
-            return Vec::new();
+            return Ok(Vec::new());
         }
         let effective_limit = self.policy.dispatch_limit(limit, self.in_flight.len());
         if effective_limit == 0 {
-            return Vec::new();
+            return Ok(Vec::new());
         }
 
         let mut emitted = Vec::new();
@@ -2893,6 +2910,11 @@ impl WorkloadDriver {
             let arrival_timestamp_ms = self.policy.arrival_timestamp_ms(scheduled_ready_at_ms);
             let (request, replay_hashes) = match self.prompt_mode {
                 PromptMode::Full => {
+                    let exact = match &mut turn.prompt_tokens {
+                        PromptTokens::Materialized(tokens) => Some(std::mem::take(tokens)),
+                        PromptTokens::Mooncake(prompt) => Some(prompt.load()?),
+                        _ => None,
+                    };
                     let (input_length, hash_ids, output_token_ids) =
                         if let PromptTokens::Snapshot {
                             input_length,
@@ -2915,6 +2937,8 @@ impl WorkloadDriver {
                                     context.outputs[source_index].clone()
                                 }),
                             )
+                        } else if let Some(tokens) = &exact {
+                            (tokens.len(), Vec::new(), turn.output_token_ids.take())
                         } else {
                             let (input_length, hash_ids) = turn.prompt_tokens.take_deferred();
                             (input_length, hash_ids, turn.output_token_ids.take())
@@ -2939,13 +2963,26 @@ impl WorkloadDriver {
                         replay_context: replay_context.clone(),
                         images: turn.images.clone(),
                     };
-                    deferred_request_with_hashes(
-                        request_metadata,
-                        input_length,
-                        hash_ids,
-                        self.trace_block_size,
-                        self.include_replay_hashes.then_some(self.engine_block_size),
-                    )
+                    if let Some(tokens) = exact {
+                        let hashes = self.include_replay_hashes.then(|| {
+                            ReplayRequestHashes::from_tokens(&tokens, self.engine_block_size)
+                        });
+                        (
+                            ReplayRequestPayload::materialized(DirectRequest {
+                                tokens,
+                                ..request_metadata
+                            }),
+                            hashes,
+                        )
+                    } else {
+                        deferred_request_with_hashes(
+                            request_metadata,
+                            input_length,
+                            hash_ids,
+                            self.trace_block_size,
+                            self.include_replay_hashes.then_some(self.engine_block_size),
+                        )
+                    }
                 }
                 PromptMode::DeltaCumulative => {
                     session
@@ -3034,7 +3071,7 @@ impl WorkloadDriver {
             }
         }
         self.ready_sessions.extend(quota_deferred);
-        emitted
+        Ok(emitted)
     }
 
     /// Whether `on_output_token` has any effect for this request. Full-prompt
@@ -3767,7 +3804,9 @@ mod tests {
             .iter()
             .map(|session| match &session.turns[0].prompt_tokens {
                 PromptTokens::Deferred { hash_ids, .. } => hash_ids.clone(),
-                PromptTokens::Snapshot { .. } | PromptTokens::Materialized(_) => {
+                PromptTokens::Snapshot { .. }
+                | PromptTokens::Mooncake(_)
+                | PromptTokens::Materialized(_) => {
                     panic!("agentic prompts stay deferred")
                 }
             })
@@ -4423,6 +4462,8 @@ mod tests {
                 session_id: "a".into(),
                 first_arrival_timestamp_ms: Some(0.0),
                 turns: vec![TurnTrace {
+                    mooncake_prompt: None,
+                    input_token_ids: None,
                     input_length: 6,
                     max_output_tokens: 1,
                     output_token_ids: None,
@@ -4461,6 +4502,8 @@ mod tests {
                 first_arrival_timestamp_ms: Some(0.0),
                 turns: vec![
                     TurnTrace {
+                        mooncake_prompt: None,
+                        input_token_ids: None,
                         input_length: 6,
                         max_output_tokens: 2,
                         output_token_ids: Some(vec![20, 21]),
@@ -4474,6 +4517,8 @@ mod tests {
                         images: Vec::new(),
                     },
                     TurnTrace {
+                        mooncake_prompt: None,
+                        input_token_ids: None,
                         input_length: 3,
                         max_output_tokens: 1,
                         output_token_ids: None,

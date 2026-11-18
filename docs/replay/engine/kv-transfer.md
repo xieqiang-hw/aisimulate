@@ -32,6 +32,42 @@ YAML above always resolves the bytes.
 | `engine.kv_transfer.bandwidth_gb_per_second` | `null` | fixed | Positive, in decimal GB/s. Bandwidth of each prefill rank's sending link and each decode rank's receiving link; concurrent transfers [share them](#link-sharing). `null` means no transfer delay, not a zero-bandwidth link. |
 | `engine.kv_transfer.timing_mode` | `destination_missing` | fixed | `destination_missing` charges only the prompt KV the chosen decode worker does not already hold in its cache. `full_prompt` charges the whole prompt. |
 
+| `engine.kv_transfer.enclosure` | `null` | fixed | Enables two-stage P/D handoff through a shared enclosure on static vLLM 1P1D with Attention DP1 and matching KV block geometry. |
+
+### Shared enclosure handoff
+
+Set `enclosure.num_blocks` to the pool capacity in logical KV blocks, and set
+`read_bandwidth_gbps`, `write_bandwidth_gbps` and `latency_to_first_byte_ms`
+under `enclosure`. All enclosure rates are decimal GB/s across TP shards.
+Optional `combined_bandwidth_gbps` selects one aggregate read/write budget in
+place of the separate directional budgets. Optional
+`prefill_write_bandwidth_gbps` and `decode_read_bandwidth_gbps` limit each
+endpoint. The enclosure replaces the direct P/D link. Its bytes come from the
+roles' KV block geometry, and its transfer counters are reported in
+`g3_offload`. The temporary tail uses one physical block of capacity and
+transfer accounting.
+
+D can prefetch resident blocks after reserving destination HBM. When P
+finishes, the enclosure makes the required blocks available to D, which loads
+the remainder and starts Decode once its KV is ready.
+
+With P-side `host_offload`, Prefill uses the contiguous reusable prefix across
+HBM, local DRAM and the enclosure. DRAM and enclosure reads can target one HBM
+reservation in parallel. A complete block becomes eligible for asynchronous
+D2H promotion when a second distinct P request uses it. Completed promotions
+are reported in `g3_offload.prefill_dram_promotion_blocks` and
+`g3_offload.prefill_dram_promotion_bytes`; bytes follow the local host
+connector's per-TP-shard accounting.
+
+For cross-turn reuse, supply exact `input_token_ids` and `output_token_ids`
+in Mooncake rows. A trace containing only prompt hashes can still exercise
+same-turn handoff. During ordinary Decode, a sampled token's KV becomes
+available when the next forward computes it. At the pass boundary, the
+enclosure queues any newly complete block for background writeback, including
+on the final pass. The last sampled token and an incomplete block are excluded.
+The report counts completed D writes and subsequent P reads in
+`g3_offload.decode_writeback_blocks` and `g3_offload.prefill_decode_reuse_blocks`.
+
 All fields accept only concrete values; `recommend` does not search them.
 `kv_transfer` is rejected in `aggregated` and `afd` modes.
 

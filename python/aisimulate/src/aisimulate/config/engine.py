@@ -743,10 +743,21 @@ class WorkersPredictionConfig(StrictModel):
         return self
 
 
+class EnclosureHandoffConfig(StrictModel):
+    num_blocks: PositiveInt
+    read_bandwidth_gbps: PositiveFloat
+    write_bandwidth_gbps: PositiveFloat
+    combined_bandwidth_gbps: PositiveFloat | None = None
+    prefill_write_bandwidth_gbps: PositiveFloat | None = None
+    decode_read_bandwidth_gbps: PositiveFloat | None = None
+    latency_to_first_byte_ms: NonNegativeFloat
+
+
 class KvTransferConfig(StrictModel):
     bytes_per_token: KvBytesPerToken = "auto"
     bandwidth_gb_per_second: PositiveFloat | None = None
     timing_mode: Literal["full_prompt", "destination_missing"] = "destination_missing"
+    enclosure: EnclosureHandoffConfig | None = None
 
 
 class TokenizationConfig(StrictModel):

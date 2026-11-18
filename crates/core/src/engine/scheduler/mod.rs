@@ -367,6 +367,12 @@ impl EngineCore {
         }
     }
 
+    pub(crate) fn set_enclosure(&mut self, registry: crate::engine::g3_offload::SharedG3Tier) {
+        if let Self::Vllm(core) = self {
+            core.set_enclosure(registry);
+        }
+    }
+
     pub(crate) fn set_g3_offload(
         &mut self,
         registry: crate::engine::g3_offload::SharedG3Tier,

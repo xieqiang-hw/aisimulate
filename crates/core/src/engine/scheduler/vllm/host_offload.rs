@@ -30,9 +30,27 @@
 //!   source blocks until the copy completes, and a preemption waits for every
 //!   transfer in flight (`vllm/v1/simple_kv_offload/worker.py`).
 
+use crate::engine::g3_offload::{Direction, Probe, SharedG3Tier};
 use rustc_hash::FxHashMap;
+
+#[derive(Default)]
+struct EnclosureLoads {
+    jobs: FxHashMap<u64, (Uuid, TransferId)>,
+    waiting: FxHashMap<TransferId, u64>,
+    host_done: BTreeSet<TransferId>,
+}
+
+struct Enclosure {
+    tier: SharedG3Tier,
+    loads: EnclosureLoads,
+    // None means two distinct requests have used the block.
+    uses: FxHashMap<HostBlockKey, Option<Uuid>>,
+    promotion_jobs: BTreeSet<TransferId>,
+    local_block_bytes: usize,
+}
+
 use std::collections::BTreeSet;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use uuid::Uuid;
 
 use crate::engine::common::protocols::PrefillCost;
@@ -48,11 +66,12 @@ use crate::engine::kv_manager::{
     SourceReuseDependency,
 };
 use crate::engine::{
-    CacheTierAttribution, HostOffloadObserver, KvHintSource, NativeHostOffloadConfig,
+    CacheTierAttribution, HostOffloadObserver, KvHintSource, NativeHostOffloadConfig, PrefillKvWait,
 };
 
 struct LoadingPrefix {
     transfer_id: TransferId,
+    direct_blocks: usize,
     keys: Vec<HostBlockKey>,
     reservation: DestinationReservation,
     g3_block_offsets: Vec<usize>,
@@ -81,12 +100,68 @@ enum LoadState {
 /// request merely waiting behind running work never reaches it.
 pub(super) const MAX_RESTORE_ROUNDS_WITHOUT_PROGRESS: usize = 1024;
 
+#[derive(Clone, Copy)]
+pub(super) enum WaitPath {
+    LocalSsd,
+    H2d,
+    Enclosure,
+    OtherKv,
+}
+
+#[derive(Default)]
+pub(super) struct RestoreWait {
+    started_ms: f64,
+    pending: Vec<(WaitPath, Arc<OnceLock<f64>>)>,
+    waits_ms: [f64; 4],
+    union_ms: f64,
+    overlap_ms: f64,
+}
+
+impl RestoreWait {
+    pub(super) fn observe(&mut self, path: WaitPath, end: Arc<OnceLock<f64>>, now_ms: f64) {
+        if self.pending.is_empty() {
+            self.started_ms = now_ms;
+        }
+        if self.pending.last().is_none_or(|(previous, handle)| {
+            *previous as usize != path as usize || !Arc::ptr_eq(handle, &end)
+        }) {
+            self.pending.push((path, end));
+        }
+    }
+
+    fn settle(&mut self, now_ms: f64) {
+        let mut durations = [0.0_f64; 4];
+        for (path, end) in self.pending.drain(..) {
+            let until = end.get().copied().unwrap_or(now_ms).min(now_ms);
+            let elapsed = (until - self.started_ms).max(0.0);
+            let i = path as usize;
+            durations[i] = durations[i].max(elapsed);
+        }
+        for (total, duration) in self.waits_ms.iter_mut().zip(durations) {
+            *total += duration;
+        }
+        durations.sort_by(f64::total_cmp);
+        self.union_ms += durations[3];
+        self.overlap_ms += durations[2];
+    }
+
+    fn summary(&self) -> PrefillKvWait {
+        let ns = |ms: f64| (ms * 1_000_000.0).round() as u64;
+        PrefillKvWait {
+            waits_ns: self.waits_ms.map(ns),
+            union_ns: ns(self.union_ms),
+            overlap_ns: ns(self.overlap_ms),
+        }
+    }
+}
+
 /// Request-local G3 or KVCR restore progress.
 #[derive(Default)]
 pub(super) struct RestoreRounds {
     pub(super) rounds_without_progress: usize,
     /// The rank's progress count at this request's last round.
     rank_progress: u64,
+    pub(super) wait: Option<Box<RestoreWait>>,
 }
 
 impl RestoreRounds {
@@ -138,6 +213,7 @@ pub(super) struct VllmHostRequestState {
     /// With `reranks_at_finish`: blocks stored, offered or loaded, re-ranked
     /// when the request finishes.
     accessed_blocks: BTreeSet<usize>,
+    counted_enclosure_blocks: usize,
 }
 
 impl VllmHostRequestState {
@@ -187,6 +263,17 @@ impl VllmHostRequestState {
             confirmed_tokens: 0,
             lookup_pin: None,
             accessed_blocks: BTreeSet::new(),
+            counted_enclosure_blocks: 0,
+        }
+    }
+
+    pub(super) fn track_prefill_wait(&mut self) {
+        self.restore_rounds.wait = Some(Box::default());
+    }
+
+    pub(super) fn settle_prefill_wait(&mut self, now_ms: f64) {
+        if let Some(wait) = &mut self.restore_rounds.wait {
+            wait.settle(now_ms);
         }
     }
 
@@ -249,6 +336,7 @@ impl VllmHostRequestState {
 
 pub(super) struct HostLookupHit {
     keys: Vec<HostBlockKey>,
+    enclosure_offsets: Vec<usize>,
     base_g1_blocks: usize,
     original_g1_tokens: usize,
     request_footprint_blocks: usize,
@@ -281,6 +369,7 @@ pub(super) struct HostTransferProgress {
 pub(super) struct VllmHostOffloadAdapter {
     host: HostClient,
     shared: bool,
+    enclosure: Option<Enclosure>,
     rules: ConnectorRules,
     /// The rank publishes G2 residency as `HostPinned` KV events.
     publishes_residency: bool,
@@ -310,6 +399,28 @@ impl VllmHostOffloadAdapter {
         })
     }
 
+    pub(super) fn set_enclosure(
+        &mut self,
+        tier: SharedG3Tier,
+        local_block_bytes: usize,
+        kv_manager: &mut G1Manager,
+    ) {
+        // A promotion prepared at request completion may not have a D2H
+        // deadline until the engine boundary. A competing load or compute
+        // allocation must not take its source slot before the copy completes.
+        kv_manager.hold_native_store_sources(
+            self.store_source_hold()
+                .unwrap_or(SourceReleaseOrder::TailFirst),
+        );
+        self.enclosure = Some(Enclosure {
+            tier,
+            loads: EnclosureLoads::default(),
+            uses: FxHashMap::default(),
+            promotion_jobs: BTreeSet::new(),
+            local_block_bytes,
+        });
+    }
+
     pub(super) fn set_g3(
         &mut self,
         registry: crate::engine::g3_offload::SharedG3Tier,
@@ -334,7 +445,7 @@ impl VllmHostOffloadAdapter {
     /// pull, so an idle KVCR schedules exactly like G2 alone.
     pub(super) fn retry_epoch(&self) -> Option<u64> {
         let kvcr_epoch = self.kvcr.as_ref().map_or(0, |kvcr| kvcr.epoch);
-        (self.g3.is_some() || kvcr_epoch > 0)
+        (self.g3.is_some() || self.enclosure.is_some() || kvcr_epoch > 0)
             .then(|| self.g3.as_ref().map_or(0, |g3| g3.epoch) + kvcr_epoch + self.load_epoch)
     }
 
@@ -369,6 +480,7 @@ impl VllmHostOffloadAdapter {
         Ok(Self {
             host,
             shared,
+            enclosure: None,
             rules: config.connector.rules(),
             publishes_residency: subscribe,
             g3: None,
@@ -404,6 +516,9 @@ impl VllmHostOffloadAdapter {
         block_size: usize,
         now_ms: f64,
     ) -> HostLookup {
+        if !matches!(request.load, Some(LoadState::Loading(_))) {
+            request.settle_prefill_wait(now_ms);
+        }
         if request.activated().is_some() {
             return HostLookup::Miss;
         }
@@ -423,6 +538,7 @@ impl VllmHostOffloadAdapter {
             host,
             g3,
             kvcr,
+            enclosure,
             load_by_key,
             ..
         } = self;
@@ -435,6 +551,11 @@ impl VllmHostOffloadAdapter {
             if !tier.has_transfer(transfer_id) {
                 request.latest_store = None;
             } else if rules.waits_for_stores {
+                if let Some(wait) = &mut request.restore_rounds.wait
+                    && let Some((_, end)) = tier.observe_transfer(transfer_id)
+                {
+                    wait.observe(WaitPath::OtherKv, end, now_ms);
+                }
                 return HostLookup::Deferred;
             }
         }
@@ -492,12 +613,49 @@ impl VllmHostOffloadAdapter {
             HostLookup::Deferred
         } else {
             let mut matched = 0usize;
+            let mut enclosure_offsets = Vec::new();
+            let mut storage = enclosure
+                .as_ref()
+                .map(|enclosure| enclosure.tier.lock().unwrap());
+            if let Some(storage) = &mut storage {
+                storage.advance(now_ms);
+            }
             let mut deferred = false;
             for key in request.block_keys[base_g1_blocks..end].iter().copied() {
                 match tier.lookup(key) {
-                    Lookup::Hit => deferred |= load_by_key.contains_key(&key),
-                    Lookup::Pending { .. } if rules.waits_for_stores => deferred = true,
-                    Lookup::Pending { .. } | Lookup::Miss => break,
+                    Lookup::Hit => {
+                        if let Some(&id) = load_by_key.get(&key) {
+                            deferred = true;
+                            if let Some(wait) = &mut request.restore_rounds.wait
+                                && let Some((_, end)) = tier.observe_transfer(id)
+                            {
+                                wait.observe(WaitPath::H2d, end, now_ms);
+                            }
+                        }
+                    }
+                    Lookup::Pending { transfer_id } if rules.waits_for_stores => {
+                        deferred = true;
+                        if let Some(wait) = &mut request.restore_rounds.wait
+                            && let Some((from_ssd, end)) = tier.observe_transfer(transfer_id)
+                        {
+                            let path = if from_ssd && g3.is_some() {
+                                WaitPath::LocalSsd
+                            } else {
+                                WaitPath::OtherKv
+                            };
+                            wait.observe(path, end, now_ms);
+                        }
+                    }
+                    Lookup::Pending { .. } | Lookup::Miss => {
+                        if storage
+                            .as_mut()
+                            .is_some_and(|pool| pool.probe(0, key) == Probe::Resident)
+                        {
+                            enclosure_offsets.push(matched);
+                        } else {
+                            break;
+                        }
+                    }
                 }
                 matched += 1;
             }
@@ -509,6 +667,7 @@ impl VllmHostOffloadAdapter {
             } else {
                 HostLookup::Hit(HostLookupHit {
                     keys: keys.to_vec(),
+                    enclosure_offsets,
                     base_g1_blocks,
                     original_g1_tokens: g1_cost.cached_tokens,
                     request_footprint_blocks: sequence.current_known_blocks(),
@@ -516,7 +675,7 @@ impl VllmHostOffloadAdapter {
             }
         };
 
-        if rules.touches_prompt {
+        if rules.touches_prompt && enclosure.is_none() {
             // vLLM 0.24 passes this ordered logical list after lookup to
             // LRUCachePolicy.touch(), which explicitly iterates it in reverse.
             for key in request.block_keys[..request.prompt_blocks]
@@ -581,15 +740,72 @@ impl VllmHostOffloadAdapter {
             not_before_ms = not_before_ms.max(deadline);
         }
 
-        // Transfer bookkeeping follows the logical prefix, unlike LRU touches.
-        let transfer_id =
-            match tier.schedule_load(self.host.id(), uuid, &hit.keys, now_ms, not_before_ms) {
-                LoadOutcome::Queued(transfer_id) => transfer_id,
+        let mut host_keys = Vec::new();
+        let mut enclosure_keys = Vec::new();
+        for (offset, &key) in hit.keys.iter().enumerate() {
+            if hit.enclosure_offsets.binary_search(&offset).is_ok() {
+                enclosure_keys.push(key);
+            } else {
+                host_keys.push(key);
+            }
+        }
+        let enclosure_job = if enclosure_keys.is_empty() {
+            None
+        } else {
+            let mut storage = self.enclosure.as_ref().unwrap().tier.lock().unwrap();
+            let Some(job) =
+                storage.submit_after(0, Direction::Read, &enclosure_keys, now_ms, not_before_ms)
+            else {
+                kv_manager.cancel_destination(reservation);
+                return StartLoad::Retry;
+            };
+            Some(job)
+        };
+        let transfer_id = if host_keys.is_empty() {
+            tier.allocate_transfer_id()
+        } else {
+            match tier.schedule_load(self.host.id(), uuid, &host_keys, now_ms, not_before_ms) {
+                LoadOutcome::Queued(id) => id,
                 LoadOutcome::Miss => {
+                    if let Some(job) = enclosure_job {
+                        self.enclosure
+                            .as_ref()
+                            .unwrap()
+                            .tier
+                            .lock()
+                            .unwrap()
+                            .cancel(job, now_ms);
+                    }
                     kv_manager.cancel_destination(reservation);
                     return StartLoad::Retry;
                 }
-            };
+            }
+        };
+        if let Some(job) = enclosure_job {
+            let loads = &mut self.enclosure.as_mut().unwrap().loads;
+            loads.jobs.insert(job, (uuid, transfer_id));
+            loads.waiting.insert(transfer_id, job);
+            if host_keys.is_empty() {
+                loads.host_done.insert(transfer_id);
+            }
+        }
+        if let Some(wait) = &mut request.restore_rounds.wait {
+            if let Some((_, end)) = tier.observe_transfer(transfer_id) {
+                wait.observe(WaitPath::H2d, end, now_ms);
+            }
+            if let Some(job) = enclosure_job
+                && let Some(end) = self
+                    .enclosure
+                    .as_ref()
+                    .unwrap()
+                    .tier
+                    .lock()
+                    .unwrap()
+                    .observe_job(job)
+            {
+                wait.observe(WaitPath::Enclosure, end, now_ms);
+            }
+        }
         // The load holds the hit now.
         if let Some(pinned) = request.lookup_pin.take() {
             tier.unpin_external(&pinned);
@@ -606,12 +822,12 @@ impl VllmHostOffloadAdapter {
                 })
                 .collect()
         } else {
-            Vec::new()
+            hit.enclosure_offsets
         };
         drop(tier);
 
         if self.rules.waits_for_loads {
-            for key in &hit.keys {
+            for key in &host_keys {
                 assert!(self.load_by_key.insert(*key, transfer_id).is_none());
             }
         }
@@ -629,7 +845,8 @@ impl VllmHostOffloadAdapter {
         self.load_epoch += 1;
         request.load = Some(LoadState::Loading(LoadingPrefix {
             transfer_id,
-            keys: hit.keys,
+            direct_blocks: enclosure_keys.len(),
+            keys: host_keys,
             reservation,
             g3_block_offsets,
             original_g1_tokens: hit.original_g1_tokens,
@@ -660,6 +877,14 @@ impl VllmHostOffloadAdapter {
                 continue;
             };
             assert!(kv_manager.satisfy_native_source_dependency(source_dependency(*transfer_id)));
+            if let Some(enclosure) = &mut self.enclosure
+                && enclosure.promotion_jobs.remove(transfer_id)
+            {
+                let mut storage = enclosure.tier.lock().unwrap();
+                storage.stats.prefill_dram_promotion_blocks += blocks.len() as u64;
+                storage.stats.prefill_dram_promotion_bytes +=
+                    (blocks.len() * enclosure.local_block_bytes) as u64;
+            }
             if let Some(g3) = &mut self.g3 {
                 g3.store(&mut tier, blocks, now_ms);
             }
@@ -691,7 +916,33 @@ impl VllmHostOffloadAdapter {
                     assert_eq!(self.load_by_key.remove(key), Some(transfer_id));
                 }
             }
+            if let Some(enclosure) = &mut self.enclosure
+                && enclosure.loads.waiting.contains_key(&transfer_id)
+            {
+                enclosure.loads.host_done.insert(transfer_id);
+                continue;
+            }
             loads.push(CompletedLoad { uuid, transfer_id });
+        }
+        if let Some(enclosure) = &mut self.enclosure {
+            for completion in
+                enclosure
+                    .tier
+                    .lock()
+                    .unwrap()
+                    .take_completions(0, now_ms, Some(Direction::Read))
+            {
+                let (uuid, transfer_id) = enclosure
+                    .loads
+                    .jobs
+                    .remove(&completion.id)
+                    .expect("P enclosure read owner");
+                enclosure.loads.waiting.remove(&transfer_id);
+                completed_any = true;
+                if enclosure.loads.host_done.remove(&transfer_id) {
+                    loads.push(CompletedLoad { uuid, transfer_id });
+                }
+            }
         }
         HostTransferProgress {
             completed_loads: loads,
@@ -739,7 +990,7 @@ impl VllmHostOffloadAdapter {
             g3_block_offsets: load.g3_block_offsets,
             original_g1_tokens: load.original_g1_tokens,
             loaded_prefix_blocks: load.loaded_prefix_blocks,
-            loaded_blocks: load.keys.len(),
+            loaded_blocks: load.keys.len() + load.direct_blocks,
             request_footprint_blocks: load.request_footprint_blocks,
         }));
     }
@@ -805,6 +1056,11 @@ impl VllmHostOffloadAdapter {
                 host_reused_input_tokens: host,
                 // KVCR can also fill G2, so this two-source split is unavailable there.
                 g3_reused_input_tokens: self.kvcr.is_none().then_some(g3),
+                prefill_kv_wait: request
+                    .restore_rounds
+                    .wait
+                    .take()
+                    .map(|wait| wait.summary()),
             })
         }
     }
@@ -825,6 +1081,51 @@ impl VllmHostOffloadAdapter {
         kv_manager: &mut G1Manager,
         now_ms: f64,
     ) {
+        if let Some(enclosure) = &mut self.enclosure {
+            let end = (computed_tokens.min(prompt_tokens) / block_size).min(request.prompt_blocks);
+            let mut tier = self.host.lock();
+            for index in request.counted_enclosure_blocks..end {
+                let key = request.block_keys[index];
+                let Some(snapshot) = kv_manager.snapshot_native_store_sources(
+                    uuid,
+                    lease,
+                    std::slice::from_ref(&index),
+                ) else {
+                    break;
+                };
+                request.counted_enclosure_blocks = index + 1;
+                let first = enclosure.uses.entry(key).or_insert(Some(uuid));
+                if *first != Some(uuid) {
+                    *first = None;
+                }
+                match tier.lookup(key) {
+                    Lookup::Hit => tier.touch(key),
+                    Lookup::Miss if first.is_none() => {
+                        let StoreOutcome::Prepared { transfer_id, .. } = tier.prepare_store(
+                            self.host.id(),
+                            uuid,
+                            &[key],
+                            request
+                                .block_meta
+                                .as_deref()
+                                .map(|meta| &meta[index..=index]),
+                            now_ms,
+                        ) else {
+                            continue;
+                        };
+                        kv_manager.attach_native_store_source_dependency(
+                            uuid,
+                            lease,
+                            snapshot,
+                            source_dependency(transfer_id),
+                        );
+                        enclosure.promotion_jobs.insert(transfer_id);
+                    }
+                    _ => {}
+                }
+            }
+            return;
+        }
         let rules = self.rules;
         let end = if rules.stores_eagerly {
             let confirmed_blocks =
@@ -973,7 +1274,7 @@ impl VllmHostOffloadAdapter {
         if let Some(pinned) = request.lookup_pin.take() {
             self.host.lock().unpin_external(&pinned);
         }
-        if self.rules.stores_at_finish {
+        if self.rules.stores_at_finish || self.enclosure.is_some() {
             // Everything computed is confirmed once the request leaves.
             request.confirmed_tokens = computed_tokens;
             self.observe_completed_blocks(
@@ -1045,6 +1346,7 @@ impl VllmHostOffloadAdapter {
         mutation_now_ms: f64,
         observed_at_ms: f64,
     ) -> bool {
+        request.settle_prefill_wait(observed_at_ms);
         let detached = self.g3.as_mut().is_some_and(|g3| g3.release(request.owner))
             | self
                 .kvcr
@@ -1056,17 +1358,28 @@ impl VllmHostOffloadAdapter {
         let LoadState::Loading(load) = load else {
             return false;
         };
-        if self.rules.waits_for_loads {
+        let mut host_done = false;
+        if let Some(enclosure) = &mut self.enclosure {
+            host_done = enclosure.loads.host_done.remove(&load.transfer_id);
+            if let Some(job) = enclosure.loads.waiting.remove(&load.transfer_id) {
+                enclosure.loads.jobs.remove(&job);
+                enclosure.tier.lock().unwrap().cancel(job, mutation_now_ms);
+            }
+        }
+        if !host_done && self.rules.waits_for_loads {
             for key in &load.keys {
                 assert_eq!(self.load_by_key.remove(key), Some(load.transfer_id));
             }
         }
-        assert!(self.host.lock().cancel_load(
-            self.host.id(),
-            load.transfer_id,
-            mutation_now_ms,
-            observed_at_ms
-        ));
+        assert!(
+            host_done
+                || self.host.lock().cancel_load(
+                    self.host.id(),
+                    load.transfer_id,
+                    mutation_now_ms,
+                    observed_at_ms
+                )
+        );
         kv_manager.cancel_destination(load.reservation);
         true
     }
@@ -1080,6 +1393,18 @@ impl VllmHostOffloadAdapter {
             .lock()
             .next_deadline(self.host.id())
             .into_iter()
+            .chain(
+                self.enclosure
+                    .as_ref()
+                    .filter(|enclosure| !enclosure.loads.waiting.is_empty())
+                    .and_then(|enclosure| {
+                        enclosure
+                            .tier
+                            .lock()
+                            .unwrap()
+                            .next_direction_deadline(0, Direction::Read)
+                    }),
+            )
             .chain(self.g3.as_ref().and_then(|g3| g3.next_deadline()))
             .chain(self.kvcr.as_ref().and_then(|kvcr| kvcr.next_deadline()))
             .min_by(f64::total_cmp)
@@ -1094,11 +1419,16 @@ impl VllmHostOffloadAdapter {
     /// next step, and `Scheduler.has_requests` keeps the engine stepping until
     /// it has, so an engine boundary submits them.
     pub(super) fn has_unsubmitted_stores(&self) -> bool {
-        self.rules.stores_at_finish && self.host.lock().has_prepared_stores(self.host.id())
+        (self.rules.stores_at_finish || self.enclosure.is_some())
+            && self.host.lock().has_prepared_stores(self.host.id())
     }
 
     pub(super) fn has_work(&self) -> bool {
         self.host.lock().has_pending_work(self.host.id())
+            || self
+                .enclosure
+                .as_ref()
+                .is_some_and(|enclosure| !enclosure.loads.waiting.is_empty())
             || self.g3.as_ref().is_some_and(|g3| g3.has_work())
             || self.kvcr.as_ref().is_some_and(|kvcr| kvcr.has_work())
     }
@@ -1123,6 +1453,23 @@ mod tests {
     use crate::engine::scheduler::vllm::core::VllmCore;
     use crate::engine::trace::TraceCollector;
     use crate::engine::{G2Connector, HostOffloadObservation, HostOffloadObservationData};
+
+    #[test]
+    fn prefill_wait_counts_shared_jobs_and_parallel_paths_once() {
+        let mut wait = RestoreWait::default();
+        let ssd = Arc::new(OnceLock::from(85.0));
+        // The read existed before the request joined its wait at 25.
+        wait.observe(WaitPath::LocalSsd, ssd.clone(), 25.0);
+        wait.observe(WaitPath::LocalSsd, ssd, 25.0);
+        wait.settle(90.0);
+        wait.observe(WaitPath::H2d, Arc::new(OnceLock::from(100.0)), 90.0);
+        wait.observe(WaitPath::Enclosure, Arc::new(OnceLock::from(105.0)), 90.0);
+        wait.settle(120.0);
+        let report = wait.summary();
+        assert_eq!(report.waits_ns, [60_000_000, 10_000_000, 15_000_000, 0]);
+        assert_eq!(report.union_ns, 75_000_000);
+        assert_eq!(report.overlap_ns, 10_000_000);
+    }
 
     fn adapter(capacity_blocks: usize) -> VllmHostOffloadAdapter {
         VllmHostOffloadAdapter::new(
@@ -1837,12 +2184,185 @@ mod tests {
     }
 
     #[test]
+    fn enclosure_mixed_prefix_waits_for_both_direct_reads() {
+        use crate::engine::g3_offload::G3Tier;
+        use crate::engine::{G3OffloadConfig, G3Scope};
+
+        let mut adapter = adapter(2);
+        let owner = Uuid::from_u128(900);
+        let (sequence, mut lease, mut host) = request(owner, (1..=8).collect());
+        host.track_prefill_wait();
+        let [first, second] = host.block_keys[..] else {
+            panic!("two blocks")
+        };
+        let now = seed_host(&mut adapter, first);
+        let storage = G3Tier::new_enclosure(
+            G3OffloadConfig {
+                scope: G3Scope::ClusterShared,
+                num_g3_blocks: 4,
+                latency_to_first_byte_ms: 0.0,
+                read_bandwidth_gbps: 0.5,
+                write_bandwidth_gbps: 0.0,
+                shared_read_bandwidth_gbps: 0.0,
+                shared_write_bandwidth_gbps: 0.0,
+            },
+            2,
+            1_000_000,
+            None,
+        )
+        .unwrap();
+        {
+            let mut pool = storage.lock().unwrap();
+            pool.submit(1, Direction::Write, &[second], now).unwrap();
+            assert_eq!(pool.take_completed(1, now).len(), 1);
+        }
+        let mut manager = G1Manager::new_with_caching(2, 4, KvEventPublishers::default(), 0, true);
+        adapter.set_enclosure(storage.clone(), 1_000_000, &mut manager);
+        let HostLookup::Hit(hit) = adapter.lookup(
+            &mut host,
+            &sequence,
+            &raw_cost(&manager, &sequence, &lease),
+            4,
+            now,
+        ) else {
+            panic!("mixed prefix must hit");
+        };
+        assert_eq!(hit.enclosure_offsets, [1]);
+        assert!(matches!(
+            adapter.start_load(owner, &mut host, &lease, hit, &mut manager, now),
+            StartLoad::Queued
+        ));
+        assert!(
+            adapter
+                .advance(&mut manager, now + 1.0)
+                .completed_loads
+                .is_empty()
+        );
+        let done = adapter.advance(&mut manager, now + 2.0).completed_loads;
+        assert_eq!(done.len(), 1);
+        adapter.activate_completed_load(
+            owner,
+            done[0].transfer_id,
+            &mut host,
+            &sequence,
+            &mut lease,
+            &mut manager,
+        );
+        host.settle_prefill_wait(now + 3.0);
+        let wait = host.restore_rounds.wait.as_ref().unwrap().summary();
+        assert_eq!(wait.waits_ns, [0, 1_000_000, 2_000_000, 0]);
+        assert_eq!(wait.union_ns, 2000000);
+        assert_eq!(wait.overlap_ns, 1000000);
+        let attribution = adapter.on_admitted(&mut host, 8, 4).unwrap();
+        assert_eq!(attribution.g3_reused_input_tokens, Some(4));
+        assert_eq!(attribution.host_reused_input_tokens, 8);
+        assert!(matches!(adapter.host.lock().lookup(second), Lookup::Miss));
+        assert_eq!(
+            storage.lock().unwrap().snapshot().read.completed_bytes,
+            1_000_000
+        );
+    }
+
+    #[test]
+    fn enclosure_promotion_counts_distinct_requests_and_completed_copies() {
+        use crate::engine::g3_offload::G3Tier;
+        use crate::engine::{G3OffloadConfig, G3Scope};
+
+        let mut adapter = adapter(2);
+        let storage = G3Tier::new_enclosure(
+            G3OffloadConfig {
+                scope: G3Scope::ClusterShared,
+                num_g3_blocks: 4,
+                latency_to_first_byte_ms: 0.0,
+                read_bandwidth_gbps: 0.0,
+                write_bandwidth_gbps: 0.0,
+                shared_read_bandwidth_gbps: 0.0,
+                shared_write_bandwidth_gbps: 0.0,
+            },
+            2,
+            1_000_000,
+            None,
+        )
+        .unwrap();
+        let mut manager = G1Manager::new_with_caching(1, 4, KvEventPublishers::default(), 0, true);
+        adapter.set_enclosure(storage.clone(), 1_000_000, &mut manager);
+        let waiting = Uuid::from_u128(3);
+        let (sequence, waiting_lease, mut waiting_host) = request(waiting, (5..=8).collect());
+        let now = seed_host(&mut adapter, waiting_host.block_keys[0]);
+        let first = Uuid::from_u128(1);
+        let (_, lease, mut host) =
+            stored(&mut adapter, &mut manager, first, (1..=4).collect(), now);
+        let key = host.block_keys[0];
+        adapter.observe_completed_blocks(first, &mut host, &lease, 4, 4, 4, &mut manager, now);
+        assert!(matches!(adapter.host.lock().lookup(key), Lookup::Miss));
+        manager.finish_native(first, lease);
+        let second = Uuid::from_u128(2);
+        let (_, lease, _) = stored(&mut adapter, &mut manager, second, (1..=4).collect(), now);
+        assert!(matches!(
+            adapter.host.lock().lookup(key),
+            Lookup::Pending { .. }
+        ));
+        manager.finish_native(second, lease);
+        // The competing G2 hit cannot reserve the one G1 slot while the
+        // promotion has been prepared but has not been submitted.
+        let lookup = |adapter: &mut VllmHostOffloadAdapter,
+                      waiting_host: &mut VllmHostRequestState,
+                      manager: &G1Manager,
+                      at|
+         -> HostLookupHit {
+            let HostLookup::Hit(hit) = adapter.lookup(
+                waiting_host,
+                &sequence,
+                &raw_cost(manager, &sequence, &waiting_lease),
+                4,
+                at,
+            ) else {
+                panic!("seeded G2 block must hit")
+            };
+            hit
+        };
+        let hit = lookup(&mut adapter, &mut waiting_host, &manager, now);
+        assert!(matches!(
+            adapter.start_load(
+                waiting,
+                &mut waiting_host,
+                &waiting_lease,
+                hit,
+                &mut manager,
+                now
+            ),
+            StartLoad::CapacityBlocked
+        ));
+        adapter.complete_engine_boundary(&mut manager, now);
+        let deadline = now + 1.0;
+        adapter.advance(&mut manager, deadline);
+        assert!(matches!(adapter.host.lock().lookup(key), Lookup::Hit));
+        let stats = storage.lock().unwrap().snapshot();
+        assert_eq!(stats.prefill_dram_promotion_blocks, 1);
+        assert_eq!(stats.prefill_dram_promotion_bytes, 1_000_000);
+        assert_eq!(stats.write.completed_bytes, 0);
+        let hit = lookup(&mut adapter, &mut waiting_host, &manager, deadline);
+        assert!(matches!(
+            adapter.start_load(
+                waiting,
+                &mut waiting_host,
+                &waiting_lease,
+                hit,
+                &mut manager,
+                deadline
+            ),
+            StartLoad::Queued
+        ));
+    }
+
+    #[test]
     fn mixed_g2_g3_prefix_stages_then_acquires_and_activates_real_g1() {
         use crate::engine::g3_offload::{Direction, G3Tier};
         use crate::engine::{G3OffloadConfig, G3Scope};
         let mut adapter = adapter(2);
         let owner = Uuid::from_u128(900);
         let (sequence, mut lease, mut host) = request(owner, vec![1, 2, 3, 4, 5, 6, 7, 8]);
+        host.track_prefill_wait();
         let first = host.block_keys[0];
         let second = host.block_keys[1];
         let now = seed_host(&mut adapter, first);
@@ -1924,6 +2444,11 @@ mod tests {
             "only the missing G2 block crosses G3"
         );
         assert_eq!(stats.cross_worker_read_blocks, 1);
+        host.settle_prefill_wait(completed_at + 1.0);
+        let wait = host.restore_rounds.wait.as_ref().unwrap().summary();
+        assert_eq!(wait.waits_ns, [1_000_000, 2_000_000, 0, 0]);
+        assert_eq!(wait.union_ns, 3000000);
+        assert_eq!(wait.overlap_ns, 0);
     }
 
     #[test]

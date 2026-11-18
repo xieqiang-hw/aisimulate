@@ -1018,6 +1018,9 @@ pub struct PerRequestRecord {
     pub prefill_worker_idx: Option<usize>,
     pub decode_worker_idx: Option<usize>,
     pub prefill_admit_ms: Option<f64>,
+    /// First P admission wait breakdown for vLLM host offload.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prefill_wait: Option<PrefillWaitRecord>,
     /// When the encoder pool delivered the embeddings; absent without an encoder pool.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encoder_ready_ms: Option<f64>,
@@ -1044,6 +1047,23 @@ pub struct PerRequestRecord {
     pub readmission_count: usize,
     pub pressure_record_ordinals: Vec<u64>,
     pub terminal_status: ReplayTerminalStatus,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct PrefillWaitRecord {
+    pub route_queue_ms: f64,
+    /// Pre-admission remainder after routing and the union of observed KV waits.
+    pub scheduling_wait_ms: f64,
+    pub ssd_to_dram_wait_ms: f64,
+    pub dram_to_hbm_wait_ms: f64,
+    pub enclosure_to_hbm_wait_ms: f64,
+    pub other_kv_wait_ms: f64,
+    /// Unique time spent waiting on one or more known dependencies.
+    pub kv_wait_ms: f64,
+    /// Time with at least two distinct recovery paths pending.
+    pub kv_wait_overlap_ms: f64,
+    /// Diagnostic TTFT with the observed scheduling remainder subtracted.
+    pub ttft_excluding_prefill_scheduling_ms: Option<f64>,
 }
 
 impl PerRequestRecord {
@@ -2408,6 +2428,39 @@ impl TraceCollector {
                 prefill_worker_idx: stats.prefill_worker_idx,
                 decode_worker_idx: stats.decode_worker_idx,
                 prefill_admit_ms: detail.prefill_admit_ms,
+                prefill_wait: detail
+                    .first_admission_cache_tier_attribution
+                    .and_then(|value| value.prefill_kv_wait)
+                    .zip(detail.prefill_admit_ms)
+                    .map(|(wait, admit_ms)| {
+                        let ns_to_ms = |ns: u64| ns as f64 / 1_000_000.0;
+                        let [ssd, h2d, enclosure, other] = wait.waits_ns.map(ns_to_ms);
+                        let before_admit_ms = (admit_ms - stats.arrival_time_ms).max(0.0);
+                        let route_queue_ms = detail
+                            .routing_history
+                            .iter()
+                            .filter(|route| route.pool == ReplayRequestPool::Prefill)
+                            .filter(|route| route.released_at_ms.is_some_and(|at| at <= admit_ms))
+                            .filter_map(|route| route.queue_wait_ms)
+                            .sum::<f64>()
+                            .min(before_admit_ms);
+                        let kv_wait_ms = ns_to_ms(wait.union_ns);
+                        let scheduling_wait_ms =
+                            (before_admit_ms - route_queue_ms - kv_wait_ms).max(0.0);
+                        PrefillWaitRecord {
+                            route_queue_ms,
+                            scheduling_wait_ms,
+                            ssd_to_dram_wait_ms: ssd,
+                            dram_to_hbm_wait_ms: h2d,
+                            enclosure_to_hbm_wait_ms: enclosure,
+                            other_kv_wait_ms: other,
+                            kv_wait_ms,
+                            kv_wait_overlap_ms: ns_to_ms(wait.overlap_ns),
+                            ttft_excluding_prefill_scheduling_ms: first_token_ms.map(|at| {
+                                (at - stats.arrival_time_ms - scheduling_wait_ms).max(0.0)
+                            }),
+                        }
+                    }),
                 encoder_ready_ms: stats.encoder_ready_ms,
                 frontend_ready_ms: stats.ttft_milestones.frontend_ready_ms,
                 scheduler_received_ms: stats.ttft_milestones.scheduler_received_ms,
@@ -2513,6 +2566,10 @@ fn g3_since(
         stats.lookup_pending -= base.lookup_pending;
         stats.evictions -= base.evictions;
         stats.cross_worker_read_blocks -= base.cross_worker_read_blocks;
+        stats.decode_writeback_blocks -= base.decode_writeback_blocks;
+        stats.prefill_decode_reuse_blocks -= base.prefill_decode_reuse_blocks;
+        stats.prefill_dram_promotion_blocks -= base.prefill_dram_promotion_blocks;
+        stats.prefill_dram_promotion_bytes -= base.prefill_dram_promotion_bytes;
         stats.bypassed_restores -= base.bypassed_restores;
         for (current, previous) in [
             (&mut stats.read, &base.read),
@@ -3369,6 +3426,7 @@ mod tests {
                 g1_reused_input_tokens: 12,
                 host_reused_input_tokens: 8,
                 g3_reused_input_tokens: Some(0),
+                prefill_kv_wait: None,
             }),
         );
         collector.on_decode_assigned(uuid, 0);

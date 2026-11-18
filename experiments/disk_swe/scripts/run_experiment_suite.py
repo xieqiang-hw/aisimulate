@@ -130,7 +130,6 @@ def main():
         print(f"Total: {len(selected)} cases")
         return 0
 
-    from aisimulate.config.cli import CorePredictionConfig
     settings = {}
     # Preflight all required bundles and YAML files before launching a replay.
     try:
@@ -146,6 +145,12 @@ def main():
             settings[config] = config_data
     except (OSError, ValueError, KeyError, StopIteration) as exc:
         parser.error(f"Preflight failed: {exc}. Finish generating all selected bundles first.")
+
+    return run_cases(args, parent, selected, settings)
+
+
+def run_cases(args, parent, selected, settings):
+    from aisimulate.config.cli import CorePredictionConfig
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
     output = args.output_root.expanduser().resolve() / stamp

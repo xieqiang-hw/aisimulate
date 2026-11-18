@@ -645,7 +645,15 @@ impl<C: ReplayComposition> Replayer<C> {
                 prefill,
                 decode,
                 handoff_latency_ms,
+                enclosure,
             } => {
+                if enclosure.is_some()
+                    && (scaling.is_some() || self.spec.adapters.scaling.provider != "none")
+                {
+                    return Err(ReplayError::InvalidSpec(
+                        "enclosure handoff requires static workers".into(),
+                    ));
+                }
                 if artifact_sink.is_some() {
                     return Err(ReplayError::InvalidSpec(
                         "detailed replay artifacts require aggregated topology".to_string(),
@@ -669,6 +677,7 @@ impl<C: ReplayComposition> Replayer<C> {
                     num_prefill_workers: prefill.initial_workers,
                     num_decode_workers: decode.initial_workers,
                     handoff_latency_ms: *handoff_latency_ms,
+                    enclosure: enclosure.clone(),
                 };
                 let mut runtime = DisaggRuntimeImpl::<
                     PlacementPolicyBoundary<C::DisaggregatedPlacement>,
@@ -1302,6 +1311,7 @@ mod generated_replay_tests {
                         startup_delay_ms: 0.0,
                     },
                     handoff_latency_ms: 1.0,
+                    enclosure: None,
                 }
             } else {
                 ReplayTopology::aggregated(2)
