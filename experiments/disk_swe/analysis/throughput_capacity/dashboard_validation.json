@@ -1,0 +1,38 @@
+{
+  "families": [
+    {
+      "speedup": "1",
+      "cases": 30,
+      "execution_cases": 3,
+      "buckets": 13710
+    },
+    {
+      "speedup": "2",
+      "cases": 3,
+      "execution_cases": 3,
+      "buckets": 6856
+    },
+    {
+      "speedup": "4",
+      "cases": 3,
+      "execution_cases": 3,
+      "buckets": 3429
+    },
+    {
+      "speedup": "8",
+      "cases": 3,
+      "execution_cases": 3,
+      "buckets": 1715
+    }
+  ],
+  "capacity_completed": 12,
+  "tests": [
+    "arrival demand conserved",
+    "input and output demand conserved",
+    "completion histograms conserved",
+    "per-case backlog balance",
+    "separate virtual time axes",
+    "per-stream token-bin sums",
+    "busy fractions bounded"
+  ]
+}

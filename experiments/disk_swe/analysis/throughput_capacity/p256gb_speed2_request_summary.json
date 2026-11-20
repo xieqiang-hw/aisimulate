@@ -1,0 +1,34 @@
+[
+  {
+    "speedup": 1,
+    "dram_gb": 256,
+    "main_days": 28.973696435185186,
+    "arrivals": 603973,
+    "completed": 603970,
+    "arrival_rps": 0.2412680845324133,
+    "completion_rps": 0.24126688612742897,
+    "end_backlog": 3,
+    "peak_unfinished_main": 19,
+    "whole_mean_kv_wait_ms": 58.45884129694495,
+    "whole_mean_ssd_wait_ms": 51.33429093758791,
+    "whole_mean_h2d_wait_ms": 7.124499331262045,
+    "whole_mean_P_sched_wait_ms": 32.44198787092723,
+    "whole_mean_P_admit_to_first_token_ms": 256.4442648198144
+  },
+  {
+    "speedup": 2,
+    "dram_gb": 256,
+    "main_days": 14.486848217592593,
+    "arrivals": 603973,
+    "completed": 603965,
+    "arrival_rps": 0.4825361690648266,
+    "completion_rps": 0.48252977757157683,
+    "end_backlog": 8,
+    "peak_unfinished_main": 80,
+    "whole_mean_kv_wait_ms": 66.33390274115186,
+    "whole_mean_ssd_wait_ms": 58.659758562372566,
+    "whole_mean_h2d_wait_ms": 7.674049229992259,
+    "whole_mean_P_sched_wait_ms": 97.0457781772095,
+    "whole_mean_P_admit_to_first_token_ms": 358.1775232808141
+  }
+]

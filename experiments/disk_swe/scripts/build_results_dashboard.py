@@ -58,7 +58,7 @@ details{border:1px solid var(--line);border-radius:14px;background:#fff;margin:0
 <script>
 "use strict";
 const $=id=>document.getElementById(id);
-const meta=JSON.parse($("source").textContent), colors={32:"#a64d63",512:"#4f7285",64:"#905ba7",128:"#19745c",256:"#5279ba",384:"#bb8540"};
+const meta=JSON.parse($("source").textContent), colors={1000:"#a64d63",32:"#a64d63",512:"#4f7285",64:"#905ba7",128:"#19745c",256:"#5279ba",384:"#bb8540"};
 let sourceText=meta.markdown, data=[], mode="baseline", filtered=[];
 const metrics={sla:{name:"联合 SLA 达标率",unit:"%",digits:3},p99:{name:"P99 TTFT",unit:"秒",digits:2},mean:{name:"平均 TTFT",unit:"秒",digits:2},noQueueMean:{name:"扣排队后平均 TTFT",unit:"秒",digits:2},noQueueP99:{name:"扣排队后 P99 TTFT",unit:"秒",digits:2},tpot:{name:"平均 TPOT",unit:"ms",digits:2},ssd:{name:"SSD 累计读量",unit:"TB",digits:3}};
 const descriptions={baseline:["原速 1× · DRAM 容量基线","自动 HBM 容量，SSD 读写各 8 GB/s／TP 分片。"],hbm:["原速 1× · HBM KV 容量扫描","P 侧 DRAM 固定 384 GB，对比自动容量与三档固定 KV 块数。"],overlay:["会话叠加 · 三档 DRAM","P 侧 HBM 固定 2,048 块，SSD 读写各 8 GB/s／TP 分片。"],bandwidth:["SSD 读带宽 · 容量替代对照","P 侧 HBM 固定 2,048 块，SSD 写带宽固定 8 GB/s／TP 分片。"]};
@@ -78,7 +78,7 @@ function parseMarkdown(text){
   const state=lookup("状态");
   if(!state)continue;
   result.push({mode:modes[section],dram:modes[section]==="hbm"?384:number(lookup("P 侧 DRAM")),
-   factor:number(lookup("叠加倍率"))??1,bw:number(lookup("SSD 读带宽"))??8,
+   factor:number(lookup("叠加倍率"))??1,speedup:number(lookup("speedup"))??1,bw:number(lookup("SSD 读带宽"))??8,
    hbm:meta.ep8?"auto":modes[section]==="hbm"?(number(lookup("KV 块数"))??"auto"):(["overlay","bandwidth"].includes(modes[section])?2048:"auto"),
    status:state,count:number(lookup("完成请求")),sla:number(lookup("联合 SLA")),p99:number(lookup("P99 TTFT")),
    mean:number(lookup("平均 TTFT")),noQueueMean:number(lookup("扣排队后平均 TTFT")),noQueueP99:number(lookup("扣排队后 P99 TTFT")),tpot:number(lookup("TPOT")),g1:number(lookup("HBM 复用")),
@@ -283,7 +283,7 @@ function renderEp8Comparison(){
  makeLegend($("mainLegend"),series.map(group=>[group.name,group.color]));
  plot(canvas,series,metric.unit,{ticks,xTitle:"SSD 读带宽（GB/s／TP 分片）"});
 }
-const ep8BandwidthColors={1:"#905ba7",2:"#19745c",4:"#5279ba",8:"#a86221"};
+const ep8BandwidthColors={16:"#bc5367",1:"#905ba7",2:"#19745c",4:"#5279ba",8:"#a86221"};
 
 let ep8HoveredDram=null;
 const ep8CapacityTicks=new Map();
@@ -505,6 +505,7 @@ def build(sweep=None, markdown_path=None, output=None):
             """
 .ep8-filters{grid-template-columns:repeat(5,minmax(0,1fr))}
 .ep8-filters .field{min-width:0}
+#workloadSection[hidden]{display:none!important}
 @media(min-width:861px){.ep8-compare-filters{grid-template-columns:repeat(6,minmax(0,1fr))}}
 @media(max-width:860px){.ep8-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.ep8-filters{grid-template-columns:minmax(0,1fr)}}
@@ -559,6 +560,53 @@ def build(sweep=None, markdown_path=None, output=None):
             '<div class="canvasholder"><canvas id="ep8MetricChart" role="img"></canvas></div></div>',
         )
         template = template.replace('for="dram">P 侧 DRAM', 'for="dram">SSD 读带宽（GB/s／TP 分片）')
+
+
+    if ep8:
+        template = template.replace(
+            '<div class="field"><label for="dram">',
+            '<div class="field"><label for="speedup">回放 speedup</label>'
+            '<select id="speedup"></select></div><div class="field"><label for="dram">', 1)
+        template = template.replace('repeat(5,minmax(0,1fr))', 'repeat(6,minmax(0,1fr))')
+        template = template.replace('repeat(6,minmax(0,1fr))}}', 'repeat(7,minmax(0,1fr))}}')
+        template = template.replace(
+            'function render(){',
+            """function configureSpeedups(){
+ const available=[...new Set(data.filter(r=>r.factor===Number($("factor").value)).map(r=>r.speedup))].sort((a,b)=>b-a);
+ options($("speedup"),available.map(v=>[String(v),v===1?"1 · 原时间间隔":v+" · 时间间隔 ×"+(1/v)]),$("speedup").value||"1");
+ $("speedup").disabled=available.length<2;
+ const rates=[...new Set(data.filter(r=>r.factor===Number($("factor").value)&&r.speedup===Number($("speedup").value)).map(r=>r.bw))].sort((a,b)=>a-b);
+ options($("dram"),[["all","全部读带宽"],...rates.map(v=>[String(v),v+" GB/s"])],$("dram").value||"all");
+}
+function speedRows(){return data.filter(r=>r.speedup===Number($("speedup").value))}
+function render(){
+ configureSpeedups();
+""", 1)
+        template = template.replace('return data.filter(r=>r.mode===mode&&', 'return speedRows().filter(r=>r.mode===mode&&')
+        template = template.replace('return data.filter(r=>r.factor===Number($("factor").value));',
+                                    'return speedRows().filter(r=>r.factor===Number($("factor").value));')
+        template = template.replace('data.filter(r=>r.factor===+$("factor").value)',
+                                    'speedRows().filter(r=>r.factor===+$("factor").value)')
+        template = template.replace('data.filter(r=>r.factor===Number(factor))',
+                                    'speedRows().filter(r=>r.factor===Number(factor))')
+        template = template.replace('const all=data.filter(r=>r.mode===mode)',
+                                    'const all=speedRows().filter(r=>r.mode===mode)')
+        template = template.replace('["factor","dram","metric","axis"]',
+                                    '["factor","speedup","dram","metric","axis"]')
+        template = template.replace('"mode","factor","dram","hbm"', '"mode","factor","speedup","dram","hbm"')
+        template = template.replace(
+            '"标称 "+factor+"× 会话叠加；engine speedup=1。',
+            '"标称 "+factor+"× 会话叠加；engine speedup="+$("speedup").value+"。')
+        template = template.replace(
+            'density[$("factor").value]+"× · 会话内间隔保留"',
+            'fmt(density[$("factor").value]*Number($("speedup").value),3)+"× · speedup="+$("speedup").value+" · 会话间隔按 1/speedup 缩放"')
+        template = template.replace(
+            'String(factors.at(-1)):"all"',
+            'String(data.some(r=>r.speedup===0.5)?16:factors.at(-1)):"all"')
+        # Existing workload fragment represents speedup=1 only; never label it as new traffic.
+        template = template.replace(
+            ' configuration();',
+            ' configuration();\n const workload=$("workloadSection");if(workload)workload.hidden=Number($("speedup").value)!==1;')
 
     payload = json.dumps({
         "ep8": ep8,

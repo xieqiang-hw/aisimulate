@@ -1,0 +1,80 @@
+{
+  "bin_seconds": 300,
+  "cases": [
+    {
+      "case": "swe_h200_ep8_capacity_p128gb_speed1",
+      "streams": [
+        {
+          "role": "prefill",
+          "iterations": 730225,
+          "prefill_tokens": 650541063,
+          "generated_tokens": 0
+        },
+        {
+          "role": "decode",
+          "iterations": 105685884,
+          "prefill_tokens": 0,
+          "generated_tokens": 153681417
+        }
+      ]
+    },
+    {
+      "case": "swe_h200_ep8_capacity_p256gb_speed1",
+      "streams": [
+        {
+          "role": "prefill",
+          "iterations": 696400,
+          "prefill_tokens": 648014727,
+          "generated_tokens": 0
+        },
+        {
+          "role": "decode",
+          "iterations": 105688763,
+          "prefill_tokens": 0,
+          "generated_tokens": 153681418
+        }
+      ]
+    }
+  ],
+  "checks": [
+    "per-stream non-overlap",
+    "token-bin sums",
+    "busy fraction bounds",
+    "baseline report identity",
+    "browser filters",
+    "missing-data semantics",
+    "BS role switch",
+    "peak window",
+    "synthetic cross-bin clipping",
+    "active-BS weighting",
+    "legacy hourly-mode parity",
+    "idle BS remains null"
+  ],
+  "completed_execution_cases": 3,
+  "reconciliation": {
+    "64": {
+      "report_prefill_tokens": 735445451,
+      "p_recorded_prefill_tokens": 735314183,
+      "other_stage_prefill_tokens": 131268,
+      "report_output_tokens": 153681422,
+      "decode_recorded_output_tokens": 153681400,
+      "output_tokens_outside_decode_only_counter": 22
+    },
+    "128": {
+      "report_prefill_tokens": 650606022,
+      "p_recorded_prefill_tokens": 650541063,
+      "other_stage_prefill_tokens": 64959,
+      "report_output_tokens": 153681422,
+      "decode_recorded_output_tokens": 153681417,
+      "output_tokens_outside_decode_only_counter": 5
+    },
+    "256": {
+      "report_prefill_tokens": 648077627,
+      "p_recorded_prefill_tokens": 648014727,
+      "other_stage_prefill_tokens": 62900,
+      "report_output_tokens": 153681422,
+      "decode_recorded_output_tokens": 153681418,
+      "output_tokens_outside_decode_only_counter": 4
+    }
+  }
+}

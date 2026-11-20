@@ -768,6 +768,7 @@ def test_trace_inspection_streams_large_documents_and_records(tmp_path, host, mo
     with trace.open("w") as stream:
         for _ in range(60):
             stream.write(record)
+    monkeypatch.setattr(resources, "_MOONCAKE_JSONL_ROW_BYTES", 256 * 1024)
     monkeypatch.setattr(resources.json, "loads", lambda _: pytest.fail("must not materialize entire JSON records"))
     estimate = estimate_workload({"trace_path": str(trace), "trace_format": "mooncake"}, stack="engine")
     assert estimate.request_count == 60
@@ -1477,3 +1478,48 @@ def test_profile_keeps_initial_trace_materialization_guards(tmp_path, host, monk
     )
     assert plan["status"] == "resource_limited"
     assert plan["estimate"]["estimated_peak_bytes"] > plan["budget"]["memory_limit_bytes"]
+
+
+@pytest.mark.parametrize("raw", [
+    '{"input_length":4,"output_length":2,"hash_ids":[1],"input_token_ids":[1,2,3,4],"output_token_ids":[5,6]}\n',
+    '{"input_tokens":4,"output_tokens":2,"hash_ids":[1]}\n',
+    '{"hash_ids":[1,2],"output_length":1}\n',
+    '{"input_length":4,"input_tokens":8,"output_length":1,"output_tokens":2,"hash_ids":[1],"hash_ids":[2]}\n',
+    '{"input_length":4,"hash_ids":[1]} {"input_length":8,"hash_ids":[2,3]}',
+    '{\n"input_length":4,\n"hash_ids":[1]\n}\n',
+])
+def test_mooncake_jsonl_scan_matches_scalar_stream(tmp_path, raw):
+    import io
+
+    path = tmp_path / "trace.jsonl"
+    path.write_text(raw)
+    expected = resources._TraceCounters(retains_source_hashes=False)
+    resources._scan_mooncake(
+        resources.ijson.parse(io.BytesIO(raw.encode()), multiple_values=True),
+        expected, {"omitted_input_block_size": 4}, None,
+    )
+    actual = resources._scan_finite_trace([path], "mooncake", 4, None, False)
+    assert actual == expected
+
+
+def test_mooncake_jsonl_scan_keeps_early_budget_stop(tmp_path):
+    path = tmp_path / "trace.jsonl"
+    path.write_text('{"input_length":1024,"output_length":1,"hash_ids":[1]}\n'
+                    '{"input_length":4,"output_length":1,"hash_ids":[2]}\n')
+    with pytest.raises(resources._InspectionStopped) as caught:
+        resources._scan_finite_trace(
+            [path], "mooncake", 4, resources.WORKER_BASELINE_BYTES + 100, False,
+        )
+    assert caught.value.counters.requests == 1
+    assert caught.value.counters.largest_input == 1024
+
+
+def test_mooncake_oversize_row_falls_back_without_duplicate_counts(tmp_path, monkeypatch):
+    path = tmp_path / "trace.jsonl"
+    path.write_text('{"input_length":4,"hash_ids":[1]}\n'
+                    + json.dumps({"input_length":128, "hash_ids":[2], "input_token_ids":[3] * 128}) + "\n")
+    monkeypatch.setattr(resources, "_MOONCAKE_JSONL_ROW_BYTES", 100)
+    actual = resources._scan_finite_trace([path], "mooncake", 4, None, False)
+    assert actual.requests == 2
+    assert actual.total_input == 132
+    assert actual.hashes == 2

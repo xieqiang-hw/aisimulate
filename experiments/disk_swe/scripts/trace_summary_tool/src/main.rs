@@ -88,17 +88,34 @@ fn segments(dir:&Path,out:&Path)->anyhow::Result<()>{
 fn main()->anyhow::Result<()>{
  let args:Vec<_>=std::env::args().collect();
  if args.len()==4&&args[1]=="--segments"{return segments(Path::new(&args[2]),Path::new(&args[3]));}
- anyhow::ensure!(args.len()==3,"usage: summarize_trace INPUT_DIRECTORY OUTPUT_JSON");
- let dir=Path::new(&args[1]);
+ let mut bin_ms=HOUR;
+ let mut overview_only=false;
+ let mut positional=Vec::new();
+ let mut i=1;
+ while i<args.len(){
+  match args[i].as_str(){
+   "--bin-seconds"=>{i+=1;anyhow::ensure!(i<args.len(),"missing bin seconds");
+    let seconds:f64=args[i].parse()?;anyhow::ensure!(seconds.is_finite()&&seconds>0.0,"invalid bin seconds");bin_ms=seconds*1000.0;}
+   "--overview-only"=>overview_only=true,
+   value=>positional.push(value.to_owned()),
+  }
+  i+=1;
+ }
+ anyhow::ensure!(positional.len()==2,"usage: summarize_trace [--bin-seconds SECONDS] [--overview-only] INPUT_DIRECTORY OUTPUT_JSON");
+ let dir=Path::new(&positional[0]);
  let meta:Value=serde_json::from_reader(File::open(dir.join("scheduler_trace_metadata.json"))?)?;
  anyhow::ensure!(meta["schema_version"]==2,"requires compact schema v2");
  let identities=meta["streams"].as_array().unwrap();
  let mut pools:Vec<_>=identities.iter().map(|_|Pool::new()).collect();
  let mut end:f64=0.0;
+ let mut previous_end=vec![0.0_f64;identities.len()];
  let mut state_reader=reader(dir,"scheduler_states")?;let mut state_line=String::new();
  let mut upcoming=next_state(&mut *state_reader,&mut state_line)?;
  let mut states=vec![State::default();identities.len()];let mut seen=vec![false;identities.len()];
  scan::<Row>(dir,"iteration_metrics",|r|{
+  assert!(r.2<=r.3+1e-6&&r.3<=r.4+1e-6,"invalid iteration interval");
+  assert!(r.3+1e-6>=previous_end[r.0],"overlapping per-stream compute intervals");
+  previous_end[r.0]=r.4;
   let p=&mut pools[r.0];let is_p=identities[r.0]["role"]=="prefill";
   let bs=if is_p{r.5}else{r.8};
   p.total+=1;p.prefill+=r.6 as u64;p.generated+=r.11 as u64;p.max_bs=p.max_bs.max(bs);
@@ -107,20 +124,20 @@ fn main()->anyhow::Result<()>{
    upcoming=next_state(&mut *state_reader,&mut state_line).expect("valid completed state stream");
   }
   assert!(seen[r.0],"every iteration must have a baseline state");
-  sample(p.bin((r.2/HOUR)as usize),&states[r.0]);
+  sample(p.bin((r.2/bin_ms)as usize),&states[r.0]);
   end=end.max(r.4);
-  let b=p.bin((r.3/HOUR) as usize);
+  let b=p.bin((r.3/bin_ms) as usize);
   b.count+=1;b.peak=b.peak.max(bs);b.prefill+=r.6 as u64;b.generated+=r.11 as u64;
   b.max_prefill=b.max_prefill.max(r.6);b.max_kv=b.max_kv.max(r.9);
   b.max_duration=b.max_duration.max(r.4-r.3);b.preemptions+=r.12 as u64;
   let mut start=r.3;
   while start<r.4 {
-   let i=(start/HOUR)as usize;let stop=r.4.min((i+1)as f64*HOUR);let duration=stop-start;
+   let i=(start/bin_ms)as usize;let stop=r.4.min((i+1)as f64*bin_ms);let duration=stop-start;
    let b=p.bin(i);b.busy+=duration;b.bs_time+=duration*bs as f64;b.peak=b.peak.max(bs);
    start=stop;
   }
   let mut start=r.3;
-  while start<r.4{
+  while !overview_only&&start<r.4{
    let i=(start/MINUTE)as usize;let stop=r.4.min((i+1)as f64*MINUTE);
    if p.minute_busy.len()<=i{p.minute_busy.resize(i+1,0.0)}
    p.minute_busy[i]+=stop-start;start=stop;
@@ -128,10 +145,11 @@ fn main()->anyhow::Result<()>{
  })?;
  anyhow::ensure!(upcoming.is_none(),"unmatched state transition");
  scan::<Event>(dir,"scheduling_events",|e|{
-  if e.event=="readmission"{pools[e.stream_id].bin((e.at_ms/HOUR)as usize).readmissions+=1;}
+  if e.event=="readmission"{pools[e.stream_id].bin((e.at_ms/bin_ms)as usize).readmissions+=1;}
  })?;
  // One exact minute per stream: maximal modeled compute time, first tie wins.
  let mut focus=Vec::new();
+ if !overview_only {
  for (sid,p) in pools.iter().enumerate(){
   let mut best=0;let mut busy=0.0;
   for (i,&value) in p.minute_busy.iter().enumerate(){if value>busy+1e-6{best=i;busy=value;}}
@@ -167,9 +185,10 @@ fn main()->anyhow::Result<()>{
    }
   }
  })?;
+ }
  let overview:Vec<Value>=pools.iter().enumerate().map(|(sid,p)|{
   let rows:Vec<Value>=p.bins.iter().enumerate().filter(|(_,b)|b.count>0||b.busy>0.0||b.readmissions>0||b.samples>0).map(|(i,b)|
-   json!([i, b.peak, round(if b.busy>0.0{b.bs_time/b.busy}else{0.0}),round(b.busy/HOUR*100.0),
+   json!([i, b.peak, round(if b.busy>0.0{b.bs_time/b.busy}else{0.0}),round(b.busy/bin_ms*100.0),
      b.prefill,b.generated,b.max_prefill,b.max_kv,round(b.max_duration),
      b.queue[0],b.queue[1],b.queue[2],b.queue[3],b.queue[4],b.queue[5],b.active,b.resident,
      b.preemptions,b.readmissions,b.count,b.samples])).collect();
@@ -177,7 +196,7 @@ fn main()->anyhow::Result<()>{
     "prefill_tokens":p.prefill,"decode_generated_tokens":p.generated,"max_bs":p.max_bs})
  }).collect();
  let output=json!({"schema_version":1,"source_schema":2,"end_s":round(end/1000.0),
-  "overview_bin_seconds":3600,"overview_columns":["hour","max_bs","active_time_weighted_mean_bs","busy_percent",
+  "overview_bin_seconds":bin_ms/1000.0,"overview_columns":["hour","max_bs","active_time_weighted_mean_bs","busy_percent",
    "prefill_tokens","decode_generated_tokens","max_prefill_tokens_per_iteration","max_decode_kv_sum",
    "max_compute_duration_ms","waiting_admission_max","connector_waiting_max","h2d_loading_max",
    "g3_read_jobs_max","g3_write_jobs_max","running_max","hbm_active_max","hbm_resident_max",
@@ -187,7 +206,7 @@ fn main()->anyhow::Result<()>{
   "state_columns":["iteration_id","at_s","waiting_admission","connector_waiting","h2d_loading",
     "g3_reads","g3_writes","running","hbm_active","hbm_resident"],
   "overview":overview,"focus":focus});
- let out=Path::new(&args[2]);let tmp=out.with_extension("tmp");
+ let out=Path::new(&positional[1]);let tmp=out.with_extension("tmp");
  let mut file=File::create(&tmp)?;serde_json::to_writer(&mut file,&output)?;file.flush()?;
  std::fs::rename(tmp,out)?;
  println!("{} streams, {} iterations -> {}",pools.len(),pools.iter().map(|p|p.total).sum::<u64>(),out.display());

@@ -21,7 +21,7 @@ from collections import OrderedDict
 from collections.abc import Mapping
 from contextlib import contextmanager
 from contextvars import ContextVar
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -638,6 +638,60 @@ def _scan_mooncake(events: Any, counters: _TraceCounters, state: dict[str, Any],
             row = True
 
 
+
+# Bound transient decoded objects to one small JSONL row. Larger or non-JSONL
+# documents retain the scalar streaming scanner and its early budget checks.
+_MOONCAKE_JSONL_ROW_BYTES = 4 * MIB
+
+
+def _scan_mooncake_jsonl(
+    stream: Any, counters: _TraceCounters, block_size: int, limit: int | None
+) -> _TraceCounters | None:
+    """Count bounded JSONL rows without Python events for every input token."""
+    result = replace(counters)
+    while raw := stream.readline(_MOONCAKE_JSONL_ROW_BYTES + 1):
+        if len(raw) > _MOONCAKE_JSONL_ROW_BYTES:
+            return None
+        if not raw.strip():
+            continue
+        # json.loads accepts these extensions, whereas the streaming parser
+        # rejects them. Fall back even if a marker occurs only inside a string.
+        if b"NaN" in raw or b"Infinity" in raw:
+            return None
+        try:
+            # Pairs preserve duplicate fields and their original order, matching
+            # the scalar scanner's counting and alias precedence.
+            row = json.loads(raw, object_pairs_hook=list)
+        except (ValueError, UnicodeError, RecursionError):
+            return None
+        if not isinstance(row, list) or any(not isinstance(pair, tuple) for pair in row):
+            return None
+        hashes = authored = 0
+        row_input = None
+        recognized = False
+        for key, value in row:
+            if key == "hash_ids":
+                recognized = True
+                if isinstance(value, list):
+                    hashes += sum(type(item) in (int, float) for item in value)
+            elif key == "output_token_ids":
+                if isinstance(value, list):
+                    authored += sum(type(item) in (int, float) for item in value)
+            elif key in _MOONCAKE_INPUTS:
+                row_input = _token_length(value)
+                recognized = True
+            elif key in _MOONCAKE_OUTPUTS:
+                result.outputs += _token_length(value)
+                recognized = True
+        length = hashes * block_size if row_input is None else row_input
+        result.largest_input = max(result.largest_input, length)
+        result.total_input += length
+        result.hashes += hashes
+        result.authored_outputs += authored
+        result.requests += int(recognized)
+        _check_headroom(result, limit)
+    return result
+
 def _scan_applied_compute(events: Any, counters: _TraceCounters, state: dict[str, Any], limit: int | None) -> None:
     """Count sessions without the synthetic hashes the loader derives from lengths.
 
@@ -810,8 +864,14 @@ def _scan_finite_trace(
     for path in files:
         if format_name == "weka" and "block_size" not in state:
             state["block_size"] = _weka_block_size(path)
-        # Streaming holds individual scalars, never request or token arrays.
-        with gzip.open(path, "rb") if format_name == "dynamo" and path.suffix == ".gz" else path.open("rb") as stream:
+        with gzip.open(path, "rb") if format_name == "dynamo" and path.suffix == ".gz" else path.open("rb", buffering=MIB) as stream:
+            if format_name == "mooncake":
+                counted = _scan_mooncake_jsonl(stream, counters, configured_block_size, limit)
+                if counted is not None:
+                    counters = counted
+                    continue
+                stream.seek(0)
+            # Compatibility path holds individual scalars, never whole arrays.
             scan(ijson.parse(stream, multiple_values=True, buf_size=64 * 1024), counters, state, limit)
     return counters
 

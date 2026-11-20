@@ -22,6 +22,8 @@ COLUMNS = ("状态", "完成请求", "联合 SLA 达标率", "P99 TTFT（秒）"
            "内存峰值（GB）")
 
 
+SHRINK_ANALYSIS = '## 2. 32× 下缩容后扣排队 TTFT 降低的原因\n\n以 SSD 读带宽 1 GB/s／TP 分片为例，32× 高负载下，DRAM 从 128 GB 缩到 64 GB，不仅减少了能保留的前缀缓存，也压缩了 SSD 恢复 KV 的落地缓冲空间。多个请求争用这部分空间时，恢复可能因预留失败而停止，已恢复的块也可能在使用前被挤掉；由于前缀复用要求连续匹配，部分块缺失就会缩短最终可复用的前缀。恢复和执行时序的变化还会影响请求准入时的 HBM 命中情况，因此本次总复用率从 84.428% 降到 74.186%，更多输入需要重新计算，增加 P 侧处理压力并加重排队。与此同时，每条请求实际用上的 SSD 恢复 KV 减少，计入的平均 KV 恢复等待从 6.87 秒降到 3.49 秒，使“扣排队后平均 TTFT”从 11.80 秒降到 8.51 秒；但被扣除的调度等待大幅增加，原始平均 TTFT 反而从约 2.7 万秒升到 19.9 万秒。现有代码和统计支持这条解释，各环节的具体贡献仍需进一步量化。\n'
+
 def finished_cells(run):
     path = next(run.glob("*/run.json"))
     info = json.loads(path.read_text(encoding="utf-8"))
@@ -101,7 +103,9 @@ GLM-5.2-FP8，H200 SXM，1P1D。P/D 分别为 Attention TP8／DP1、MoE TP1／EP
 
 ## 1. DRAM × SSD 读带宽扫描
 
-{body}{diagnostics}
+{body}
+
+{SHRINK_ANALYSIS}{diagnostics}
 """
 
 

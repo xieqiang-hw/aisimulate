@@ -1,0 +1,22 @@
+{
+  "real_requests": 4,
+  "speedups": [
+    1,
+    2
+  ],
+  "smoke_memory_limit_gb": 4,
+  "formal_config_count": 12,
+  "formal_default_memory_limit_gb": 20,
+  "p_computed_tokens": 2357,
+  "d_generated_tokens": 438,
+  "checks": [
+    "config_schema",
+    "two_serial_runs",
+    "arrival_scaling",
+    "prefill_token_conservation",
+    "P_and_D_timestamps",
+    "resume_skips_completed",
+    "continue_after_failure"
+  ],
+  "smoke_plan": "/home/xieqiang/project/tmp/throughput-capacity-validation/smoke/20261119T075245.739703Z/sweep.json"
+}

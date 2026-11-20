@@ -27,8 +27,8 @@ def main():
     parser.add_argument("--bundle", type=Path, default=PARENT.with_name(
         f"{PARENT.name}-overlay-16x"), help="Verified SWE-chat overlay bundle")
     parser.add_argument("--output-root", type=Path, default=OUTPUT)
-    parser.add_argument("--p-dram-gb", nargs="+", type=int, choices=EXTENSION_DRAM_GB)
-    parser.add_argument("--read-bandwidths", nargs="+", type=int, choices=(1, *READ_GBPS))
+    parser.add_argument("--p-dram-gb", nargs="+", type=int, choices=(*EXTENSION_DRAM_GB, 1000))
+    parser.add_argument("--read-bandwidths", nargs="+", type=int, choices=(1, *READ_GBPS, 16))
     parser.add_argument("--memory-limit-gb", type=float, default=None,
                         help="Process-tree memory budget in decimal GB; default is automatic")
     parser.add_argument("--reserve-memory-gb", type=float, default=None,
@@ -36,6 +36,8 @@ def main():
     parser.add_argument("--max-requests", type=int, default=0, help="0 replays the full trace")
     parser.add_argument("--extension", action="store_true",
                         help="Scan both 16x and 32x at five DRAM capacities")
+    parser.add_argument("--supplement-8x", action="store_true",
+                        help="Add read16 at existing capacities and 1000 GB at read1/2/4/8/16")
     parser.add_argument("--skip-completed-from", action="append", type=Path, default=[],
                         help="Skip completed cases listed in a previous sweep.json")
     parser.add_argument("--plan", action="store_true", help="Print configurations without replay")
@@ -69,6 +71,12 @@ def main():
     bandwidths = args.read_bandwidths or ((1, *READ_GBPS) if args.extension else READ_GBPS)
     combinations = ((factor, gb, read) for factor, capacities in matrix.items()
                     for gb, read in product(capacities, dict.fromkeys(bandwidths)))
+    if args.supplement_8x:
+        if args.extension or args.p_dram_gb or args.read_bandwidths or int(overlay[2]) != 8:
+            parser.error("--supplement-8x requires an 8x bundle and no other matrix selectors")
+        combinations = [(8, gb, 16) for gb in EXTENSION_DRAM_GB] + [
+            (8, 1000, read) for read in (1, 2, 4, 8, 16)
+        ]
     for factor, gb, read in combinations:
         trace = parent.with_name(f"{parent.name}-overlay-{factor}x")
         name = f"swe_h200_ep8_p{gb}gb_read{read}_overlay_{factor}x"

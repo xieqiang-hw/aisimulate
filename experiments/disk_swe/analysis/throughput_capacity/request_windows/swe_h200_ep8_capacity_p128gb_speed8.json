@@ -1,0 +1,16 @@
+{
+  "identity": [
+    "/home/xieqiang/project/results/swe-chat-glm52-throughput-capacity/20261119T075854.538229Z/cases/swe_h200_ep8_capacity_p128gb_speed8/runs/20261119T105558.688746Z/prediction/requests.jsonl",
+    1525733635,
+    1795086601718145297
+  ],
+  "name": "swe_h200_ep8_capacity_p128gb_speed8",
+  "dram_gb": 128,
+  "speedup": 8,
+  "main_arrived": 603973,
+  "main_completed": 603143,
+  "main_completion_rps": 1.9274922065606688,
+  "main_end_backlog": 830,
+  "peak_unfinished": 3845,
+  "main_days": 3.6217120543981483
+}

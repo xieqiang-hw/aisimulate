@@ -142,6 +142,7 @@ def extract_calls(path, session_id, counts):
                     interrupt("paused_at_conflicting_request_id", discard_current=True)
                     continue
                 current["response_events"].append({"line": number, "content": content})
+                current["last_response_event_at"] = event.get("timestamp")
                 if isinstance(content, list):
                     for block in content:
                         if block.get("type") == "tool_use" and block.get("id"):
