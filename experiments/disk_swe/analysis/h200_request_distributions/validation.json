@@ -1,0 +1,28 @@
+{
+  "report_rows": 100,
+  "available": 98,
+  "unavailable": 2,
+  "checks": [
+    "source summary matches exact report row",
+    "completed request counts match report",
+    "TTFT and TPOT means reconcile",
+    "adjusted TTFT identity checked per request",
+    "full histograms conserve all valid samples",
+    "trimmed histograms report excluded tail counts"
+  ],
+  "browser_validation": {
+    "status": "passed",
+    "configuration_switches": 100,
+    "completed": 98,
+    "failed_empty_states": 2,
+    "histogram_regroupings": 7056,
+    "metrics": 8,
+    "range_modes": 3,
+    "bin_options": [
+      20,
+      40,
+      80
+    ],
+    "mobile_layout": "passed"
+  }
+}

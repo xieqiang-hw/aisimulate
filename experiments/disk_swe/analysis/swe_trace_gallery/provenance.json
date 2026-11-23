@@ -1,0 +1,17 @@
+{
+  "dataset": "SALT-NLP/SWE-chat",
+  "dataset_url": "https://huggingface.co/datasets/SALT-NLP/SWE-chat",
+  "revision": "202b071f18e03c79df5a7287565ce2ebc5ee7756",
+  "license": "ODC-By (upstream metadata: odc-by)",
+  "authors": "SWE-chat authors: Joachim Baumann, Vishakh Padmakumar, Xiang Li, John Yang, Diyi Yang, Sanmi Koyejo (2026)",
+  "transcript_revisions": {
+    "transcripts1/a8ad002c-d946-4d99-8c40-4411d161eaee.jsonl": "202b071f18e03c79df5a7287565ce2ebc5ee7756",
+    "transcripts/a75c15d8-5897-4011-94ab-aa07f3c3d2da.jsonl": "202b071f18e03c79df5a7287565ce2ebc5ee7756",
+    "transcripts/c551cf96-b121-495b-b191-6ca6784fe2e1.jsonl": "202b071f18e03c79df5a7287565ce2ebc5ee7756"
+  },
+  "bundle": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k",
+  "manifest_sha256": "b9353e748091b573e83680920a1281230f5b72a3e6cf9777ee025c55fefdc976",
+  "request_sha256": "a6e3d89e6e681ad392ab8db5b5f059de9c81a038f3c7fa2cbdc2edaa15ff3716",
+  "source_sha256": "a6b98f7a74b1e30c646209d81570c478d1de71d2a9977ce131baca30e8a9b21a",
+  "modifications": "GLM-5.2 tokenization and 128K filtering, block-prefix comparisons and time aggregates; short transcript excerpts truncated for display; neither original model timing nor a real cache-hit measurement."
+}

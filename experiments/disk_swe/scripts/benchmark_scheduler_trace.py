@@ -6,7 +6,6 @@ import subprocess
 import sys
 
 BASE = Path(__file__).resolve().parents[1]
-DEFAULT_BUNDLE = Path.home() / "project/data/swe_chat/derived/mooncake-v1/claude-code-main-glm52-128k-overlay-2x"
 
 
 def main():
@@ -14,11 +13,13 @@ def main():
     parser.add_argument("--output-root", type=Path, default=Path("/tmp/aisim-observation-benchmark"))
     parser.add_argument("--repeats", type=int, default=2)
     parser.add_argument("--max-requests", type=int, default=3000)
+    parser.add_argument("--config", type=Path, required=True, help="YAML configuration to benchmark")
+    parser.add_argument("--bundle", type=Path, required=True, help="Mooncake bundle to benchmark")
     args = parser.parse_args()
     runner = BASE.parent / "disk/scripts/run_experiment.py"
     common = [sys.executable, "-u", str(runner), "--config",
-              str(BASE / "configs/swe_p_local_8ssd_p128gb_1x_hbm2048.yaml"),
-              "--bundle", str(DEFAULT_BUNDLE), "--max-requests", str(args.max_requests)]
+              str(args.config.expanduser().resolve()),
+              "--bundle", str(args.bundle.expanduser().resolve()), "--max-requests", str(args.max_requests)]
     for mode, options in [
         ("v2-gzip", ["--capture-scheduler-trace", "--scheduler-trace-compression", "gzip"]),
         ("v2-none", ["--capture-scheduler-trace", "--scheduler-trace-compression", "none"]),

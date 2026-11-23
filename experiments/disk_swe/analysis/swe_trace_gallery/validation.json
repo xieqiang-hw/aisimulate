@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "requests": 607190,
+  "sessions": 10962,
+  "selected_rows": 44,
+  "checks": [
+    "request/source rows aligned",
+    "manifest request and input-token totals agree",
+    "overlap histogram counts conserved",
+    "daily counts conserved",
+    "selected response IDs recovered from original logs",
+    "matrices use chain-aware prefix matches, not bag-of-block overlap"
+  ],
+  "browser_validation": {
+    "status": "passed",
+    "examples": 3,
+    "calls_per_example": 12,
+    "prefix_matrix_modes": 2,
+    "peak_windows": [
+      {
+        "requests": 55,
+        "active_sessions": 16
+      },
+      {
+        "requests": 206,
+        "active_sessions": 9
+      }
+    ],
+    "mobile_layout": "passed"
+  }
+}

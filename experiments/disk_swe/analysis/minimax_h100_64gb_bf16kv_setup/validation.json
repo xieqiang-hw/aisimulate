@@ -1,0 +1,13 @@
+{
+  "smoke_plan": "/mnt/d/aisim-results/swe-chat-minimax-h100-64gb-8x-bf16kv-smoke/20261120T063156.852119Z/sweep.json",
+  "smoke_run": "/mnt/d/aisim-results/swe-chat-minimax-h100-64gb-8x-bf16kv-smoke/20261120T063156.852119Z/bandwidth/swe_minimax_h100_64gb_ep8_p64gb_read1_overlay_8x/20261120T063156.936810Z/run.json",
+  "completed_requests": 20,
+  "hbm_blocks_per_gpu": 11193,
+  "roles": [
+    "prefill",
+    "decode"
+  ],
+  "scheduler_trace_compression": "gzip",
+  "report_refresh_verified": true,
+  "old_fp8_results_rejected": true
+}

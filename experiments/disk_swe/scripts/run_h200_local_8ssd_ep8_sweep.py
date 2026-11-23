@@ -8,7 +8,7 @@ from pathlib import Path
 
 import yaml
 
-from run_experiment_suite import BASE, run_cases, validate_bundle
+from sweep_common import BASE, run_cases, validate_bundle
 
 PARENT = Path.home() / (
     "project/data/swe_chat/derived/verified_interleave_mooncake_v1/"

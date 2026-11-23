@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "checks": [
+    "failed row excluded",
+    "null TPOT not zero-filled",
+    "inclusive threshold count",
+    "P99/P95 excluded tails",
+    "full and truncated counts conserve samples",
+    "known arithmetic mean and quantile"
+  ]
+}

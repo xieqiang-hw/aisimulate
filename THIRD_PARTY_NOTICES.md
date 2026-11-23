@@ -1784,3 +1784,21 @@ Repository-root `experiments/disk/configs/p_g3_local_validation.yaml` and
 Source: https://github.com/HWACSLab/aisimulate/tree/4f1b31c941c4a434f66b9f23359e9259b963ec21 .
 Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES (repository notice) and
 HWACSLab contributors, Apache-2.0 (see LICENSE). Modified for synthetic 1P1D G3 validation and full FreeInference replay.
+
+## SWE-chat trace gallery derivatives
+
+`experiments/disk_swe/swe_trace_examples.html` and generated JSON under
+`experiments/disk_swe/analysis/swe_trace_gallery/` contain statistical derivatives
+and truncated conversation excerpts from SALT-NLP/SWE-chat.
+Source: https://huggingface.co/datasets/SALT-NLP/SWE-chat/tree/202b071f18e03c79df5a7287565ce2ebc5ee7756 .
+Original paths: `README.md` and the selected `transcripts/*.jsonl` files listed
+with their immutable revisions in `analysis/swe_trace_gallery/provenance.json`.
+Dataset attribution: Joachim Baumann, Vishakh Padmakumar, Xiang Li, John Yang,
+Diyi Yang, Sanmi Koyejo, and the respective SWE-chat contributors (2026).
+Upstream metadata declares the Open Data Commons Attribution License, `odc-by`
+(https://opendatacommons.org/licenses/by/1-0/).
+Modified: logged histories were reconstructed and tokenized with GLM-5.2,
+filtered to 128K, aggregated, and compared by chained prefix hashes; displayed
+excerpts are truncated. These are analysis derivatives, not original serving
+measurements. Upstream data attribution does not license any separately owned
+software repository content beyond its own applicable terms.

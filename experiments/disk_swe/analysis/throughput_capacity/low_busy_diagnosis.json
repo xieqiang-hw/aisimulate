@@ -1,0 +1,913 @@
+{
+  "scope": "Same 8x overlay bundle; time-compression factors 1 and 8; SSD read 2 GB/s/TP; compare DRAM 256 and 64 GB",
+  "method": "Compute intervals are clipped to each 300-second window. Scheduler state is carried forward from after-schedule snapshots. Idle/state coincidence is observational and does not assign exclusive causal duration.",
+  "baseline": [
+    {
+      "dram_gb": 256,
+      "speedup": 1,
+      "bin": 2276,
+      "start_day": 7.902777777777778,
+      "source": "/home/xieqiang/project/results/swe-chat-glm52-throughput-capacity/20261119T075854.538229Z/cases/swe_h200_ep8_capacity_p256gb_speed1/runs/20261119T075907.105935Z/prediction",
+      "snapshot_near_window_start": {
+        "0": {
+          "running_requests": 1,
+          "waiting_admission_requests": 0,
+          "connector_waiting_requests": 0,
+          "h2d_loading_requests": 0,
+          "g3_staging_requests": 0,
+          "g3_pending_read_jobs": 0,
+          "g3_pending_write_jobs": 0,
+          "pending_destination_requests": 0,
+          "reserved_destination_requests": 0,
+          "source_held_requests": 0,
+          "hbm_active_blocks": 549,
+          "hbm_inactive_blocks": 5554,
+          "preemptions_total": 0,
+          "running_not_scheduled_after": 0
+        },
+        "1": {
+          "running_requests": 4,
+          "waiting_admission_requests": 0,
+          "connector_waiting_requests": 0,
+          "h2d_loading_requests": 0,
+          "g3_staging_requests": 0,
+          "g3_pending_read_jobs": 0,
+          "g3_pending_write_jobs": 0,
+          "pending_destination_requests": 0,
+          "reserved_destination_requests": 0,
+          "source_held_requests": 0,
+          "hbm_active_blocks": 1628,
+          "hbm_inactive_blocks": 4475,
+          "preemptions_total": 1,
+          "running_not_scheduled_after": 0
+        }
+      },
+      "prefill": {
+        "busy_s": 49.37037819814682,
+        "time_weighted_waiting_admission_requests": 0.21990263631304105,
+        "time_weighted_connector_waiting_requests": 0.12396259032130238,
+        "time_weighted_h2d_loading_requests": 0.015511049837668734,
+        "time_weighted_g3_pending_read_jobs": 0.11085145906249681,
+        "time_weighted_running_requests": 0.9058269052465759,
+        "time_weighted_source_held_requests": 0.18157910018046697,
+        "time_weighted_hbm_active_blocks": 987.6700785704098,
+        "time_weighted_hbm_inactive_blocks": 5115.265187234436,
+        "time_weighted_running_not_scheduled_after": 0.0,
+        "waiting_any_s": 12.36200955080986,
+        "idle_with_waiting_s": 0.0,
+        "idle_state_combinations": [
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": false,
+              "restore_pending": false,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": false
+            },
+            "seconds": 0.0
+          }
+        ],
+        "idle_examples": [],
+        "compute_passes": 144
+      },
+      "decode": {
+        "busy_s": 262.6363408950567,
+        "time_weighted_waiting_admission_requests": 0.0,
+        "time_weighted_connector_waiting_requests": 0.0,
+        "time_weighted_h2d_loading_requests": 0.0,
+        "time_weighted_g3_pending_read_jobs": 0.0,
+        "time_weighted_running_requests": 2.4174823124674942,
+        "time_weighted_source_held_requests": 0.0,
+        "time_weighted_hbm_active_blocks": 2037.8844973373937,
+        "time_weighted_hbm_inactive_blocks": 4064.9783102999413,
+        "time_weighted_running_not_scheduled_after": 0.0,
+        "idle_state_combinations": [],
+        "idle_examples": [],
+        "compute_passes": 20208
+      }
+    },
+    {
+      "dram_gb": 64,
+      "speedup": 1,
+      "bin": 2276,
+      "start_day": 7.902777777777778,
+      "source": "/home/xieqiang/project/results/swe-chat-glm52-throughput-capacity/20261119T075854.538229Z/cases/swe_h200_ep8_capacity_p64gb_speed1/runs/20261119T083939.397474Z/prediction",
+      "snapshot_near_window_start": {
+        "0": {
+          "running_requests": 1,
+          "waiting_admission_requests": 0,
+          "connector_waiting_requests": 0,
+          "h2d_loading_requests": 0,
+          "g3_staging_requests": 0,
+          "g3_pending_read_jobs": 0,
+          "g3_pending_write_jobs": 0,
+          "pending_destination_requests": 0,
+          "reserved_destination_requests": 0,
+          "source_held_requests": 0,
+          "hbm_active_blocks": 549,
+          "hbm_inactive_blocks": 5554,
+          "preemptions_total": 0,
+          "running_not_scheduled_after": 0
+        },
+        "1": {
+          "running_requests": 4,
+          "waiting_admission_requests": 0,
+          "connector_waiting_requests": 0,
+          "h2d_loading_requests": 0,
+          "g3_staging_requests": 0,
+          "g3_pending_read_jobs": 0,
+          "g3_pending_write_jobs": 0,
+          "pending_destination_requests": 0,
+          "reserved_destination_requests": 0,
+          "source_held_requests": 0,
+          "hbm_active_blocks": 1628,
+          "hbm_inactive_blocks": 4475,
+          "preemptions_total": 5,
+          "running_not_scheduled_after": 0
+        }
+      },
+      "prefill": {
+        "busy_s": 50.292820061802864,
+        "time_weighted_waiting_admission_requests": 0.20622050680597623,
+        "time_weighted_connector_waiting_requests": 0.2711008967169127,
+        "time_weighted_h2d_loading_requests": 0.01343774742046992,
+        "time_weighted_g3_pending_read_jobs": 0.2216709871041775,
+        "time_weighted_running_requests": 0.8633650476360322,
+        "time_weighted_source_held_requests": 0.25156460884730014,
+        "time_weighted_hbm_active_blocks": 974.349510225015,
+        "time_weighted_hbm_inactive_blocks": 5128.542966535897,
+        "time_weighted_running_not_scheduled_after": 0.0,
+        "waiting_any_s": 12.66744026529789,
+        "idle_with_waiting_s": 0.0,
+        "idle_waiting_and_restore_pending_s": 0.0,
+        "idle_waiting_and_io_jobs_pending_s": 0.0,
+        "idle_state_combinations": [
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": true,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": false
+            },
+            "seconds": 0.0
+          },
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": false,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": false
+            },
+            "seconds": 0.0
+          }
+        ],
+        "idle_examples": [],
+        "compute_passes": 142
+      },
+      "decode": {
+        "busy_s": 257.0629830086231,
+        "time_weighted_waiting_admission_requests": 0.03277607223431269,
+        "time_weighted_connector_waiting_requests": 0.0,
+        "time_weighted_h2d_loading_requests": 0.0,
+        "time_weighted_g3_pending_read_jobs": 0.0,
+        "time_weighted_running_requests": 2.468332885571722,
+        "time_weighted_source_held_requests": 0.0,
+        "time_weighted_hbm_active_blocks": 2069.593403916803,
+        "time_weighted_hbm_inactive_blocks": 4033.285171921891,
+        "time_weighted_running_not_scheduled_after": 0.0,
+        "waiting_any_s": 5.390323346734049,
+        "idle_with_waiting_s": 0.0,
+        "idle_state_combinations": [
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": false,
+              "restore_pending": false,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": false
+            },
+            "seconds": 0.0
+          }
+        ],
+        "idle_examples": [],
+        "compute_passes": 19658
+      }
+    }
+  ],
+  "compressed": [
+    {
+      "dram_gb": 256,
+      "speedup": 8,
+      "bin": 37,
+      "start_day": 0.1284722222222222,
+      "source": "/home/xieqiang/project/results/swe-chat-glm52-throughput-capacity/20261119T075854.538229Z/cases/swe_h200_ep8_capacity_p256gb_speed8/runs/20261119T104159.799866Z/prediction",
+      "snapshot_at_11137s": {
+        "0": {
+          "running_requests": 0,
+          "waiting_admission_requests": 332,
+          "connector_waiting_requests": 3,
+          "h2d_loading_requests": 0,
+          "g3_staging_requests": 0,
+          "g3_pending_read_jobs": 0,
+          "g3_pending_write_jobs": 0,
+          "pending_destination_requests": 0,
+          "reserved_destination_requests": 0,
+          "source_held_requests": 48,
+          "hbm_active_blocks": 6094,
+          "hbm_inactive_blocks": 4,
+          "preemptions_total": 0,
+          "running_not_scheduled_after": 0
+        },
+        "1": {
+          "running_requests": 15,
+          "waiting_admission_requests": 21,
+          "connector_waiting_requests": 0,
+          "h2d_loading_requests": 0,
+          "g3_staging_requests": 0,
+          "g3_pending_read_jobs": 0,
+          "g3_pending_write_jobs": 0,
+          "pending_destination_requests": 48,
+          "reserved_destination_requests": 0,
+          "source_held_requests": 0,
+          "hbm_active_blocks": 6089,
+          "hbm_inactive_blocks": 14,
+          "preemptions_total": 342,
+          "running_not_scheduled_after": 0
+        }
+      },
+      "prefill": {
+        "busy_s": 75.27440402100422,
+        "time_weighted_waiting_admission_requests": 557.5737949624488,
+        "time_weighted_connector_waiting_requests": 6.016905197233677,
+        "time_weighted_h2d_loading_requests": 0.17661079549588268,
+        "time_weighted_g3_pending_read_jobs": 0.6088565030656753,
+        "time_weighted_running_requests": 2.4850525631966436,
+        "time_weighted_source_held_requests": 22.97028500169091,
+        "time_weighted_hbm_active_blocks": 5571.959682596752,
+        "time_weighted_hbm_inactive_blocks": 526.8334264187832,
+        "time_weighted_running_not_scheduled_after": 0.0,
+        "waiting_any_s": 300.0000000000002,
+        "idle_with_waiting_s": 224.7255959789961,
+        "idle_waiting_and_source_held_s": 224.7255959789961,
+        "idle_waiting_and_restore_pending_s": 205.30307792804598,
+        "idle_waiting_and_running_at_limit_s": 0.0,
+        "idle_waiting_and_io_jobs_pending_s": 4.958632033560425,
+        "idle_waiting_and_active_near_full_s": 37.31330873380044,
+        "idle_state_combinations": [
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": false,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": true
+            },
+            "seconds": 164.4598497844843
+          },
+          {
+            "flags": {
+              "active_near_full": true,
+              "io_jobs_pending": false,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": true
+            },
+            "seconds": 35.88459611000122
+          },
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": false,
+              "restore_pending": false,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": true
+            },
+            "seconds": 19.314027345949786
+          },
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": true,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": true
+            },
+            "seconds": 3.6384101147614425
+          },
+          {
+            "flags": {
+              "active_near_full": true,
+              "io_jobs_pending": true,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": true
+            },
+            "seconds": 1.320221918798983
+          },
+          {
+            "flags": {
+              "active_near_full": true,
+              "io_jobs_pending": false,
+              "restore_pending": false,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": true
+            },
+            "seconds": 0.10849070500023664
+          }
+        ],
+        "idle_examples": [
+          {
+            "start_s": 11147.233125,
+            "duration_s": 2.59625,
+            "state": {
+              "running_requests": 0,
+              "waiting_admission_requests": 342,
+              "connector_waiting_requests": 3,
+              "h2d_loading_requests": 0,
+              "g3_staging_requests": 0,
+              "g3_pending_read_jobs": 0,
+              "g3_pending_write_jobs": 0,
+              "pending_destination_requests": 0,
+              "reserved_destination_requests": 0,
+              "source_held_requests": 43,
+              "hbm_active_blocks": 5390,
+              "hbm_inactive_blocks": 703,
+              "preemptions_total": 0,
+              "running_not_scheduled_after": 0
+            }
+          },
+          {
+            "start_s": 11137.15475,
+            "duration_s": 2.440967709951103,
+            "state": {
+              "running_requests": 0,
+              "waiting_admission_requests": 332,
+              "connector_waiting_requests": 3,
+              "h2d_loading_requests": 0,
+              "g3_staging_requests": 0,
+              "g3_pending_read_jobs": 0,
+              "g3_pending_write_jobs": 0,
+              "pending_destination_requests": 0,
+              "reserved_destination_requests": 0,
+              "source_held_requests": 48,
+              "hbm_active_blocks": 6094,
+              "hbm_inactive_blocks": 4,
+              "preemptions_total": 0,
+              "running_not_scheduled_after": 0
+            }
+          },
+          {
+            "start_s": 11237.668246294003,
+            "duration_s": 2.36950370599702,
+            "state": {
+              "running_requests": 0,
+              "waiting_admission_requests": 526,
+              "connector_waiting_requests": 2,
+              "h2d_loading_requests": 0,
+              "g3_staging_requests": 0,
+              "g3_pending_read_jobs": 0,
+              "g3_pending_write_jobs": 0,
+              "pending_destination_requests": 0,
+              "reserved_destination_requests": 0,
+              "source_held_requests": 13,
+              "hbm_active_blocks": 6025,
+              "hbm_inactive_blocks": 78,
+              "preemptions_total": 0,
+              "running_not_scheduled_after": 0
+            }
+          },
+          {
+            "start_s": 11119.5925,
+            "duration_s": 2.0155377409439534,
+            "state": {
+              "running_requests": 0,
+              "waiting_admission_requests": 334,
+              "connector_waiting_requests": 13,
+              "h2d_loading_requests": 0,
+              "g3_staging_requests": 0,
+              "g3_pending_read_jobs": 0,
+              "g3_pending_write_jobs": 0,
+              "pending_destination_requests": 0,
+              "reserved_destination_requests": 0,
+              "source_held_requests": 79,
+              "hbm_active_blocks": 5676,
+              "hbm_inactive_blocks": 426,
+              "preemptions_total": 0,
+              "running_not_scheduled_after": 0
+            }
+          }
+        ],
+        "compute_passes": 65
+      },
+      "decode": {
+        "busy_s": 300.0,
+        "time_weighted_waiting_admission_requests": 20.438495067037685,
+        "time_weighted_connector_waiting_requests": 0.0,
+        "time_weighted_h2d_loading_requests": 0.0,
+        "time_weighted_g3_pending_read_jobs": 0.0,
+        "time_weighted_running_requests": 8.925969027190419,
+        "time_weighted_source_held_requests": 0.0,
+        "time_weighted_hbm_active_blocks": 5550.372050066063,
+        "time_weighted_hbm_inactive_blocks": 552.5565781602476,
+        "time_weighted_running_not_scheduled_after": 0.0,
+        "waiting_any_s": 300.0000000000004,
+        "idle_with_waiting_s": 0.0,
+        "idle_waiting_and_active_near_full_s": 0.0,
+        "idle_state_combinations": [
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": false,
+              "restore_pending": false,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": false
+            },
+            "seconds": 0.0
+          },
+          {
+            "flags": {
+              "active_near_full": true,
+              "io_jobs_pending": false,
+              "restore_pending": false,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": false
+            },
+            "seconds": 0.0
+          }
+        ],
+        "idle_examples": [],
+        "compute_passes": 15524
+      }
+    },
+    {
+      "dram_gb": 64,
+      "speedup": 8,
+      "bin": 37,
+      "start_day": 0.1284722222222222,
+      "source": "/home/xieqiang/project/results/swe-chat-glm52-throughput-capacity/20261119T075854.538229Z/cases/swe_h200_ep8_capacity_p64gb_speed8/runs/20261119T111026.260797Z/prediction",
+      "snapshot_at_11137s": {
+        "0": {
+          "running_requests": 16,
+          "waiting_admission_requests": 585,
+          "connector_waiting_requests": 14,
+          "h2d_loading_requests": 0,
+          "g3_staging_requests": 6,
+          "g3_pending_read_jobs": 6,
+          "g3_pending_write_jobs": 1,
+          "pending_destination_requests": 0,
+          "reserved_destination_requests": 0,
+          "source_held_requests": 68,
+          "hbm_active_blocks": 6009,
+          "hbm_inactive_blocks": 94,
+          "preemptions_total": 0,
+          "running_not_scheduled_after": 0
+        },
+        "1": {
+          "running_requests": 10,
+          "waiting_admission_requests": 17,
+          "connector_waiting_requests": 0,
+          "h2d_loading_requests": 0,
+          "g3_staging_requests": 0,
+          "g3_pending_read_jobs": 0,
+          "g3_pending_write_jobs": 0,
+          "pending_destination_requests": 67,
+          "reserved_destination_requests": 0,
+          "source_held_requests": 0,
+          "hbm_active_blocks": 6098,
+          "hbm_inactive_blocks": 5,
+          "preemptions_total": 329,
+          "running_not_scheduled_after": 0
+        }
+      },
+      "prefill": {
+        "busy_s": 252.71143213064224,
+        "time_weighted_waiting_admission_requests": 767.423044990089,
+        "time_weighted_connector_waiting_requests": 10.201492222423015,
+        "time_weighted_h2d_loading_requests": 0.11153278034198406,
+        "time_weighted_g3_pending_read_jobs": 2.1931125639605025,
+        "time_weighted_running_requests": 5.136562375856868,
+        "time_weighted_source_held_requests": 20.35600013802476,
+        "time_weighted_hbm_active_blocks": 4435.950344124113,
+        "time_weighted_hbm_inactive_blocks": 1666.3853578098328,
+        "time_weighted_running_not_scheduled_after": 0.0,
+        "waiting_any_s": 300.0,
+        "idle_with_waiting_s": 47.288567869357756,
+        "idle_waiting_and_source_held_s": 47.288567869357756,
+        "idle_waiting_and_restore_pending_s": 47.288567869357756,
+        "idle_waiting_and_io_jobs_pending_s": 33.67952459560708,
+        "idle_waiting_and_active_near_full_s": 5.504299249647184,
+        "idle_state_combinations": [
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": true,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": true
+            },
+            "seconds": 28.175225345959902
+          },
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": false,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": true
+            },
+            "seconds": 13.609043273750695
+          },
+          {
+            "flags": {
+              "active_near_full": true,
+              "io_jobs_pending": true,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": true
+            },
+            "seconds": 5.504299249647184
+          },
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": false,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": false
+            },
+            "seconds": 0.0
+          },
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": true,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": false
+            },
+            "seconds": 0.0
+          },
+          {
+            "flags": {
+              "active_near_full": true,
+              "io_jobs_pending": false,
+              "restore_pending": true,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": true
+            },
+            "seconds": 0.0
+          }
+        ],
+        "idle_examples": [
+          {
+            "start_s": 11399.02725,
+            "duration_s": 0.97275,
+            "state": {
+              "running_requests": 0,
+              "waiting_admission_requests": 1040,
+              "connector_waiting_requests": 6,
+              "h2d_loading_requests": 0,
+              "g3_staging_requests": 3,
+              "g3_pending_read_jobs": 6,
+              "g3_pending_write_jobs": 0,
+              "pending_destination_requests": 0,
+              "reserved_destination_requests": 0,
+              "source_held_requests": 22,
+              "hbm_active_blocks": 5909,
+              "hbm_inactive_blocks": 194,
+              "preemptions_total": 0,
+              "running_not_scheduled_after": 0
+            }
+          },
+          {
+            "start_s": 11145.518111489368,
+            "duration_s": 0.9535135106332601,
+            "state": {
+              "running_requests": 0,
+              "waiting_admission_requests": 595,
+              "connector_waiting_requests": 11,
+              "h2d_loading_requests": 0,
+              "g3_staging_requests": 3,
+              "g3_pending_read_jobs": 5,
+              "g3_pending_write_jobs": 0,
+              "pending_destination_requests": 0,
+              "reserved_destination_requests": 0,
+              "source_held_requests": 39,
+              "hbm_active_blocks": 5649,
+              "hbm_inactive_blocks": 454,
+              "preemptions_total": 0,
+              "running_not_scheduled_after": 0
+            }
+          },
+          {
+            "start_s": 11283.616875,
+            "duration_s": 0.90775,
+            "state": {
+              "running_requests": 0,
+              "waiting_admission_requests": 793,
+              "connector_waiting_requests": 11,
+              "h2d_loading_requests": 0,
+              "g3_staging_requests": 2,
+              "g3_pending_read_jobs": 4,
+              "g3_pending_write_jobs": 0,
+              "pending_destination_requests": 0,
+              "reserved_destination_requests": 0,
+              "source_held_requests": 29,
+              "hbm_active_blocks": 5948,
+              "hbm_inactive_blocks": 155,
+              "preemptions_total": 0,
+              "running_not_scheduled_after": 0
+            }
+          },
+          {
+            "start_s": 11147.514480305212,
+            "duration_s": 0.8616279953215271,
+            "state": {
+              "running_requests": 0,
+              "waiting_admission_requests": 598,
+              "connector_waiting_requests": 11,
+              "h2d_loading_requests": 0,
+              "g3_staging_requests": 3,
+              "g3_pending_read_jobs": 6,
+              "g3_pending_write_jobs": 0,
+              "pending_destination_requests": 0,
+              "reserved_destination_requests": 0,
+              "source_held_requests": 29,
+              "hbm_active_blocks": 5639,
+              "hbm_inactive_blocks": 454,
+              "preemptions_total": 0,
+              "running_not_scheduled_after": 0
+            }
+          }
+        ],
+        "compute_passes": 111
+      },
+      "decode": {
+        "busy_s": 300.0,
+        "time_weighted_waiting_admission_requests": 13.194917059877463,
+        "time_weighted_connector_waiting_requests": 0.0,
+        "time_weighted_h2d_loading_requests": 0.0,
+        "time_weighted_g3_pending_read_jobs": 0.0,
+        "time_weighted_running_requests": 11.46566252853194,
+        "time_weighted_source_held_requests": 0.0,
+        "time_weighted_hbm_active_blocks": 5686.172700080675,
+        "time_weighted_hbm_inactive_blocks": 416.69935359864206,
+        "time_weighted_running_not_scheduled_after": 0.0,
+        "waiting_any_s": 300.00000000000006,
+        "idle_with_waiting_s": 0.0,
+        "idle_waiting_and_active_near_full_s": 0.0,
+        "idle_state_combinations": [
+          {
+            "flags": {
+              "active_near_full": true,
+              "io_jobs_pending": false,
+              "restore_pending": false,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": false
+            },
+            "seconds": 0.0
+          },
+          {
+            "flags": {
+              "active_near_full": false,
+              "io_jobs_pending": false,
+              "restore_pending": false,
+              "running_at_limit": false,
+              "running_unscheduled": false,
+              "source_held": false
+            },
+            "seconds": 0.0
+          }
+        ],
+        "idle_examples": [],
+        "compute_passes": 14371
+      }
+    }
+  ],
+  "request_evidence": [
+    {
+      "dram_gb": 256,
+      "at_s": 11137.15475,
+      "held_count": 48,
+      "waiting_count": 335,
+      "held_top": [
+        {
+          "arrival_time_ms": 11031354.75,
+          "destination_activated_ms": 11186857.067656932,
+          "destination_reserved_ms": 11186837.473814933,
+          "first_token_ms": 11186877.156817932,
+          "input_length": 26804.0,
+          "prefill_admit_ms": 11131428.892522948,
+          "dram_to_hbm_wait_ms": 140.433347,
+          "kv_wait_ms": 2441.266275,
+          "scheduling_wait_ms": 97632.87624794786,
+          "ssd_to_dram_wait_ms": 2300.832928,
+          "source_held_ms": 11132030.772106947,
+          "source_released_ms": 11187412.357077945,
+          "terminal_time_ms": 11187877.721468937,
+          "ttft_ms": 155522.40681793168,
+          "held_to_reserved_s": 54.806701707985255,
+          "reserved_to_released_s": 0.5748832630123943,
+          "uuid": "813e05be-09b5-4427-a6b7-2d4457e7a7e2"
+        },
+        {
+          "arrival_time_ms": 11029732.75,
+          "destination_activated_ms": 11185717.685431942,
+          "destination_reserved_ms": 11185700.121876942,
+          "first_token_ms": 11185736.251668943,
+          "input_length": 23986.0,
+          "prefill_admit_ms": 11131151.121633949,
+          "dram_to_hbm_wait_ms": 55.18676,
+          "kv_wait_ms": 55.18676,
+          "scheduling_wait_ms": 101363.18487394876,
+          "ssd_to_dram_wait_ms": 0.0,
+          "source_held_ms": 11131428.892522948,
+          "source_released_ms": 11187412.357077945,
+          "terminal_time_ms": 11186837.473814933,
+          "ttft_ms": 156003.5016689431,
+          "held_to_reserved_s": 54.27122935399413,
+          "reserved_to_released_s": 1.71223520100303,
+          "uuid": "60aa2fa7-4412-4cba-be3e-7043bd91f7fd"
+        },
+        {
+          "arrival_time_ms": 11028384.75,
+          "destination_activated_ms": 11185700.121876942,
+          "destination_reserved_ms": 11185682.546898942,
+          "first_token_ms": 11185717.685431942,
+          "input_length": 23657.0,
+          "prefill_admit_ms": 11131151.121633949,
+          "dram_to_hbm_wait_ms": 55.18676,
+          "kv_wait_ms": 55.18676,
+          "scheduling_wait_ms": 102711.18487394876,
+          "ssd_to_dram_wait_ms": 0.0,
+          "source_held_ms": 11131428.892522948,
+          "source_released_ms": 11187412.357077945,
+          "terminal_time_ms": 11187441.999457933,
+          "ttft_ms": 157332.93543194234,
+          "held_to_reserved_s": 54.25365437599458,
+          "reserved_to_released_s": 1.729810179002583,
+          "uuid": "b5953f42-e062-4a6b-bb92-c5e3d122c5a1"
+        },
+        {
+          "arrival_time_ms": 11030644.125,
+          "destination_activated_ms": 11185792.975583943,
+          "destination_reserved_ms": 11185717.685431942,
+          "first_token_ms": 11185813.061885942,
+          "input_length": 26317.0,
+          "prefill_admit_ms": 11131428.892522948,
+          "dram_to_hbm_wait_ms": 140.433347,
+          "kv_wait_ms": 2441.266275,
+          "scheduling_wait_ms": 98343.50124794786,
+          "ssd_to_dram_wait_ms": 2300.832928,
+          "source_held_ms": 11132030.772106947,
+          "source_released_ms": 11187412.357077945,
+          "terminal_time_ms": 11187622.881376935,
+          "ttft_ms": 155168.93688594177,
+          "held_to_reserved_s": 53.68691332499497,
+          "reserved_to_released_s": 1.69467164600268,
+          "uuid": "51f284b5-fa13-47ef-8a5e-77d090374aa4"
+        }
+      ],
+      "cohort_requests": 888,
+      "cohort_mean": {
+        "ttft_ms": 549898.0706267669,
+        "scheduling_wait_ms": 523777.53662004566,
+        "kv_wait_ms": 2896.066794108108,
+        "held_to_reserved_s": 19.99278290248936,
+        "reserved_to_released_s": 0.41105395889459895
+      },
+      "whole_mean": {
+        "ttft_ms": 96958.6167628915,
+        "scheduling_wait_ms": 89272.17134664138,
+        "kv_wait_ms": 478.2694429387746,
+        "held_to_reserved_s": 5.417728431451572,
+        "reserved_to_released_s": 0.5743707854423272
+      }
+    },
+    {
+      "dram_gb": 64,
+      "at_s": 11137.15475,
+      "held_count": 68,
+      "waiting_count": 602,
+      "held_top": [
+        {
+          "arrival_time_ms": 10939594.25,
+          "destination_activated_ms": 11152398.514784208,
+          "destination_reserved_ms": 11152376.342855208,
+          "first_token_ms": 11152421.686736207,
+          "input_length": 38490.0,
+          "prefill_admit_ms": 11134635.2506222,
+          "dram_to_hbm_wait_ms": 68.289761,
+          "kv_wait_ms": 2216.896641,
+          "scheduling_wait_ms": 192824.10398119985,
+          "ssd_to_dram_wait_ms": 2148.60688,
+          "source_held_ms": 11136432.7192862,
+          "source_released_ms": 11152398.514784208,
+          "terminal_time_ms": 11157029.56991421,
+          "ttft_ms": 212827.43673620746,
+          "held_to_reserved_s": 15.943623569007963,
+          "reserved_to_released_s": 0.022171928999945523,
+          "uuid": "502fc0ff-df62-4578-9e32-fe3d8f9cc532"
+        },
+        {
+          "arrival_time_ms": 10940325.625,
+          "destination_activated_ms": 11152398.514784208,
+          "destination_reserved_ms": 11152376.342855208,
+          "first_token_ms": 11152421.686736207,
+          "input_length": 38773.0,
+          "prefill_admit_ms": 11134635.2506222,
+          "dram_to_hbm_wait_ms": 68.289761,
+          "kv_wait_ms": 2216.896641,
+          "scheduling_wait_ms": 192092.72898119985,
+          "ssd_to_dram_wait_ms": 2148.60688,
+          "source_held_ms": 11136432.7192862,
+          "source_released_ms": 11152398.514784208,
+          "terminal_time_ms": 11154431.124836208,
+          "ttft_ms": 212096.06173620746,
+          "held_to_reserved_s": 15.943623569007963,
+          "reserved_to_released_s": 0.022171928999945523,
+          "uuid": "7f26904f-af52-4694-b752-08a93a633154"
+        },
+        {
+          "arrival_time_ms": 10938741.625,
+          "destination_activated_ms": 11152376.342855208,
+          "destination_reserved_ms": 11152354.660226207,
+          "first_token_ms": 11152398.514784208,
+          "input_length": 33296.0,
+          "prefill_admit_ms": 11134635.2506222,
+          "dram_to_hbm_wait_ms": 68.289761,
+          "kv_wait_ms": 2216.896641,
+          "scheduling_wait_ms": 193676.72898119985,
+          "ssd_to_dram_wait_ms": 2148.60688,
+          "source_held_ms": 11136432.7192862,
+          "source_released_ms": 11152376.342855208,
+          "terminal_time_ms": 11262507.264248146,
+          "ttft_ms": 213656.88978420757,
+          "held_to_reserved_s": 15.921940940007568,
+          "reserved_to_released_s": 0.021682629000395536,
+          "uuid": "8a1fcb35-58c7-4284-806a-c3d5f3aa3afa"
+        },
+        {
+          "arrival_time_ms": 10938558.125,
+          "destination_activated_ms": 11151756.412694214,
+          "destination_reserved_ms": 11151714.012205215,
+          "first_token_ms": 11151778.569860214,
+          "input_length": 14979.0,
+          "prefill_admit_ms": 11134635.2506222,
+          "dram_to_hbm_wait_ms": 103.590789,
+          "kv_wait_ms": 1427.479333,
+          "scheduling_wait_ms": 194649.64628919985,
+          "ssd_to_dram_wait_ms": 1323.888544,
+          "source_held_ms": 11136432.7192862,
+          "source_released_ms": 11151756.412694214,
+          "terminal_time_ms": 11156200.426387211,
+          "ttft_ms": 213220.44486021437,
+          "held_to_reserved_s": 15.281292919015511,
+          "reserved_to_released_s": 0.04240048899874091,
+          "uuid": "dd146190-2bc0-4153-a854-9982315f5f3d"
+        }
+      ],
+      "cohort_requests": 888,
+      "cohort_mean": {
+        "ttft_ms": 894779.6342952792,
+        "scheduling_wait_ms": 881405.6055620693,
+        "kv_wait_ms": 1893.1580743265765,
+        "held_to_reserved_s": 7.512183892781074,
+        "reserved_to_released_s": 1.518895138118204
+      },
+      "whole_mean": {
+        "ttft_ms": 750540.1699195454,
+        "scheduling_wait_ms": 741710.1853352895,
+        "kv_wait_ms": 713.1302557226404,
+        "held_to_reserved_s": 5.414072651801791,
+        "reserved_to_released_s": 1.1789230403293833
+      }
+    }
+  ],
+  "limitations": [
+    "Ordinary waiting queue excludes connector-only waiters and requests not yet delivered to a schedule boundary.",
+    "A held source and high HBM occupancy establish backpressure exists; they do not attribute every idle interval to one blocker.",
+    "No controlled counterfactual run performed; no engine or dashboard modified."
+  ]
+}

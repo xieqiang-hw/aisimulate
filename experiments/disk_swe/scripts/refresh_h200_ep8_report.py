@@ -126,7 +126,7 @@ def main():
     sweep = args.sweep.expanduser().resolve()
     roots = [*(p.expanduser().resolve() for p in args.include_sweep), sweep]
     paths = [root / "sweep.json" for root in roots]
-    doc = BASE / "experiments_h200_ep8_16x.md"
+    doc = BASE / "analysis/model_reports/source_documents/experiments_h200_ep8_16x.md"
     html = doc.with_suffix(".html")
     identity = process_identity(args.watch_pid) if args.watch_pid else None
     cache = {}
@@ -154,6 +154,8 @@ def main():
             temp.write_text(updated, encoding="utf-8")
             temp.replace(doc)
             build(markdown_path=doc, output=html)
+            from refresh_model_reports import refresh
+            refresh("glm52")
             print(Counter(c["status"] for c in plan["cases"]), flush=True)
             previous = state
         if terminal or stopped or not args.watch_pid:

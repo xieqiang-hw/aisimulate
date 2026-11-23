@@ -18,46 +18,51 @@
 
 本目录使用 SWE-chat 评估场景 1 的本地 DRAM 和 SSD。我们固定模型与部署，观察 P 侧 DRAM 缩容后，前缀复用如何在 HBM、DRAM 与 SSD 间转移，以及提高 SSD 读带宽能追回多少联合 SLA 和尾延迟。项目背景与盘框需求见 [盘框实验 README](../disk/README.md)。
 
-## 后续统一配置
+## 当前 GLM 场景 1 配置
 
 | 项目 | 设置 |
 |---|---|
 | 模型与硬件 | GLM-5.2-FP8，H200 SXM，1P1D，P/D 各 8 卡 |
-| 并行与性能模型 | P/D 各 Attention TP8／DP1、MoE TP8／EP1，沿用 vLLM 0.24.0 算子级性能模型 |
-| P 侧 HBM | KV 池固定为 2,048 块，每块 64 token。只缩减 KV 容量，沿用 H200 计算耗时 |
-| D 侧 | HBM KV 容量自动配置，本地独立 DRAM 约 256 GB |
-| 场景 1 缓存 | P 侧 DRAM 128／256／384 GB，本地 SSD 约 56 TB，P→D 直接交接 |
-| 带宽 | SSD 默认读写各 8 GB/s／TP 分片，扫描时只调整读带宽。H2D 为 25 GB/s／TP 分片 |
-| 联合 SLA | 每条请求 TTFT ≤ 1 秒且平均 TPOT ≤ 30 ms，报告达标请求占比 |
+| 并行与性能模型 | Attention TP8／DP1，MoE TP1／EP8，vLLM 0.24.0 算子级性能模型 |
+| HBM KV | P、D 自动容量，每块 64 token |
+| 场景 1 缓存 | P 本地 DRAM＋约 56 TB SSD；D 仅 HBM；P→D 直接交接 |
+| 扫描范围 | P DRAM 64／128／256／384／512／1,000 GB；读带宽 1／2／4／8／16 GB/s／TP 分片 |
+| 传输与调度 | SSD 写 8、H2D／D2H 各 25 GB/s／TP；P/D 单轮预算均 16,384 token，序列上限 32／256 |
+| 联合 SLA | 每条请求 TTFT ≤ 1 秒且平均 TPOT ≤ 30 ms |
 
-原速基线包含自动 HBM 容量，HBM 容量扫描也包含其他块数。后续场景对照统一使用 P 侧 2,048 块的结果。
+具体组合和已完成状态以 [GLM-5.2 实验记录](glm52_experiments.md)为准；场景 2 的独有配置见 [盘框建模方案](disk_enclosure_modeling.md)。
 
 ## 数据与结果
 
-使用 Claude Code 主会话，输入与输出合计上限 128K，每组全量回放 174,438 条请求。Mooncake 数据包含输出长度和 token ID。叠加以完整会话为单位平移时间戳，保留会话内部节奏。结果以标称倍率标记，实际全程平均密度见各数据包的清单。默认数据位于 `~/project/data/swe_chat/derived/mooncake-v1/`。详见 [数据处理说明](data_process.md)。
+当前 GLM 扫描使用 verified-interleave 版 SWE-chat Claude Code 主会话，输入与输出合计上限 128K，每组 607,190 条请求。Mooncake 数据包含输出 token ID。叠加以完整会话为单位平移时间戳，保留会话内部节奏；实际密度以数据包清单为准。数据位于 ~/project/data/swe_chat/derived/verified_interleave_mooncake_v1/，详见 [数据处理说明](data_process.md)。
 
-- [实验记录](experiments.md)汇总原速基线、HBM 容量、DRAM 与负载叠加、SSD 读带宽四类实验。
-- [HTML 汇总](experiments.html)提供 SLA、TTFT、TPOT、分层复用和 SSD 读取量对比。
-- SWE 64× 下，128 GB DRAM 配置将读带宽从 8 提到 32 GB/s／TP 分片后，联合 SLA 从 84.029% 提高到 91.900%，P99 TTFT 从 136.37 秒降到 3.52 秒，接近 256 GB DRAM／8 GB/s 对照的 92.021% 和 3.33 秒。128× 下即使提高到 128 GB/s，P99 仍高于容量对照。两组负载可分别用于后续场景对照和尾延迟压力验证。
+- [GLM-5.2 实验记录](glm52_experiments.md)与 [GLM-5.2 HTML 汇总](glm52_experiments.html)：DRAM、带宽、叠加负载对比。
+- [MiniMax 实验记录](minimax_experiments.md)与 [MiniMax HTML 汇总](minimax_experiments.html)：BF16 KV 的 DRAM、带宽及单步预算扫描。
+- [逐请求指标分布](experiments_h200_ep8_distributions.html)：TTFT、TPOT、等待等分布。
+- [吞吐与执行观测](throughput_8x.html)：原始 8× 数据的加压分析。
+- 旧 EP1 两批实验的结果、文档、专用配置和入口已清理；历史备份独立保留。
 
 ## 目录与入口
 
 | 路径 | 用途 |
 |---|---|
-| `configs/` | 实验 YAML 配置 |
-| `scripts/prepare_swe_chat.py` | 生成原速数据包 |
-| `scripts/prepare_swe_chat_overlay.py` | 生成会话叠加数据包 |
-| `scripts/run_experiment_suite.py` | 批量运行实验，使用 `--plan` 预览组合 |
-| `scripts/build_results_dashboard.py` | 根据实验记录重建汇总 HTML |
-| `analysis/` | 调度观测、时间线分析及验证材料 |
-| `backup/` | 历史页面备份 |
+| configs/ | 当前实验 YAML 配置 |
+| scripts/prepare_swe_chat.py | 生成原速数据包 |
+| scripts/prepare_swe_chat_overlay.py | 生成会话叠加数据包 |
+| scripts/run_h200_local_8ssd_ep8_sweep.py | H200 EP8 扫描，支持 --plan 预览 |
+| scripts/sweep_common.py | 当前各扫描入口复用的运行与数据检查函数 |
+| scripts/refresh_model_reports.py | 按模型更新统一 MD 与独立 HTML，支持 --model glm52/minimax/all |
+| analysis/model_reports/source_documents/ | 原分散报告留档，作为兼容填表的数据来源 |
+| analysis/ | 分析、调度观测和验证材料 |
+| backup/ | 历史页面备份 |
 
-原始回放结果保存在 `~/project/results/`，本机临时监视和填表脚本统一放在 `~/project/tmp/`。
+原始结果保存在 ~/project/results/ 或对应实验指定的 D 盘目录。临时监视和填表脚本统一放在 ~/project/tmp/。
 
-在 WSL 中预览一组符合后续配置的扫描：
+预览一个当前配置，不启动实验：
 
 ```bash
 ~/.venvs/aisim/bin/python \
-  /home/xieqiang/project/aisimulate/experiments/disk_swe/scripts/run_experiment_suite.py \
-  --suites bandwidth --factors 64 --read-bandwidths 32 --plan
+  /home/xieqiang/project/aisimulate/experiments/disk_swe/scripts/run_h200_local_8ssd_ep8_sweep.py \
+  --bundle "$HOME/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-overlay-8x" \
+  --p-dram-gb 256 --read-bandwidths 2 --plan
 ```

@@ -1,10 +1,10 @@
-"""MiniMax-M2.5 / H100 timing / 64 decimal GB HBM; 8x shape-controlled sweep."""
+"""MiniMax-M2.5 / H100 64 GB / FP8 compute + BF16 KV; serial 8x sweep."""
 import argparse
 import json
 import math
 from pathlib import Path
 import yaml
-from run_experiment_suite import BASE, run_cases
+from sweep_common import BASE, run_cases
 
 MODEL = "MiniMaxAI/MiniMax-M2.5"
 DEFAULT_BUNDLE = Path.home() / (
@@ -18,8 +18,7 @@ BANDWIDTHS = (1, 2, 4, 8, 16)
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bundle", type=Path, default=DEFAULT_BUNDLE)
-    parser.add_argument("--output-root", type=Path, default=Path.home() /
-                        "project/results/swe-chat-minimax-h100-64gb-ep8-8x")
+    parser.add_argument("--output-root", type=Path, default=Path("/mnt/d/aisim-results/swe-chat-minimax-h100-64gb-ep8-8x-bf16kv"))
     parser.add_argument("--p-dram-gb", nargs="+", type=int, choices=CAPACITIES, default=CAPACITIES)
     parser.add_argument("--read-bandwidths", nargs="+", type=int, choices=BANDWIDTHS, default=BANDWIDTHS)
     parser.add_argument("--max-requests", type=int, default=0)
@@ -44,6 +43,12 @@ def main():
         for gb in sorted(set(args.p_dram_gb)):
             name = f"swe_minimax_h100_64gb_ep8_p{gb}gb_read{read}_overlay_8x"
             config = yaml.safe_load((BASE / "configs" / (name + ".yaml")).read_text())
+            expected = {
+                "gemm_quant_mode": "fp8_block", "moe_quant_mode": "fp8_block",
+                "fmha_quant_mode": "bfloat16", "kvcache_quant_mode": "bfloat16",
+            }
+            if any(config["engine"].get(key) != value for key, value in expected.items()):
+                parser.error(f"Expected explicit FP8 compute and BF16 KV: {name}")
             # Resolve the local hardware profile relative to this checkout.
             config["engine"]["systems_paths"] = [
                 str(BASE / "configs/systems_h100_64gb"), "default"
@@ -61,7 +66,7 @@ def main():
     if args.plan:
         print(f"Total: {len(selected)} cases, serial; host memory budget auto unless specified; "
               f"capture_scheduler_trace={args.capture_scheduler_trace}, "
-              f"scheduler_trace_compression={args.scheduler_trace_compression}")
+              f"scheduler_trace_compression={args.scheduler_trace_compression}; KV=bfloat16")
         return 0
     try:
         manifest = json.loads((bundle / "manifest.json").read_text())

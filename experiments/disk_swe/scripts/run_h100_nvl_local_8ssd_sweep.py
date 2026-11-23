@@ -6,7 +6,7 @@ from pathlib import Path
 
 import yaml
 
-from run_experiment_suite import BASE, BUNDLE, run_cases, validate_bundle
+from sweep_common import BASE, BUNDLE, run_cases, validate_bundle
 
 FACTORS = (8, 16, 32, 64)
 DRAM_GB = (512, 384, 256, 128, 64, 32, 16)

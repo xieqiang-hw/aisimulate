@@ -14,19 +14,30 @@ def test_glm_dsa_native_layout_includes_rope_and_indexer(quant, expected):
     ) == expected
 
 @pytest.mark.parametrize("name", [
-    "experiments/disk_swe/configs/swe_p_local_8ssd_p128gb_1x_hbm2048.yaml",
+    "experiments/disk_swe/configs/swe_h200_local_8ssd_ep8.yaml",
     "experiments/disk_swe/configs/swe_enclosure_sample.yaml",
 ])
 def test_local_and_enclosure_lowering_share_native_geometry(name):
     from pathlib import Path
     root = Path(__file__).resolve().parents[1]
     config = CorePredictionConfig.from_yaml(str(root / name))
+    # Exercise both G2 roles from the maintained template; production D is HBM-only.
+    if name.endswith("swe_h200_local_8ssd_ep8.yaml"):
+        config.engine.workers.decode.kv_cache.host_offload = (
+            config.engine.workers.prefill.kv_cache.host_offload.model_copy(
+                update={"num_host_blocks": 8303}
+            )
+        )
     deployment = prediction_to_replay_spec(config).backend_deployment
     for role in ("prefill", "decode"):
         rank = getattr(deployment, role + "_engine_args")
         assert rank["kv_cache_bytes_per_token"] == 60216
         assert rank["block_size"] == 64
-        assert rank["native_host_offload"]["num_host_blocks"] == (4152 if role == "prefill" else 8303)
+        host = getattr(config.engine.workers, role).kv_cache.host_offload
+        if host is None:
+            assert rank.get("native_host_offload") is None
+        else:
+            assert rank["native_host_offload"]["num_host_blocks"] == host.num_host_blocks
     assert 60216 * 64 * 8 == 30830592
     if config.engine.kv_transfer.enclosure is None:
         assert deployment.prefill_engine_args["kv_transfer_bytes_per_token"] == 60216

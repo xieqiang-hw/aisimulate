@@ -1,0 +1,1588 @@
+[
+  {
+    "id": "overlay8_speed1_p1000gb_read1",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 1000,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261119T034147.516410Z/bandwidth/swe_h200_ep8_p1000gb_read1_overlay_8x/20261119T051334.596126Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 305.77845443486126,
+      "p99_ttft_ms": 2800.8538959026337,
+      "mean_tpot_ms": 12.136398600538397
+    }
+  },
+  {
+    "id": "overlay8_speed1_p1000gb_read2",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 1000,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261119T034147.516410Z/bandwidth/swe_h200_ep8_p1000gb_read2_overlay_8x/20261119T053123.997178Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 300.21341683355246,
+      "p99_ttft_ms": 2622.2630264759064,
+      "mean_tpot_ms": 12.135803444322365
+    }
+  },
+  {
+    "id": "overlay8_speed1_p1000gb_read4",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 1000,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261119T034147.516410Z/bandwidth/swe_h200_ep8_p1000gb_read4_overlay_8x/20261119T054904.661829Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 297.7204691050824,
+      "p99_ttft_ms": 2492.627697467804,
+      "mean_tpot_ms": 12.135774941257155
+    }
+  },
+  {
+    "id": "overlay8_speed1_p1000gb_read8",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 1000,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261119T034147.516410Z/bandwidth/swe_h200_ep8_p1000gb_read8_overlay_8x/20261119T060656.228586Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 296.41923868297135,
+      "p99_ttft_ms": 2459.799340724945,
+      "mean_tpot_ms": 12.135811662858634
+    }
+  },
+  {
+    "id": "overlay8_speed1_p1000gb_read16",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 1000,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261119T034147.516410Z/bandwidth/swe_h200_ep8_p1000gb_read16_overlay_8x/20261119T062524.971880Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 296.66890107453145,
+      "p99_ttft_ms": 2461.252591431141,
+      "mean_tpot_ms": 12.136211593006191
+    }
+  },
+  {
+    "id": "overlay8_speed1_p512gb_read1",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p512gb_read1_overlay_8x/20261117T171616.488764Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 319.9453027032838,
+      "p99_ttft_ms": 3293.632033228874,
+      "mean_tpot_ms": 12.137480776279807
+    }
+  },
+  {
+    "id": "overlay8_speed1_p512gb_read2",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p512gb_read2_overlay_8x/20261117T173437.476463Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 307.11351850103784,
+      "p99_ttft_ms": 2836.5804526805878,
+      "mean_tpot_ms": 12.136143362673714
+    }
+  },
+  {
+    "id": "overlay8_speed1_p512gb_read4",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p512gb_read4_overlay_8x/20261117T175312.792444Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 301.1316150569637,
+      "p99_ttft_ms": 2531.2913669347763,
+      "mean_tpot_ms": 12.135874869267365
+    }
+  },
+  {
+    "id": "overlay8_speed1_p512gb_read8",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p512gb_read8_overlay_8x/20261117T181123.921077Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 298.27210435203153,
+      "p99_ttft_ms": 2474.823586463928,
+      "mean_tpot_ms": 12.135860240732516
+    }
+  },
+  {
+    "id": "overlay8_speed1_p512gb_read16",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261119T034147.516410Z/bandwidth/swe_h200_ep8_p512gb_read16_overlay_8x/20261119T034202.637183Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 297.64863737376373,
+      "p99_ttft_ms": 2467.8526079654694,
+      "mean_tpot_ms": 12.13623425464208
+    }
+  },
+  {
+    "id": "overlay8_speed1_p384gb_read1",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p384gb_read1_overlay_8x/20261117T182946.186107Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 338.14869892288175,
+      "p99_ttft_ms": 3898.349279522896,
+      "mean_tpot_ms": 12.138737590084492
+    }
+  },
+  {
+    "id": "overlay8_speed1_p384gb_read2",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p384gb_read2_overlay_8x/20261117T184807.668648Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 315.5145551128532,
+      "p99_ttft_ms": 3057.205287694931,
+      "mean_tpot_ms": 12.136428181679351
+    }
+  },
+  {
+    "id": "overlay8_speed1_p384gb_read4",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p384gb_read4_overlay_8x/20261117T190624.891185Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 305.26982308031467,
+      "p99_ttft_ms": 2579.0138602256775,
+      "mean_tpot_ms": 12.136022388315578
+    }
+  },
+  {
+    "id": "overlay8_speed1_p384gb_read8",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p384gb_read8_overlay_8x/20261117T192439.353911Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 300.3763833269026,
+      "p99_ttft_ms": 2484.381857395172,
+      "mean_tpot_ms": 12.136123581563664
+    }
+  },
+  {
+    "id": "overlay8_speed1_p384gb_read16",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261119T034147.516410Z/bandwidth/swe_h200_ep8_p384gb_read16_overlay_8x/20261119T040047.952361Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 298.7667996867012,
+      "p99_ttft_ms": 2472.1423325538635,
+      "mean_tpot_ms": 12.136481980734114
+    }
+  },
+  {
+    "id": "overlay8_speed1_p256gb_read1",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p256gb_read1_overlay_8x/20261117T194259.013410Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 411.2591437650137,
+      "p99_ttft_ms": 5730.973334655166,
+      "mean_tpot_ms": 12.143029763780474
+    }
+  },
+  {
+    "id": "overlay8_speed1_p256gb_read2",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p256gb_read2_overlay_8x/20261117T200121.735257Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 347.345093980069,
+      "p99_ttft_ms": 3660.702084302902,
+      "mean_tpot_ms": 12.136448708465528
+    }
+  },
+  {
+    "id": "overlay8_speed1_p256gb_read4",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p256gb_read4_overlay_8x/20261117T201950.915405Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 320.2720429928295,
+      "p99_ttft_ms": 2740.3115298748016,
+      "mean_tpot_ms": 12.135009694341091
+    }
+  },
+  {
+    "id": "overlay8_speed1_p256gb_read8",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p256gb_read8_overlay_8x/20261117T203814.418912Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 307.82730460462477,
+      "p99_ttft_ms": 2525.834692001343,
+      "mean_tpot_ms": 12.13568820898615
+    }
+  },
+  {
+    "id": "overlay8_speed1_p256gb_read16",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261119T034147.516410Z/bandwidth/swe_h200_ep8_p256gb_read16_overlay_8x/20261119T041848.486248Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 302.4204015198079,
+      "p99_ttft_ms": 2490.793025434017,
+      "mean_tpot_ms": 12.136088294252074
+    }
+  },
+  {
+    "id": "overlay8_speed1_p128gb_read1",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p128gb_read1_overlay_8x/20261117T205649.466433Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 555.6004297189085,
+      "p99_ttft_ms": 7131.83680576086,
+      "mean_tpot_ms": 12.156533474418376
+    }
+  },
+  {
+    "id": "overlay8_speed1_p128gb_read2",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p128gb_read2_overlay_8x/20261117T211553.384542Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 404.81534820076183,
+      "p99_ttft_ms": 4072.2226481437683,
+      "mean_tpot_ms": 12.139953483822868
+    }
+  },
+  {
+    "id": "overlay8_speed1_p128gb_read4",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p128gb_read4_overlay_8x/20261117T213447.673770Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 342.4462161199139,
+      "p99_ttft_ms": 2857.5233711004257,
+      "mean_tpot_ms": 12.134622143354285
+    }
+  },
+  {
+    "id": "overlay8_speed1_p128gb_read8",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p128gb_read8_overlay_8x/20261117T215338.843021Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 318.83415670035606,
+      "p99_ttft_ms": 2574.065176010132,
+      "mean_tpot_ms": 12.134965819566691
+    }
+  },
+  {
+    "id": "overlay8_speed1_p128gb_read16",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261119T034147.516410Z/bandwidth/swe_h200_ep8_p128gb_read16_overlay_8x/20261119T043636.247962Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 307.9063709421118,
+      "p99_ttft_ms": 2507.426483154297,
+      "mean_tpot_ms": 12.13542881420804
+    }
+  },
+  {
+    "id": "overlay8_speed1_p64gb_read1",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p64gb_read1_overlay_8x/20261117T221228.683797Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 1377.2050844194666,
+      "p99_ttft_ms": 18815.057898283005,
+      "mean_tpot_ms": 12.217939615852222
+    }
+  },
+  {
+    "id": "overlay8_speed1_p64gb_read2",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p64gb_read2_overlay_8x/20261117T223207.422169Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 1376.2214483097853,
+      "p99_ttft_ms": 14195.38961648941,
+      "mean_tpot_ms": 12.195030267072644
+    }
+  },
+  {
+    "id": "overlay8_speed1_p64gb_read4",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p64gb_read4_overlay_8x/20261117T225138.417881Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 618.9739941210166,
+      "p99_ttft_ms": 5507.526516675949,
+      "mean_tpot_ms": 12.170496233315754
+    }
+  },
+  {
+    "id": "overlay8_speed1_p64gb_read8",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T171603.780513Z/bandwidth/swe_h200_ep8_p64gb_read8_overlay_8x/20261117T231102.382965Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 699.3187482326781,
+      "p99_ttft_ms": 4361.608239293098,
+      "mean_tpot_ms": 12.159950717036889
+    }
+  },
+  {
+    "id": "overlay8_speed1_p64gb_read16",
+    "factor": 8,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261119T034147.516410Z/bandwidth/swe_h200_ep8_p64gb_read16_overlay_8x/20261119T045442.271492Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 448.301546687322,
+      "p99_ttft_ms": 3172.704333305359,
+      "mean_tpot_ms": 12.152351591070936
+    }
+  },
+  {
+    "id": "overlay16_speed1_p512gb_read1",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T061823.815225Z/bandwidth/swe_h200_ep8_p512gb_read1_overlay_16x/20261117T061834.937147Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 486.54191787369,
+      "p99_ttft_ms": 6233.435035228729,
+      "mean_tpot_ms": 13.427267409725749
+    }
+  },
+  {
+    "id": "overlay16_speed1_p512gb_read2",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T061823.815225Z/bandwidth/swe_h200_ep8_p512gb_read2_overlay_16x/20261117T063702.929917Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 448.9612223136686,
+      "p99_ttft_ms": 4778.961657047272,
+      "mean_tpot_ms": 13.422973879517677
+    }
+  },
+  {
+    "id": "overlay16_speed1_p512gb_read4",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T061823.815225Z/bandwidth/swe_h200_ep8_p512gb_read4_overlay_16x/20261117T065552.736800Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 431.4022646332084,
+      "p99_ttft_ms": 4546.817176580429,
+      "mean_tpot_ms": 13.428683397883585
+    }
+  },
+  {
+    "id": "overlay16_speed1_p512gb_read8",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T061823.815225Z/bandwidth/swe_h200_ep8_p512gb_read8_overlay_16x/20261117T071332.671914Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 422.70549680375376,
+      "p99_ttft_ms": 4479.651314616203,
+      "mean_tpot_ms": 13.42315897892574
+    }
+  },
+  {
+    "id": "overlay16_speed1_p384gb_read1",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p384gb_read1_overlay_16x/20261117T092443.439416Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 572.5235878987946,
+      "p99_ttft_ms": 7457.918857336044,
+      "mean_tpot_ms": 13.432264885595293
+    }
+  },
+  {
+    "id": "overlay16_speed1_p384gb_read2",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p384gb_read2_overlay_16x/20261117T013925.721925Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 478.72483440073535,
+      "p99_ttft_ms": 5039.260598599911,
+      "mean_tpot_ms": 13.425726885172347
+    }
+  },
+  {
+    "id": "overlay16_speed1_p384gb_read4",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p384gb_read4_overlay_16x/20261117T015802.334870Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 443.46905531588214,
+      "p99_ttft_ms": 4532.046270251274,
+      "mean_tpot_ms": 13.433961403843833
+    }
+  },
+  {
+    "id": "overlay16_speed1_p384gb_read8",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p384gb_read8_overlay_16x/20261117T021722.271031Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 428.2733832173257,
+      "p99_ttft_ms": 4475.295650810003,
+      "mean_tpot_ms": 13.438925105090046
+    }
+  },
+  {
+    "id": "overlay16_speed1_p256gb_read1",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p256gb_read1_overlay_16x/20261117T094902.957532Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 1098.4034763799152,
+      "p99_ttft_ms": 13149.721819162369,
+      "mean_tpot_ms": 13.471892005913311
+    }
+  },
+  {
+    "id": "overlay16_speed1_p256gb_read2",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p256gb_read2_overlay_16x/20261117T023624.577678Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 597.0154172304897,
+      "p99_ttft_ms": 6245.4446208179,
+      "mean_tpot_ms": 13.426644619597115
+    }
+  },
+  {
+    "id": "overlay16_speed1_p256gb_read4",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p256gb_read4_overlay_16x/20261117T025532.438533Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 489.47670288488376,
+      "p99_ttft_ms": 4752.827004790306,
+      "mean_tpot_ms": 13.424112561485236
+    }
+  },
+  {
+    "id": "overlay16_speed1_p256gb_read8",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p256gb_read8_overlay_16x/20261117T031408.727628Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 449.65725300273544,
+      "p99_ttft_ms": 4538.97588711977,
+      "mean_tpot_ms": 13.425868360068538
+    }
+  },
+  {
+    "id": "overlay16_speed1_p128gb_read1",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p128gb_read1_overlay_16x/20261117T101227.323611Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 7333.409242818782,
+      "p99_ttft_ms": 182306.27872371674,
+      "mean_tpot_ms": 13.67330186400185
+    }
+  },
+  {
+    "id": "overlay16_speed1_p128gb_read2",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p128gb_read2_overlay_16x/20261117T033221.122196Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 3099.644614397697,
+      "p99_ttft_ms": 56958.24998104572,
+      "mean_tpot_ms": 13.51635604964983
+    }
+  },
+  {
+    "id": "overlay16_speed1_p128gb_read4",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p128gb_read4_overlay_16x/20261117T035145.865431Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 1485.261851310109,
+      "p99_ttft_ms": 14946.797907114029,
+      "mean_tpot_ms": 13.468149589597063
+    }
+  },
+  {
+    "id": "overlay16_speed1_p128gb_read8",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p128gb_read8_overlay_16x/20261117T041002.742875Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 985.251810178087,
+      "p99_ttft_ms": 6738.581403493881,
+      "mean_tpot_ms": 13.45311805213021
+    }
+  },
+  {
+    "id": "overlay16_speed1_p64gb_read1",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p64gb_read1_overlay_16x/20261117T103619.463717Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 60600.59032597936,
+      "p99_ttft_ms": 1307365.9178943634,
+      "mean_tpot_ms": 14.364331909480585
+    }
+  },
+  {
+    "id": "overlay16_speed1_p64gb_read2",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p64gb_read2_overlay_16x/20261117T042806.158492Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 47032.35332144613,
+      "p99_ttft_ms": 1137756.2480407953,
+      "mean_tpot_ms": 14.148602075711981
+    }
+  },
+  {
+    "id": "overlay16_speed1_p64gb_read4",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p64gb_read4_overlay_16x/20261117T044633.311177Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 41712.28591602191,
+      "p99_ttft_ms": 977302.5951213837,
+      "mean_tpot_ms": 14.002291933335641
+    }
+  },
+  {
+    "id": "overlay16_speed1_p64gb_read8",
+    "factor": 16,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T013915.604117Z/bandwidth/swe_h200_ep8_p64gb_read8_overlay_16x/20261117T050459.162749Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 45144.51295485184,
+      "p99_ttft_ms": 1157154.2121537924,
+      "mean_tpot_ms": 13.917792887905948
+    }
+  },
+  {
+    "id": "overlay32_speed1_p512gb_read1",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p512gb_read1_overlay_32x/20261117T105926.790386Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 10940.660605002522,
+      "p99_ttft_ms": 261598.91854660958,
+      "mean_tpot_ms": 16.733068169160546
+    }
+  },
+  {
+    "id": "overlay32_speed1_p512gb_read2",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p512gb_read2_overlay_32x/20261117T112213.966173Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 4371.628210247408,
+      "p99_ttft_ms": 90953.56071221828,
+      "mean_tpot_ms": 16.94326293654326
+    }
+  },
+  {
+    "id": "overlay32_speed1_p512gb_read4",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p512gb_read4_overlay_32x/20261117T114457.820681Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 4457.1575534519125,
+      "p99_ttft_ms": 95106.3046399951,
+      "mean_tpot_ms": 17.15059868111647
+    }
+  },
+  {
+    "id": "overlay32_speed1_p512gb_read8",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 512,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p512gb_read8_overlay_32x/20261117T120757.410451Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 4577.044219871662,
+      "p99_ttft_ms": 98984.9710239768,
+      "mean_tpot_ms": 16.936910371667047
+    }
+  },
+  {
+    "id": "overlay32_speed1_p384gb_read1",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p384gb_read1_overlay_32x/20261117T122900.893704Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 52584.802187278474,
+      "p99_ttft_ms": 1627430.9812254906,
+      "mean_tpot_ms": 16.96043583417849
+    }
+  },
+  {
+    "id": "overlay32_speed1_p384gb_read2",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p384gb_read2_overlay_32x/20261117T125233.811955Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 5416.863529107651,
+      "p99_ttft_ms": 110280.93611317873,
+      "mean_tpot_ms": 16.66184757025667
+    }
+  },
+  {
+    "id": "overlay32_speed1_p384gb_read4",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p384gb_read4_overlay_32x/20261117T131430.501536Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 3963.5187541923992,
+      "p99_ttft_ms": 81811.23368805647,
+      "mean_tpot_ms": 16.85121943530651
+    }
+  },
+  {
+    "id": "overlay32_speed1_p384gb_read8",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 384,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p384gb_read8_overlay_32x/20261117T133630.589068Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 3989.087467032566,
+      "p99_ttft_ms": 82451.15552425385,
+      "mean_tpot_ms": 16.804104776185643
+    }
+  },
+  {
+    "id": "overlay32_speed1_p256gb_read1",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p256gb_read1_overlay_32x/20261117T135843.728433Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 461534.27036608686,
+      "p99_ttft_ms": 6696968.271969914,
+      "mean_tpot_ms": 17.904807387295953
+    }
+  },
+  {
+    "id": "overlay32_speed1_p256gb_read2",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p256gb_read2_overlay_32x/20261117T142300.921349Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 31992.09505974451,
+      "p99_ttft_ms": 830785.8473699093,
+      "mean_tpot_ms": 16.903912088757647
+    }
+  },
+  {
+    "id": "overlay32_speed1_p256gb_read4",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p256gb_read4_overlay_32x/20261117T144730.275178Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 7579.604535169195,
+      "p99_ttft_ms": 146738.14831846952,
+      "mean_tpot_ms": 16.814439277872257
+    }
+  },
+  {
+    "id": "overlay32_speed1_p256gb_read8",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 256,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p256gb_read8_overlay_32x/20261117T151221.188914Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 4498.7738817182,
+      "p99_ttft_ms": 91724.2477967143,
+      "mean_tpot_ms": 16.754041967024815
+    }
+  },
+  {
+    "id": "overlay32_speed1_p128gb_read1",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261118T011146.494933Z/bandwidth/swe_h200_ep8_p128gb_read1_overlay_32x/20261118T011159.174771Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 27031071.247998558,
+      "p99_ttft_ms": 68765371.73155653,
+      "mean_tpot_ms": 20.146543657077547
+    }
+  },
+  {
+    "id": "overlay32_speed1_p128gb_read2",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261118T011146.494933Z/bandwidth/swe_h200_ep8_p128gb_read2_overlay_32x/20261118T014000.274281Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 10394560.363544447,
+      "p99_ttft_ms": 27046848.877551436,
+      "mean_tpot_ms": 19.833529777314524
+    }
+  },
+  {
+    "id": "overlay32_speed1_p128gb_read4",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261118T011146.494933Z/bandwidth/swe_h200_ep8_p128gb_read4_overlay_32x/20261118T020557.327154Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 3224011.6474312227,
+      "p99_ttft_ms": 17188203.514192402,
+      "mean_tpot_ms": 19.07389015938503
+    }
+  },
+  {
+    "id": "overlay32_speed1_p128gb_read8",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 128,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261117T092425.947717Z/bandwidth/swe_h200_ep8_p128gb_read8_overlay_32x/20261117T162414.106456Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 1608043.9523128057,
+      "p99_ttft_ms": 13343161.2984792,
+      "mean_tpot_ms": 18.359204575091
+    }
+  },
+  {
+    "id": "overlay32_speed1_p64gb_read1",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261118T034855.862421Z/bandwidth/swe_h200_ep8_p64gb_read1_overlay_32x/20261118T034908.455678Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 198950080.36573273,
+      "p99_ttft_ms": 419311474.59139574,
+      "mean_tpot_ms": 18.209919626393404
+    }
+  },
+  {
+    "id": "overlay32_speed1_p64gb_read2",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/home/xieqiang/project/results/swe-chat-glm52-h200-ep8-16x/20261118T034855.862421Z/bandwidth/swe_h200_ep8_p64gb_read2_overlay_32x/20261118T050108.086859Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 177621814.9412984,
+      "p99_ttft_ms": 375912662.1562971,
+      "mean_tpot_ms": 18.44824215875463
+    }
+  },
+  {
+    "id": "overlay32_speed1_p64gb_read4",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 4,
+    "status": "失败",
+    "expected_requests": null
+  },
+  {
+    "id": "overlay32_speed1_p64gb_read8",
+    "factor": 32,
+    "speedup": 1.0,
+    "dram_gb": 64,
+    "read_gbps": 8,
+    "status": "失败",
+    "expected_requests": null
+  },
+  {
+    "id": "overlay16_speed0.5_p512gb_read1",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 512,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p512gb_read1_overlay16_speed0p5/runs/20261119T125553.483563Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 375.3149664455408,
+      "p99_ttft_ms": 4594.965322494507,
+      "mean_tpot_ms": 12.020937143702008
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p512gb_read2",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 512,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p512gb_read2_overlay16_speed0p5/runs/20261119T131742.101875Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 341.9274681672872,
+      "p99_ttft_ms": 3246.5836205482483,
+      "mean_tpot_ms": 12.020413052467585
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p512gb_read4",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 512,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p512gb_read4_overlay16_speed0p5/runs/20261119T133902.965978Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 325.7264006126837,
+      "p99_ttft_ms": 2586.0554280877113,
+      "mean_tpot_ms": 12.020284064906996
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p512gb_read8",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 512,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p512gb_read8_overlay16_speed0p5/runs/20261119T135952.525699Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 317.6078246155518,
+      "p99_ttft_ms": 2434.1967231035233,
+      "mean_tpot_ms": 12.020250266598687
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p512gb_read16",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 512,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p512gb_read16_overlay16_speed0p5/runs/20261119T142032.375872Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 313.54483057294595,
+      "p99_ttft_ms": 2404.8327407687902,
+      "mean_tpot_ms": 12.020183713417076
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p384gb_read1",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 384,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p384gb_read1_overlay16_speed0p5/runs/20261119T144055.620610Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 438.3887242947814,
+      "p99_ttft_ms": 5831.133617401123,
+      "mean_tpot_ms": 12.021309837753414
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p384gb_read2",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 384,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p384gb_read2_overlay16_speed0p5/runs/20261119T150129.679817Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 370.75393576527136,
+      "p99_ttft_ms": 3691.1547417640686,
+      "mean_tpot_ms": 12.020477276536418
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p384gb_read4",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 384,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p384gb_read4_overlay16_speed0p5/runs/20261119T152204.823455Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 339.6541193862883,
+      "p99_ttft_ms": 2706.2346687316895,
+      "mean_tpot_ms": 12.020156267238558
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p384gb_read8",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 384,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p384gb_read8_overlay16_speed0p5/runs/20261119T154244.417579Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 324.62232870159465,
+      "p99_ttft_ms": 2472.5521832704544,
+      "mean_tpot_ms": 12.020097053291028
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p384gb_read16",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 384,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p384gb_read16_overlay16_speed0p5/runs/20261119T160318.190869Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 317.11897308170035,
+      "p99_ttft_ms": 2424.3479442596436,
+      "mean_tpot_ms": 12.020087124674019
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p256gb_read1",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 256,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p256gb_read1_overlay16_speed0p5/runs/20261119T162357.933052Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 680.9018690593975,
+      "p99_ttft_ms": 8291.440051078796,
+      "mean_tpot_ms": 12.024816477427908
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p256gb_read2",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 256,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p256gb_read2_overlay16_speed0p5/runs/20261119T164503.011397Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 466.57055755949204,
+      "p99_ttft_ms": 4452.033887386322,
+      "mean_tpot_ms": 12.019073738707585
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p256gb_read4",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 256,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p256gb_read4_overlay16_speed0p5/runs/20261119T170556.131632Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 384.0864550391592,
+      "p99_ttft_ms": 2967.576430618763,
+      "mean_tpot_ms": 12.018980831789383
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p256gb_read8",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 256,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p256gb_read8_overlay16_speed0p5/runs/20261119T172649.482735Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 346.35962988504286,
+      "p99_ttft_ms": 2568.988271743059,
+      "mean_tpot_ms": 12.01932483159917
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p256gb_read16",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 256,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p256gb_read16_overlay16_speed0p5/runs/20261119T174744.861302Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 327.7897844268735,
+      "p99_ttft_ms": 2456.1621966362,
+      "mean_tpot_ms": 12.01951506456211
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p128gb_read1",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 128,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p128gb_read1_overlay16_speed0p5/runs/20261119T180837.208767Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 1303.361994993937,
+      "p99_ttft_ms": 12537.745728492737,
+      "mean_tpot_ms": 12.05160655921364
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p128gb_read2",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 128,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p128gb_read2_overlay16_speed0p5/runs/20261119T183010.022043Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 665.3656955111193,
+      "p99_ttft_ms": 5108.1029324531555,
+      "mean_tpot_ms": 12.023622138437846
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p128gb_read4",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 128,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p128gb_read4_overlay16_speed0p5/runs/20261119T185142.653966Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 488.50126872925455,
+      "p99_ttft_ms": 3207.5646607875824,
+      "mean_tpot_ms": 12.019131128824782
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p128gb_read8",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 128,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p128gb_read8_overlay16_speed0p5/runs/20261119T191310.644766Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 373.3789641218803,
+      "p99_ttft_ms": 2624.209907054901,
+      "mean_tpot_ms": 12.017132290613214
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p128gb_read16",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 128,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p128gb_read16_overlay16_speed0p5/runs/20261119T193434.716815Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 341.08121601713555,
+      "p99_ttft_ms": 2480.0632147789,
+      "mean_tpot_ms": 12.018257916619932
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p64gb_read1",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 64,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p64gb_read1_overlay16_speed0p5/runs/20261119T195606.877166Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 5808.789662873729,
+      "p99_ttft_ms": 119068.09266805649,
+      "mean_tpot_ms": 12.215025622316665
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p64gb_read2",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 64,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p64gb_read2_overlay16_speed0p5/runs/20261119T201826.731321Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 4844.670252487598,
+      "p99_ttft_ms": 112653.65604829788,
+      "mean_tpot_ms": 12.14107531893937
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p64gb_read4",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 64,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p64gb_read4_overlay16_speed0p5/runs/20261119T204034.870770Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 4499.097991580712,
+      "p99_ttft_ms": 81257.30672264099,
+      "mean_tpot_ms": 12.105287743984599
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p64gb_read8",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 64,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p64gb_read8_overlay16_speed0p5/runs/20261119T210245.791498Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 4255.885817342116,
+      "p99_ttft_ms": 55695.29845094681,
+      "mean_tpot_ms": 12.081529882717165
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p64gb_read16",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 64,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/20261119T125544.183538Z/cases/swe_h200_ep8_p64gb_read16_overlay16_speed0p5/runs/20261119T212457.753675Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 2921.604280162436,
+      "p99_ttft_ms": 15440.991223573685,
+      "mean_tpot_ms": 12.062711887535954
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p1000gb_read1",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 1000,
+    "read_gbps": 1,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/supplement1000/20261119T130833.114547Z/cases/swe_h200_ep8_p1000gb_read1_overlay16_speed0p5/runs/20261119T214707.214603Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 328.4068356851908,
+      "p99_ttft_ms": 3020.8088715076447,
+      "mean_tpot_ms": 12.020564929837144
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p1000gb_read2",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 1000,
+    "read_gbps": 2,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/supplement1000/20261119T130833.114547Z/cases/swe_h200_ep8_p1000gb_read2_overlay16_speed0p5/runs/20261119T220739.894281Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 318.8350244835051,
+      "p99_ttft_ms": 2700.738344192505,
+      "mean_tpot_ms": 12.020415521688273
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p1000gb_read4",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 1000,
+    "read_gbps": 4,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/supplement1000/20261119T130833.114547Z/cases/swe_h200_ep8_p1000gb_read4_overlay16_speed0p5/runs/20261119T222814.252105Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 314.105346819777,
+      "p99_ttft_ms": 2467.086510181427,
+      "mean_tpot_ms": 12.020314924344204
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p1000gb_read8",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 1000,
+    "read_gbps": 8,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/supplement1000/20261119T130833.114547Z/cases/swe_h200_ep8_p1000gb_read8_overlay16_speed0p5/runs/20261119T224859.883889Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 311.7005672061203,
+      "p99_ttft_ms": 2403.4406513273716,
+      "mean_tpot_ms": 12.02016081199103
+    }
+  },
+  {
+    "id": "overlay16_speed0.5_p1000gb_read16",
+    "factor": 16,
+    "speedup": 0.5,
+    "dram_gb": 1000,
+    "read_gbps": 16,
+    "status": "已完成",
+    "expected_requests": 607190,
+    "source": "/mnt/d/aisim-results/swe-chat-glm52-h200-ep8-overlay16-speed0p5/supplement1000/20261119T130833.114547Z/cases/swe_h200_ep8_p1000gb_read16_overlay16_speed0p5/runs/20261119T230934.022953Z/prediction",
+    "report_summary": {
+      "completed_requests": 607190,
+      "mean_ttft_ms": 310.505301319937,
+      "p99_ttft_ms": 2398.532548427582,
+      "mean_tpot_ms": 12.020160460959122
+    }
+  }
+]

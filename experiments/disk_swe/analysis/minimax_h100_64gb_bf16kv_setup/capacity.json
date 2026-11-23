@@ -1,0 +1,95 @@
+{
+  "model": "MiniMaxAI/MiniMax-M2.5",
+  "precisions": {
+    "gemm_quant_mode": "fp8_block",
+    "moe_quant_mode": "fp8_block",
+    "fmha_quant_mode": "bfloat16",
+    "kvcache_quant_mode": "bfloat16"
+  },
+  "hbm_bytes_per_gpu": 64000000000,
+  "backup": "/home/xieqiang/project/aisimulate/experiments/disk_swe/analysis/minimax_8x_fp8kv_backup_20261120-143040",
+  "roles": {
+    "prefill": {
+      "num_gpu_blocks": 11193,
+      "memory_diagnostics": {
+        "total_gpu_capacity_bytes": 64000000000,
+        "total_kv_size_bytes": 22740058112,
+        "kv_size_per_token_bytes": 31744,
+        "total_kv_size_tokens": 716357,
+        "kvcache_quant_mode": "bfloat16",
+        "source": "native",
+        "memory_breakdown": {
+          "weights_bytes": 28677537792,
+          "activations_bytes": 2013265920,
+          "runtime_overhead_bytes": 3758096384,
+          "comm_overhead_bytes": 411041792,
+          "reserved_bytes": 0,
+          "cuda_graph_reserved_bytes": 0
+        },
+        "tolerance_adjusted": null,
+        "scheduler_block_size_tokens": 64,
+        "num_gpu_blocks": 11193
+      },
+      "kv_transfer_bytes_per_token": 31744
+    },
+    "decode": {
+      "num_gpu_blocks": 11193,
+      "memory_diagnostics": {
+        "total_gpu_capacity_bytes": 64000000000,
+        "total_kv_size_bytes": 22740058112,
+        "kv_size_per_token_bytes": 31744,
+        "total_kv_size_tokens": 716357,
+        "kvcache_quant_mode": "bfloat16",
+        "source": "native",
+        "memory_breakdown": {
+          "weights_bytes": 28677537792,
+          "activations_bytes": 2013265920,
+          "runtime_overhead_bytes": 3758096384,
+          "comm_overhead_bytes": 411041792,
+          "reserved_bytes": 0,
+          "cuda_graph_reserved_bytes": 0
+        },
+        "tolerance_adjusted": null,
+        "scheduler_block_size_tokens": 64,
+        "num_gpu_blocks": 11193
+      },
+      "kv_transfer_bytes_per_token": 31744
+    }
+  },
+  "dram": [
+    {
+      "target_gb": 1000,
+      "blocks": 61527,
+      "actual_gb": 999.993901056
+    },
+    {
+      "target_gb": 512,
+      "blocks": 31502,
+      "actual_gb": 511.999737856
+    },
+    {
+      "target_gb": 384,
+      "blocks": 23627,
+      "actual_gb": 384.007929856
+    },
+    {
+      "target_gb": 256,
+      "blocks": 15751,
+      "actual_gb": 255.999868928
+    },
+    {
+      "target_gb": 128,
+      "blocks": 7876,
+      "actual_gb": 128.008060928
+    },
+    {
+      "target_gb": 64,
+      "blocks": 3938,
+      "actual_gb": 64.004030464
+    }
+  ],
+  "kv_bytes_per_token_per_tp": 31744,
+  "block_bytes_per_tp": 2031616,
+  "block_bytes_tp8": 16252928,
+  "ssd_blocks": 3445533
+}

@@ -1,0 +1,13 @@
+{
+  "budget_passes": 5,
+  "async_passes": 3,
+  "new_requests": 3,
+  "time_compression": 1,
+  "checks": [
+    "five full 16384-token BS1 batches",
+    "tail sizes 16384+974, then BS3/1336",
+    "three new requests share admission boundary",
+    "three requests have zero KV recovery wait",
+    "queue counts non-negative at key boundaries"
+  ]
+}

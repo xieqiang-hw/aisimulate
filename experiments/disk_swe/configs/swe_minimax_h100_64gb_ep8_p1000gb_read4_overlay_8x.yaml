@@ -1,4 +1,4 @@
-# MiniMax controlled workload-shape experiment; H100 timing with 64 GB total HBM per GPU.
+# MiniMax FP8 weights/compute + BF16 KV; H100 timing, total HBM 64 decimal GB per GPU.
 traffic:
   source:
     type: trace
@@ -46,13 +46,13 @@ engine:
         host_offload:
           scope: dp_rank_local
           connector: offloading_v0_24
-          num_host_blocks: 123055
+          num_host_blocks: 61527
           d2h_bandwidth_gbps: 25.0
           h2d_bandwidth_gbps: 25.0
           latency_to_first_byte_ms: 0.0
         g3_offload:
           scope: worker_local
-          num_g3_blocks: 6891066
+          num_g3_blocks: 3445533
           read_bandwidth_gbps: 4.0
           write_bandwidth_gbps: 8.0
           latency_to_first_byte_ms: 0.1
@@ -83,6 +83,10 @@ engine:
   systems_paths:
   - /home/xieqiang/project/aisimulate/experiments/disk_swe/configs/systems_h100_64gb
   - default
+  gemm_quant_mode: fp8_block
+  moe_quant_mode: fp8_block
+  fmha_quant_mode: bfloat16
+  kvcache_quant_mode: bfloat16
 evaluation:
   sla:
     ttft_ms: 1000.0

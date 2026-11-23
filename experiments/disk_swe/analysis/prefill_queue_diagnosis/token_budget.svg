@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="640" viewBox="0 0 1180 640">
+<rect width="1180" height="640" rx="18" fill="#fff"/>
+<style>text{font-family:Microsoft YaHei,Segoe UI,sans-serif;fill:#23443b;font-size:14px}</style>
+<text x="32" y="36" style="font-size:21px;font-weight:bold">情况一：连续五轮 BS = 1，但每轮 token 预算已经用完</text>
+<text x="85" y="72" >每轮新计算 token 数（条宽 = 执行时长；不是 token/s）</text>
+<line x1="85" y1="265.0" x2="1130" y2="265.0" stroke="#e2e9e1" />
+<text x="73" y="270.0" text-anchor="end">0</text>
+<line x1="85" y1="227.5" x2="1130" y2="227.5" stroke="#e2e9e1" />
+<text x="73" y="232.5" text-anchor="end">4,096</text>
+<line x1="85" y1="190.0" x2="1130" y2="190.0" stroke="#e2e9e1" />
+<text x="73" y="195.0" text-anchor="end">8,192</text>
+<line x1="85" y1="152.5" x2="1130" y2="152.5" stroke="#e2e9e1" />
+<text x="73" y="157.5" text-anchor="end">12,288</text>
+<line x1="85" y1="115.0" x2="1130" y2="115.0" stroke="#e2e9e1" />
+<text x="73" y="120.0" text-anchor="end">16,384</text>
+<rect x="85.0" y="115.0" width="175.78806147951298" height="150.0" fill="#157d69" opacity=".82" stroke="white"/>
+<text x="172.8940307397565" y="107.0" text-anchor="middle">16,384 · BS 1</text>
+<rect x="260.788061479513" y="115.0" width="192.39450650242287" height="150.0" fill="#157d69" opacity=".82" stroke="white"/>
+<text x="356.98531473072444" y="107.0" text-anchor="middle">16,384 · BS 1</text>
+<rect x="453.18256798193585" y="115.0" width="209.00025115400894" height="150.0" fill="#157d69" opacity=".82" stroke="white"/>
+<text x="557.6826935589403" y="107.0" text-anchor="middle">16,384 · BS 1</text>
+<rect x="662.1828191359448" y="115.0" width="225.60582850669778" height="150.0" fill="#157d69" opacity=".82" stroke="white"/>
+<text x="774.9857333892937" y="107.0" text-anchor="middle">16,384 · BS 1</text>
+<rect x="887.7886476426426" y="115.0" width="242.21135235735744" height="150.0" fill="#157d69" opacity=".82" stroke="white"/>
+<text x="1008.8943238213212" y="107.0" text-anchor="middle">16,384 · BS 1</text>
+<line x1="85" y1="115.0" x2="1130" y2="115.0" stroke="#8e9b91" stroke-dasharray="5 4"/>
+<text x="85" y="340" >P 首次准入前等待请求数（逐请求事件，包含调度与 KV 恢复等待）</text>
+<line x1="85" y1="535.0" x2="1130" y2="535.0" stroke="#e2e9e1" />
+<text x="73" y="540.0" text-anchor="end">0</text>
+<line x1="85" y1="493.75" x2="1130" y2="493.75" stroke="#e2e9e1" />
+<text x="73" y="498.75" text-anchor="end">4</text>
+<line x1="85" y1="452.5" x2="1130" y2="452.5" stroke="#e2e9e1" />
+<text x="73" y="457.5" text-anchor="end">8</text>
+<line x1="85" y1="411.25" x2="1130" y2="411.25" stroke="#e2e9e1" />
+<text x="73" y="416.25" text-anchor="end">12</text>
+<line x1="85" y1="370.0" x2="1130" y2="370.0" stroke="#e2e9e1" />
+<text x="73" y="375.0" text-anchor="end">16</text>
+<path d="M 85 514.375 H 258.18987042841013 V 504.0625 H 491.7589077158488 V 493.75 H 501.7950772867934 V 483.4375 H 528.171126241838 V 473.125 H 557.2013688024216 V 462.8125 H 641.223185127768 V 452.5 H 796.3276239514577 V 442.1875 H 857.1252462283372 V 431.875 H 972.6656116194602 V 421.5625 H 1047.1489196749003 V 411.25 H 1130.0 V 452.5 H 1130" fill="none" stroke="#157d69" stroke-width="2.5"/>
+<text x="85.0" y="290" text-anchor="middle">0.00</text>
+<text x="85.0" y="560" text-anchor="middle">0.00</text>
+<text x="293.9999999980225" y="290" text-anchor="middle">2.52</text>
+<text x="293.9999999980225" y="560" text-anchor="middle">2.52</text>
+<text x="502.99999999604495" y="290" text-anchor="middle">5.04</text>
+<text x="502.99999999604495" y="560" text-anchor="middle">5.04</text>
+<text x="712.000000003955" y="290" text-anchor="middle">7.56</text>
+<text x="712.000000003955" y="560" text-anchor="middle">7.56</text>
+<text x="921.0000000019776" y="290" text-anchor="middle">10.08</text>
+<text x="921.0000000019776" y="560" text-anchor="middle">10.08</text>
+<text x="1130.0" y="290" text-anchor="middle">12.60</text>
+<text x="1130.0" y="560" text-anchor="middle">12.60</text>
+<text x="85" y="606" >普通队列快照中的等待数为 2、3、3、8、10；与下图总等待口径不同。</text>
+<text x="1130" y="580" text-anchor="end">横轴：距当前视图起点的秒数；上下图使用同一时间轴。</text>
+</svg>
