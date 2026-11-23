@@ -1,0 +1,88 @@
+traffic:
+  source:
+    type: trace
+    format: mooncake
+    paths:
+    - /home/xieqiang/project/data/chat/derived/mooncake-v1/mooncake-synthetic/requests.jsonl
+    block_size: 16
+  load:
+    type: trace_timestamps
+    speedup: 1.0
+engine:
+  mode: disaggregated
+  model: zai-org/GLM-5.2-FP8
+  hardware: h200_sxm
+  backend: vllm
+  backend_version: 0.24.0
+  context_length: 131072
+  estimation_mode: op_level
+  fallback_policy: deny
+  database_mode: SILICON
+  enable_chunked_prefill: true
+  kv_transfer:
+    bytes_per_token: auto
+    bandwidth_gb_per_second: 50.0
+    timing_mode: destination_missing
+  workers:
+    prefill:
+      parallelism:
+        replicas: 1
+        tensor: 8
+        pipeline: 1
+        attention_data: 1
+        moe_tensor: 1
+        moe_expert: 8
+      scheduler:
+        max_batched_tokens: 16384
+        max_sequences: 32
+      kv_cache:
+        block_size: 64
+        prefix_caching: true
+        bytes_per_token: auto
+        capacity:
+          type: default
+          memory_fraction: 0.9
+        host_offload:
+          scope: dp_rank_local
+          connector: offloading_v0_24
+          num_host_blocks: 4152
+          d2h_bandwidth_gbps: 25.0
+          h2d_bandwidth_gbps: 25.0
+          latency_to_first_byte_ms: 0.0
+        g3_offload:
+          scope: worker_local
+          num_g3_blocks: 1816378
+          read_bandwidth_gbps: 1
+          write_bandwidth_gbps: 8.0
+          latency_to_first_byte_ms: 0.1
+      timing:
+        type: default
+      startup_seconds: 0.0
+    decode:
+      parallelism:
+        replicas: 1
+        tensor: 8
+        pipeline: 1
+        attention_data: 1
+        moe_tensor: 1
+        moe_expert: 8
+      scheduler:
+        max_batched_tokens: 16384
+        max_sequences: 256
+      kv_cache:
+        block_size: 64
+        prefix_caching: true
+        bytes_per_token: auto
+        capacity:
+          type: default
+          memory_fraction: 0.9
+      timing:
+        type: default
+      startup_seconds: 0.0
+evaluation:
+  sla:
+    ttft_ms: 1000.0
+    itl_ms: 30.0
+execution:
+  resources:
+    initialization_timeout_seconds: 600.0

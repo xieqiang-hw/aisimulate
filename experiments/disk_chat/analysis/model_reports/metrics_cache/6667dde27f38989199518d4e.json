@@ -1,0 +1,51 @@
+{
+  "signature": [
+    [
+      "/home/xieqiang/project/results/chat-glm52-h200-sweep/20261123T072913.530888Z/cases/qwen-chat_glm52_h200_ep8_p128gb_read4_1x/20261123T072936.571239Z/run.json",
+      1608,
+      1795418999254492359
+    ],
+    [
+      "/home/xieqiang/project/results/chat-glm52-h200-sweep/20261123T072913.530888Z/cases/qwen-chat_glm52_h200_ep8_p128gb_read4_1x/20261123T072936.571239Z/prediction/prediction.json",
+      151160509,
+      1795418997833052841
+    ],
+    [
+      "/home/xieqiang/project/results/chat-glm52-h200-sweep/20261123T072913.530888Z/cases/qwen-chat_glm52_h200_ep8_p128gb_read4_1x/20261123T072936.571239Z/prediction/requests.jsonl",
+      108100504,
+      1795418998995014711
+    ],
+    [
+      "/home/xieqiang/project/results/chat-glm52-h200-sweep/20261123T072913.530888Z/cases/qwen-chat_glm52_h200_ep8_p128gb_read4_1x/20261123T072936.571239Z/prediction/resource-runtime.json",
+      668,
+      1795418999211552044
+    ],
+    [
+      "/home/xieqiang/project/aisimulate/experiments/disk_chat/scripts/refresh_experiments.py",
+      19403,
+      1795419221560857084
+    ]
+  ],
+  "metrics": {
+    "hbm": 16.18630856915954,
+    "dram": 0.0,
+    "ssd": 40.6681010769633,
+    "reuse": 56.854409646122846,
+    "input_tokens": 100382715,
+    "adjusted_coverage": 43058,
+    "adjusted_mean": 8.594700539839412,
+    "adjusted_p99": 29.074559099369704,
+    "completed": 43058,
+    "sla": 0.9847182869617724,
+    "p99_ttft": 284.0676207386572,
+    "mean_ttft": 38.359329767096334,
+    "tpot": 418.8248952163363,
+    "ssd_read": 2.45837359872,
+    "wall_seconds": 22.530674940999234,
+    "memory": 0.725635072,
+    "memory_budget_gb": 10.828833177,
+    "memory_budget_mode": "auto",
+    "rps": null,
+    "simulation_seconds": 8001.819635608667
+  }
+}
