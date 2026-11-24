@@ -180,6 +180,8 @@ cases/<case>/<UTC timestamp>/
 
 ## 实验结果记录
 
+- [Trace 负载特征对比](trace_comparison.md)（SWE 原速包与七个 Chat 包的到达、长度和前缀统计）。
+
 - [GLM-5.2 实验记录](glm52_experiments.md)：七组正式全量 baseline 的性能、复用与运行资源。
 - [交互 HTML](glm52_experiments.html)：与 SWE 页面共用布局；按数据集切换 DRAM 容量扫描、SSD 读带宽扫描、带宽与容量对照，附分层复用和 SSD 读取量图，可导出 CSV。
 - `analysis/model_reports/glm52_rows.json`：机器可读快照与原始结果路径。

@@ -1,0 +1,43 @@
+{
+  "model": "MiniMaxAI/MiniMax-M2.5",
+  "factor": 32,
+  "speedup": 1,
+  "budget_tokens": 16384,
+  "cases": 30,
+  "requests_per_case": 607190,
+  "source_report": "/home/xieqiang/project/aisimulate/experiments/disk_swe/minimax_experiments.md",
+  "source_rows": "/home/xieqiang/project/aisimulate/experiments/disk_swe/analysis/model_reports/minimax_rows.json",
+  "source_sha256": "f0a2e9651e88139d40950549ca96b14e476d3f79686e7579cb15bcd8a77abc76",
+  "source_values_are_rounded_report_snapshots": true,
+  "request_level_data_reprocessed": false,
+  "aisim_version": "0.14.0",
+  "repository_revision": "25824ed12744be4c183ce800eb2a1587343b46db",
+  "bundle_manifest": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-overlay-32x/manifest.json",
+  "bundle_manifest_sha256": "4cdef256927df0fad015e2e1b244949a17c4fc7900bbc5c2f66f20596361f707",
+  "overlay": {
+    "factor": 32,
+    "segment_ms": 625831843,
+    "replay_speedup": 1,
+    "parent_bundle": "claude-code-main-glm52-128k",
+    "parent_manifest_sha256": "b9353e748091b573e83680920a1281230f5b72a3e6cf9777ee025c55fefdc976",
+    "session_assignment": "first retained request",
+    "source_span_ms": 20026618971,
+    "replay_span_ms": 2861107739,
+    "effective_density_multiplier": 6.9996032299012985,
+    "session_count": 10962,
+    "crossing_sessions": 219,
+    "overflow_sessions": 219,
+    "overflow_requests": 11811
+  },
+  "trace_policy": {
+    "timestamp_policy": "Relative milliseconds from parent replay, shifted by session start segment; first_response_event_at remains the original arrival proxy",
+    "history_policy": "logged messages only; system prompts and tool schemas omitted",
+    "output_policy": "rendered completion plus EOS; lengths always recorded",
+    "extraction_policy": "requestId and tool ID linkage required to join interleaved fragments"
+  },
+  "platform_reference": "https://github.com/ai-dynamo/aisim",
+  "dataset_reference": "https://huggingface.co/datasets/SALT-NLP/SWE-chat",
+  "reference_config_source": "/home/xieqiang/project/aisimulate/experiments/disk_swe/configs/swe_minimax_h100_64gb_ep8_p256gb_read2_overlay_32x.yaml",
+  "references_checked_date": "2026-11-23",
+  "ssd_read_tb_scope": "Per TP shard: G3Tier block_bytes = rank.block_size * rank.kv_cache_bytes_per_token; snapshot is not multiplied by TP. Node-equivalent traffic is 8x under balanced TP8."
+}

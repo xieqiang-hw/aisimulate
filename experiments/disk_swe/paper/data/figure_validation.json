@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "cases": 30,
+  "selected_factor": 32,
+  "budget_tokens": 16384,
+  "speedup": 1,
+  "bandwidths": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "dram_gb": [
+    64,
+    128,
+    256,
+    384,
+    512,
+    1000
+  ],
+  "checks": [
+    "complete 6 x 5 matrix",
+    "all cases completed 607190 requests",
+    "fixed-bandwidth reuse plot uses 8 GB/s only"
+  ],
+  "comparisons": {
+    "ssd_read_128_vs_512_at_8": 7.377745161991737,
+    "p99_penalty_64_vs_512_at_1": 3.8899999999999997,
+    "p99_penalty_64_vs_512_at_8": 0.22999999999999998
+  }
+}

@@ -1,0 +1,863 @@
+{
+  "generated": "2026-11-23T15:59:48+08:00",
+  "datasets": {
+    "swe-claude-code": {
+      "bundle": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k",
+      "manifest_request_count": 607190,
+      "start": "2026-01-15T20:30:19.799Z",
+      "end": "2026-09-04T15:27:18.769Z",
+      "span_seconds": 20026618.97,
+      "rps": 0.030319146777075773,
+      "input": {
+        "p50": 39659.0,
+        "p95": 108498.09999999986,
+        "p99": 125634.10999999999,
+        "mean": 45572.406724419045,
+        "max": 131042.0
+      },
+      "output": {
+        "p50": 103.0,
+        "p95": 910.0,
+        "p99": 2410.0,
+        "mean": 253.10268943823186,
+        "max": 38726.0
+      },
+      "context": {
+        "p50": 39927.5,
+        "p95": 108754.54999999993,
+        "p99": 125874.0,
+        "mean": 45825.509413857275,
+        "max": 131072.0
+      },
+      "input_tokens": 27671109639,
+      "output_tokens": 153681422,
+      "pct_context_gt_32k": 57.99140302047135,
+      "pct_context_gt_64k": 26.8785717814852,
+      "arrivals_per_second": {
+        "p50": 0.0,
+        "p95": 0.0,
+        "p99": 1.0,
+        "mean": 0.0303191467316575,
+        "max": 6.0
+      },
+      "arrivals_per_minute": {
+        "p50": 0.0,
+        "p95": 9.0,
+        "p99": 16.0,
+        "mean": 1.8191487130629134,
+        "max": 49.0
+      },
+      "active_second_pct": 2.9242579588696427,
+      "same_timestamp_adjacent_pct": 0.984372246532793,
+      "positive_arrival_gap_ms": {
+        "p50": 6211.00000012666,
+        "p95": 75216.80000135656,
+        "p99": 371775.18999977136,
+        "mean": 33310.41125260307,
+        "max": 173577514.0
+      },
+      "types": {},
+      "sessions": 10962,
+      "session_requests": {
+        "p50": 37.0,
+        "p95": 170.0,
+        "p99": 240.38999999999942,
+        "mean": 55.390439700784526,
+        "max": 658.0
+      },
+      "single_request_session_pct": 2.0343003101623793,
+      "same_session_pairs": 596228,
+      "same_session_gap_seconds": {
+        "p50": 8.532,
+        "p95": 183.14295000000007,
+        "p99": 1135.7211299999985,
+        "mean": 211.13734876255393,
+        "max": 1565410.048
+      },
+      "equal_time_session_pairs": 0,
+      "consecutive_ordinal_pairs": 596211,
+      "paired_input_tokens": 27662784275,
+      "prefix16_weighted_pct": 97.7190803184254,
+      "prefix64_weighted_pct": 97.66732714760326,
+      "prefix64_all_input_pct": 97.6379421297988,
+      "prefix16_request_ratio": {
+        "p50": 0.9902967197879844,
+        "p95": 0.9987699608867848,
+        "p99": 0.9993704051157398,
+        "mean": 0.9388999648733829,
+        "max": 0.9999307910582047
+      },
+      "prefix16_pairs_ge90_pct": 88.0017375903178,
+      "source": {
+        "timestamp_policy": "first response event proxy, relative milliseconds",
+        "scope": "Claude Code main transcripts with verified tool interleaving and explicit-root recovery",
+        "source_block_size": null,
+        "model_mapping_policy": null,
+        "arrival_kind": null,
+        "selection": null,
+        "diagnostics": {
+          "indexed_sessions": 17968,
+          "other_client_sessions": 5551,
+          "attempted_sessions": 11334,
+          "paused_at_compaction": 987,
+          "trailing_input_events": 2402,
+          "extracted_calls": 709396,
+          "tokenized_input_tokens": 49148374008,
+          "emitted_requests": 607190,
+          "emitted_input_tokens": 27671109639,
+          "meta_user_events": 15757,
+          "paused_at_ambiguous_assistant": 1228,
+          "incomplete_calls_discarded": 1984,
+          "verified_interleave_boundaries": 101327,
+          "over_context_limit": 102111,
+          "over_context_input_tokens": 21477264369,
+          "paused_at_unresolved_interleave": 841,
+          "unmatched_tool_results": 672,
+          "paused_at_noncontiguous_response": 20,
+          "sessions_without_calls": 363,
+          "sessions_missing_initial_input": 2,
+          "calls_missing_initial_history": 95,
+          "missing_transcripts": 149,
+          "invalid_transcripts": 6,
+          "non_main_or_delta_only_sessions": 934
+        },
+        "time_range": null
+      }
+    },
+    "qwen-chat": {
+      "bundle": "/home/xieqiang/project/data/chat/derived/mooncake-v1/qwen-chat",
+      "manifest_request_count": 43058,
+      "start": null,
+      "end": null,
+      "span_seconds": 7199.464,
+      "rps": 5.980723009379587,
+      "input": {
+        "p50": 1046.0,
+        "p95": 8808.150000000001,
+        "p99": 14364.590000000004,
+        "mean": 2331.337149890845,
+        "max": 89286.0
+      },
+      "output": {
+        "p50": 375.5,
+        "p95": 1032.0,
+        "p99": 1641.4300000000003,
+        "mean": 430.47259510427796,
+        "max": 8000.0
+      },
+      "context": {
+        "p50": 1422.0,
+        "p95": 9459.300000000003,
+        "p99": 15204.160000000003,
+        "mean": 2761.809744995123,
+        "max": 89968.0
+      },
+      "input_tokens": 100382715,
+      "output_tokens": 18535289,
+      "pct_context_gt_32k": 0.04412652701007942,
+      "pct_context_gt_64k": 0.01857959032003344,
+      "arrivals_per_second": {
+        "p50": 6.0,
+        "p95": 11.0,
+        "p99": 13.0,
+        "mean": 5.980277777777777,
+        "max": 18.0
+      },
+      "arrivals_per_minute": {
+        "p50": 366.5,
+        "p95": 474.1,
+        "p99": 484.05,
+        "mean": 358.81666666666666,
+        "max": 488.0
+      },
+      "active_second_pct": 99.48611111111111,
+      "same_timestamp_adjacent_pct": 0.3228278793227582,
+      "positive_arrival_gap_ms": {
+        "p50": 113.00000000028376,
+        "p95": 515.0000000003274,
+        "p99": 815.000000000432,
+        "mean": 167.74928934246702,
+        "max": 3154.0000000000036
+      },
+      "types": {
+        "text": 31744,
+        "image": 1617,
+        "search": 8187,
+        "file": 1510
+      },
+      "sessions": 23101,
+      "session_requests": {
+        "p50": 1.0,
+        "p95": 5.0,
+        "p99": 8.0,
+        "mean": 1.8639019955846068,
+        "max": 37.0
+      },
+      "single_request_session_pct": 60.98870178780139,
+      "same_session_pairs": 19957,
+      "same_session_gap_seconds": {
+        "p50": 110.645,
+        "p95": 1151.9440000000009,
+        "p99": 2207.34428,
+        "mean": 275.2028749812096,
+        "max": 4054.456
+      },
+      "equal_time_session_pairs": 0,
+      "consecutive_ordinal_pairs": 19957,
+      "paired_input_tokens": 60253510,
+      "prefix16_weighted_pct": 81.48313351371563,
+      "prefix64_weighted_pct": 80.73493477807351,
+      "prefix64_all_input_pct": 48.46016766930442,
+      "prefix16_request_ratio": {
+        "p50": 0.7301378857518056,
+        "p95": 0.9544211984481553,
+        "p99": 0.9759153797121806,
+        "mean": 0.6706998462636703,
+        "max": 0.9961089494163424
+      },
+      "prefix16_pairs_ge90_pct": 20.05311419552037,
+      "source": {
+        "timestamp_policy": "relative milliseconds, normalized to first emitted request; no speedup",
+        "scope": "static per-request replay of observed timestamps; session metadata in sidecar only",
+        "source_block_size": 16,
+        "model_mapping_policy": "source token counts retained; no retokenization to target model",
+        "arrival_kind": "observed",
+        "selection": {
+          "start_seconds": 0,
+          "duration_seconds": null,
+          "max_requests": 0,
+          "request_types": null
+        },
+        "diagnostics": {
+          "source_requests": 43058,
+          "source_sessions": 23101,
+          "emitted_requests": 43058
+        },
+        "time_range": {
+          "source_first_ms": 0.0,
+          "source_last_ms": 7199464.0,
+          "source_span_seconds": 7199.464,
+          "selected_first_source_timestamp": 0.0,
+          "selected_span_seconds": 7199.464
+        }
+      }
+    },
+    "qwen-api": {
+      "bundle": "/home/xieqiang/project/data/chat/derived/mooncake-v1/qwen-api",
+      "manifest_request_count": 172800,
+      "start": null,
+      "end": null,
+      "span_seconds": 7199.97,
+      "rps": 24.00010000041667,
+      "input": {
+        "p50": 574.0,
+        "p95": 2491.0,
+        "p99": 6294.010000000009,
+        "mean": 914.5203298611111,
+        "max": 66446.0
+      },
+      "output": {
+        "p50": 39.0,
+        "p95": 328.0,
+        "p99": 1006.0200000000186,
+        "mean": 91.62747685185185,
+        "max": 8192.0
+      },
+      "context": {
+        "p50": 667.0,
+        "p95": 2700.0,
+        "p99": 6894.0,
+        "mean": 1006.147806712963,
+        "max": 68606.0
+      },
+      "input_tokens": 158029113,
+      "output_tokens": 15833228,
+      "pct_context_gt_32k": 0.009259259259259259,
+      "pct_context_gt_64k": 0.0005787037037037037,
+      "arrivals_per_second": {
+        "p50": 24.0,
+        "p95": 36.0,
+        "p99": 41.0,
+        "mean": 24.0,
+        "max": 52.0
+      },
+      "arrivals_per_minute": {
+        "p50": 1415.0,
+        "p95": 1867.6499999999999,
+        "p99": 1936.67,
+        "mean": 1440.0,
+        "max": 1961.0
+      },
+      "active_second_pct": 100.0,
+      "same_timestamp_adjacent_pct": 1.2887806063692497,
+      "positive_arrival_gap_ms": {
+        "p50": 28.999999999541615,
+        "p95": 128.00000000015643,
+        "p99": 204.00000000002422,
+        "mean": 42.21073798747743,
+        "max": 514.0000000001237
+      },
+      "types": {
+        "api": 150936,
+        "text": 21864
+      },
+      "sessions": 172800,
+      "session_requests": {
+        "p50": 1.0,
+        "p95": 1.0,
+        "p99": 1.0,
+        "mean": 1.0,
+        "max": 1.0
+      },
+      "single_request_session_pct": 100.0,
+      "same_session_pairs": 0,
+      "same_session_gap_seconds": null,
+      "equal_time_session_pairs": 0,
+      "consecutive_ordinal_pairs": 0,
+      "paired_input_tokens": 0,
+      "prefix16_weighted_pct": null,
+      "prefix64_weighted_pct": null,
+      "prefix64_all_input_pct": 0.0,
+      "prefix16_request_ratio": null,
+      "prefix16_pairs_ge90_pct": null,
+      "source": {
+        "timestamp_policy": "relative milliseconds, normalized to first emitted request; no speedup",
+        "scope": "static per-request replay of observed timestamps; session metadata in sidecar only",
+        "source_block_size": 16,
+        "model_mapping_policy": "source token counts retained; no retokenization to target model",
+        "arrival_kind": "observed",
+        "selection": {
+          "start_seconds": 0,
+          "duration_seconds": null,
+          "max_requests": 0,
+          "request_types": null
+        },
+        "diagnostics": {
+          "source_requests": 172800,
+          "source_sessions": 172800,
+          "emitted_requests": 172800
+        },
+        "time_range": {
+          "source_first_ms": 0.0,
+          "source_last_ms": 7199970.0,
+          "source_span_seconds": 7199.97,
+          "selected_first_source_timestamp": 0.0,
+          "selected_span_seconds": 7199.97
+        }
+      }
+    },
+    "qwen-thinking": {
+      "bundle": "/home/xieqiang/project/data/chat/derived/mooncake-v1/qwen-thinking",
+      "manifest_request_count": 10812,
+      "start": null,
+      "end": null,
+      "span_seconds": 7191.734,
+      "rps": 1.503392644944877,
+      "input": {
+        "p50": 3680.0,
+        "p95": 16221.299999999985,
+        "p99": 24972.679999999993,
+        "mean": 4762.884850166482,
+        "max": 51622.0
+      },
+      "output": {
+        "p50": 1665.5,
+        "p95": 12669.599999999991,
+        "p99": 34686.5299999999,
+        "mean": 3650.7729374768774,
+        "max": 75990.0
+      },
+      "context": {
+        "p50": 5725.5,
+        "p95": 22763.899999999998,
+        "p99": 36811.269999999975,
+        "mean": 8413.657787643358,
+        "max": 76132.0
+      },
+      "input_tokens": 51496311,
+      "output_tokens": 39472157,
+      "pct_context_gt_32k": 1.4520902700702922,
+      "pct_context_gt_64k": 0.04624491305956345,
+      "arrivals_per_second": {
+        "p50": 1.0,
+        "p95": 4.0,
+        "p99": 8.0,
+        "mean": 1.503337041156841,
+        "max": 40.0
+      },
+      "arrivals_per_minute": {
+        "p50": 83.0,
+        "p95": 199.25,
+        "p99": 232.24,
+        "mean": 90.1,
+        "max": 258.0
+      },
+      "active_second_pct": 69.49388209121246,
+      "same_timestamp_adjacent_pct": 0.39774303949680884,
+      "positive_arrival_gap_ms": {
+        "p50": 371.99999999984357,
+        "p95": 2399.5500000001784,
+        "p99": 4012.9999999999386,
+        "mean": 667.8802005943536,
+        "max": 11788.999999999987
+      },
+      "types": {
+        "thinking": 10812
+      },
+      "sessions": 9612,
+      "session_requests": {
+        "p50": 1.0,
+        "p95": 2.0,
+        "p99": 5.0,
+        "mean": 1.1248439450686643,
+        "max": 16.0
+      },
+      "single_request_session_pct": 94.70453599667083,
+      "same_session_pairs": 1200,
+      "same_session_gap_seconds": {
+        "p50": 28.572,
+        "p95": 449.4654499999993,
+        "p99": 1533.348269999999,
+        "mean": 122.58034666666667,
+        "max": 5415.271
+      },
+      "equal_time_session_pairs": 0,
+      "consecutive_ordinal_pairs": 1200,
+      "paired_input_tokens": 10054609,
+      "prefix16_weighted_pct": 77.19588101337406,
+      "prefix64_weighted_pct": 76.9156513197082,
+      "prefix64_all_input_pct": 15.01771262799776,
+      "prefix16_request_ratio": {
+        "p50": 0.8339180090841378,
+        "p95": 0.9880179607862837,
+        "p99": 0.9940574521519991,
+        "mean": 0.682837352150727,
+        "max": 0.9995820213447767
+      },
+      "prefix16_pairs_ge90_pct": 39.916666666666664,
+      "source": {
+        "timestamp_policy": "relative milliseconds, normalized to first emitted request; no speedup",
+        "scope": "static per-request replay of observed timestamps; session metadata in sidecar only",
+        "source_block_size": 16,
+        "model_mapping_policy": "source token counts retained; no retokenization to target model",
+        "arrival_kind": "observed",
+        "selection": {
+          "start_seconds": 0,
+          "duration_seconds": null,
+          "max_requests": 0,
+          "request_types": null
+        },
+        "diagnostics": {
+          "source_requests": 10812,
+          "source_sessions": 9612,
+          "emitted_requests": 10812
+        },
+        "time_range": {
+          "source_first_ms": 0.0,
+          "source_last_ms": 7191734.0,
+          "source_span_seconds": 7191.734,
+          "selected_first_source_timestamp": 0.0,
+          "selected_span_seconds": 7191.734
+        }
+      }
+    },
+    "qwen-coder": {
+      "bundle": "/home/xieqiang/project/data/chat/derived/mooncake-v1/qwen-coder",
+      "manifest_request_count": 43011,
+      "start": null,
+      "end": null,
+      "span_seconds": 7198.879,
+      "rps": 5.9746802245182895,
+      "input": {
+        "p50": 4540.0,
+        "p95": 13406.5,
+        "p99": 14406.900000000001,
+        "mean": 5747.65592522843,
+        "max": 25777.0
+      },
+      "output": {
+        "p50": 469.0,
+        "p95": 2699.0,
+        "p99": 5842.200000000012,
+        "mean": 808.2571900211574,
+        "max": 35031.0
+      },
+      "context": {
+        "p50": 5505.0,
+        "p95": 13889.0,
+        "p99": 16772.0,
+        "mean": 6555.9131152495875,
+        "max": 41865.0
+      },
+      "input_tokens": 247212429,
+      "output_tokens": 34763950,
+      "pct_context_gt_32k": 0.030224826207249308,
+      "pct_context_gt_64k": 0.0,
+      "arrivals_per_second": {
+        "p50": 6.0,
+        "p95": 10.0,
+        "p99": 12.0,
+        "mean": 5.974579802750382,
+        "max": 19.0
+      },
+      "arrivals_per_minute": {
+        "p50": 364.0,
+        "p95": 421.05,
+        "p99": 450.15000000000003,
+        "mean": 358.425,
+        "max": 461.0
+      },
+      "active_second_pct": 99.66662036393944,
+      "same_timestamp_adjacent_pct": 0.29528016740292956,
+      "positive_arrival_gap_ms": {
+        "p50": 115.00000000023647,
+        "p95": 502.00000000016234,
+        "p99": 778.0000000002474,
+        "mean": 167.8725602219994,
+        "max": 1857.9999999999757
+      },
+      "types": {
+        "coder": 43011
+      },
+      "sessions": 26406,
+      "session_requests": {
+        "p50": 1.0,
+        "p95": 4.0,
+        "p99": 9.0,
+        "mean": 1.6288343558282208,
+        "max": 54.0
+      },
+      "single_request_session_pct": 74.6534878436719,
+      "same_session_pairs": 16605,
+      "same_session_gap_seconds": {
+        "p50": 117.716,
+        "p95": 1609.0867999999998,
+        "p99": 3488.713759999995,
+        "mean": 357.0185140620295,
+        "max": 6694.424
+      },
+      "equal_time_session_pairs": 0,
+      "consecutive_ordinal_pairs": 16605,
+      "paired_input_tokens": 97290023,
+      "prefix16_weighted_pct": 79.44426531793502,
+      "prefix64_weighted_pct": 79.02975210520816,
+      "prefix64_all_input_pct": 31.102021978029267,
+      "prefix16_request_ratio": {
+        "p50": 0.774612801906206,
+        "p95": 0.9780161617946933,
+        "p99": 0.9940314704286489,
+        "mean": 0.6948429062274215,
+        "max": 0.9990596200865149
+      },
+      "prefix16_pairs_ge90_pct": 25.956037338151162,
+      "source": {
+        "timestamp_policy": "relative milliseconds, normalized to first emitted request; no speedup",
+        "scope": "static per-request replay of observed timestamps; session metadata in sidecar only",
+        "source_block_size": 16,
+        "model_mapping_policy": "source token counts retained; no retokenization to target model",
+        "arrival_kind": "observed",
+        "selection": {
+          "start_seconds": 0,
+          "duration_seconds": null,
+          "max_requests": 0,
+          "request_types": null
+        },
+        "diagnostics": {
+          "source_requests": 43011,
+          "source_sessions": 26406,
+          "emitted_requests": 43011
+        },
+        "time_range": {
+          "source_first_ms": 0.0,
+          "source_last_ms": 7198879.0,
+          "source_span_seconds": 7198.879,
+          "selected_first_source_timestamp": 0.0,
+          "selected_span_seconds": 7198.879
+        }
+      }
+    },
+    "mooncake-chat": {
+      "bundle": "/home/xieqiang/project/data/chat/derived/mooncake-v1/mooncake-chat",
+      "manifest_request_count": 12031,
+      "start": null,
+      "end": null,
+      "span_seconds": 3536.999,
+      "rps": 3.4014711341450763,
+      "input": {
+        "p50": 6909.0,
+        "p95": 39550.5,
+        "p99": 85400.4,
+        "mean": 12035.061341534369,
+        "max": 126195.0
+      },
+      "output": {
+        "p50": 350.0,
+        "p95": 698.0,
+        "p99": 1118.5000000000036,
+        "mean": 342.6189011719724,
+        "max": 2000.0
+      },
+      "context": {
+        "p50": 7255.0,
+        "p95": 40052.0,
+        "p99": 85850.80000000002,
+        "mean": 12377.680242706341,
+        "max": 126527.0
+      },
+      "input_tokens": 144793823,
+      "output_tokens": 4122048,
+      "pct_context_gt_32k": 7.031834427728369,
+      "pct_context_gt_64k": 2.1361482836006984,
+      "arrivals_per_second": {
+        "p50": 0.0,
+        "p95": 14.0,
+        "p99": 17.0,
+        "mean": 3.4014701724625387,
+        "max": 28.0
+      },
+      "arrivals_per_minute": {
+        "p50": 207.0,
+        "p95": 238.2,
+        "p99": 247.0,
+        "mean": 203.91525423728814,
+        "max": 247.0
+      },
+      "active_second_pct": 33.36160588068985,
+      "same_timestamp_adjacent_pct": 90.19950124688279,
+      "positive_arrival_gap_ms": {
+        "p50": 3000.0,
+        "p95": 3001.0000000002037,
+        "p99": 3001.0000000002037,
+        "mean": 2999.9991518235793,
+        "max": 3003.0000000001564
+      },
+      "types": {},
+      "sessions": null,
+      "session_requests": null,
+      "single_request_session_pct": null,
+      "same_session_pairs": 0,
+      "same_session_gap_seconds": null,
+      "equal_time_session_pairs": 0,
+      "consecutive_ordinal_pairs": 0,
+      "paired_input_tokens": 0,
+      "prefix16_weighted_pct": null,
+      "prefix64_weighted_pct": null,
+      "prefix64_all_input_pct": null,
+      "prefix16_request_ratio": null,
+      "prefix16_pairs_ge90_pct": null,
+      "source": {
+        "timestamp_policy": "relative milliseconds, normalized to first emitted request; no speedup",
+        "scope": "static per-request replay of observed timestamps; session metadata in sidecar only",
+        "source_block_size": 512,
+        "model_mapping_policy": "source token counts retained; no retokenization to target model",
+        "arrival_kind": "observed",
+        "selection": {
+          "start_seconds": 0,
+          "duration_seconds": null,
+          "max_requests": 0,
+          "request_types": null
+        },
+        "diagnostics": {
+          "source_requests": 12031,
+          "emitted_requests": 12031
+        },
+        "time_range": {
+          "source_first_ms": 0.0,
+          "source_last_ms": 3536999.0,
+          "source_span_seconds": 3536.999,
+          "selected_first_source_timestamp": 0,
+          "selected_span_seconds": 3536.999
+        }
+      }
+    },
+    "mooncake-agent": {
+      "bundle": "/home/xieqiang/project/data/chat/derived/mooncake-v1/mooncake-agent",
+      "manifest_request_count": 23608,
+      "start": null,
+      "end": null,
+      "span_seconds": 3536.999,
+      "rps": 6.674584867001659,
+      "input": {
+        "p50": 6346.0,
+        "p95": 26110.499999999978,
+        "p99": 61660.78000000004,
+        "mean": 8596.242121314808,
+        "max": 126195.0
+      },
+      "output": {
+        "p50": 30.0,
+        "p95": 600.0,
+        "p99": 897.9300000000003,
+        "mean": 182.1338952897323,
+        "max": 2000.0
+      },
+      "context": {
+        "p50": 6403.0,
+        "p95": 26439.34999999996,
+        "p99": 61962.99000000001,
+        "mean": 8778.376016604541,
+        "max": 126527.0
+      },
+      "input_tokens": 202940084,
+      "output_tokens": 4299817,
+      "pct_context_gt_32k": 3.1472382243307355,
+      "pct_context_gt_64k": 0.9064723822433073,
+      "arrivals_per_second": {
+        "p50": 0.0,
+        "p95": 26.0,
+        "p99": 32.0,
+        "mean": 6.674582979926491,
+        "max": 47.0
+      },
+      "arrivals_per_minute": {
+        "p50": 407.0,
+        "p95": 456.29999999999995,
+        "p99": 465.52,
+        "mean": 400.135593220339,
+        "max": 469.0
+      },
+      "active_second_pct": 33.36160588068985,
+      "same_timestamp_adjacent_pct": 95.00571864277545,
+      "positive_arrival_gap_ms": {
+        "p50": 3000.0,
+        "p95": 3001.0000000002037,
+        "p99": 3001.0000000002037,
+        "mean": 2999.9991518235793,
+        "max": 3003.0000000001564
+      },
+      "types": {},
+      "sessions": null,
+      "session_requests": null,
+      "single_request_session_pct": null,
+      "same_session_pairs": 0,
+      "same_session_gap_seconds": null,
+      "equal_time_session_pairs": 0,
+      "consecutive_ordinal_pairs": 0,
+      "paired_input_tokens": 0,
+      "prefix16_weighted_pct": null,
+      "prefix64_weighted_pct": null,
+      "prefix64_all_input_pct": null,
+      "prefix16_request_ratio": null,
+      "prefix16_pairs_ge90_pct": null,
+      "source": {
+        "timestamp_policy": "relative milliseconds, normalized to first emitted request; no speedup",
+        "scope": "static per-request replay of observed timestamps; session metadata in sidecar only",
+        "source_block_size": 512,
+        "model_mapping_policy": "source token counts retained; no retokenization to target model",
+        "arrival_kind": "observed",
+        "selection": {
+          "start_seconds": 0,
+          "duration_seconds": null,
+          "max_requests": 0,
+          "request_types": null
+        },
+        "diagnostics": {
+          "source_requests": 23608,
+          "emitted_requests": 23608
+        },
+        "time_range": {
+          "source_first_ms": 0.0,
+          "source_last_ms": 3536999.0,
+          "source_span_seconds": 3536.999,
+          "selected_first_source_timestamp": 0,
+          "selected_span_seconds": 3536.999
+        }
+      }
+    },
+    "mooncake-synthetic": {
+      "bundle": "/home/xieqiang/project/data/chat/derived/mooncake-v1/mooncake-synthetic",
+      "manifest_request_count": 3983,
+      "start": null,
+      "end": null,
+      "span_seconds": 1022.025,
+      "rps": 3.8971649421491645,
+      "input": {
+        "p50": 11268.0,
+        "p95": 47829.399999999965,
+        "p99": 62056.18,
+        "mean": 14897.689179010797,
+        "max": 127085.0
+      },
+      "output": {
+        "p50": 69.0,
+        "p95": 519.0,
+        "p99": 768.1799999999998,
+        "mean": 149.37735375345218,
+        "max": 893.0
+      },
+      "context": {
+        "p50": 11586.0,
+        "p95": 47834.19999999997,
+        "p99": 62221.69999999999,
+        "mean": 15047.066532764247,
+        "max": 127268.0
+      },
+      "input_tokens": 59337496,
+      "output_tokens": 594970,
+      "pct_context_gt_32k": 15.967863419533016,
+      "pct_context_gt_64k": 0.928948029123776,
+      "arrivals_per_second": {
+        "p50": 4.0,
+        "p95": 7.899999999999977,
+        "p99": 9.0,
+        "mean": 3.8934506353861194,
+        "max": 13.0
+      },
+      "arrivals_per_minute": {
+        "p50": 233.5,
+        "p95": 260.95,
+        "p99": 269.78999999999996,
+        "mean": 221.27777777777777,
+        "max": 272.0
+      },
+      "active_second_pct": 97.0674486803519,
+      "same_timestamp_adjacent_pct": 0.2762430939226519,
+      "positive_arrival_gap_ms": {
+        "p50": 175.99999999998772,
+        "p95": 785.5000000000132,
+        "p99": 1217.2999999999777,
+        "mean": 257.3721984386804,
+        "max": 2118.9999999999714
+      },
+      "types": {},
+      "sessions": null,
+      "session_requests": null,
+      "single_request_session_pct": null,
+      "same_session_pairs": 0,
+      "same_session_gap_seconds": null,
+      "equal_time_session_pairs": 0,
+      "consecutive_ordinal_pairs": 0,
+      "paired_input_tokens": 0,
+      "prefix16_weighted_pct": null,
+      "prefix64_weighted_pct": null,
+      "prefix64_all_input_pct": null,
+      "prefix16_request_ratio": null,
+      "prefix16_pairs_ge90_pct": null,
+      "source": {
+        "timestamp_policy": "relative milliseconds, normalized to first emitted request; no speedup",
+        "scope": "static per-request replay of observed timestamps; session metadata in sidecar only",
+        "source_block_size": 512,
+        "model_mapping_policy": "source token counts retained; no retokenization to target model",
+        "arrival_kind": "synthetic_poisson",
+        "selection": {
+          "start_seconds": 0,
+          "duration_seconds": null,
+          "max_requests": 0,
+          "request_types": null
+        },
+        "diagnostics": {
+          "source_requests": 3993,
+          "emitted_requests": 3983,
+          "excluded_context_limit": 10
+        },
+        "time_range": {
+          "source_first_ms": 0.0,
+          "source_last_ms": 1022025.0,
+          "source_span_seconds": 1022.025,
+          "selected_first_source_timestamp": 0,
+          "selected_span_seconds": 1022.025
+        }
+      }
+    }
+  }
+}
