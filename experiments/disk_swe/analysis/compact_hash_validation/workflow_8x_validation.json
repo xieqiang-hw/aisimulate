@@ -1,0 +1,10 @@
+{
+  "requests": 200,
+  "completed": 200,
+  "config": "configs/swe_enclosure_h200_ep8_p256gb_8x.yaml",
+  "memory_budget_gb": 20,
+  "overlay_factor": 8,
+  "sample_effective_density": 7.947,
+  "report": "/tmp/aisim-enclosure-workflow-check/runs/20261125T012501.476669Z/prediction/prediction.json",
+  "tests_passed": 6
+}

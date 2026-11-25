@@ -1,0 +1,15 @@
+{
+  "python_tests_passed": 9,
+  "actual_sample_request_count": 200,
+  "metrics_checked": [
+    "sla",
+    "weighted_tier_reuse",
+    "enclosure_read_bytes",
+    "enclosure_write_bytes"
+  ],
+  "javascript_syntax": "passed",
+  "javascript_simulated_dom_interactions": "passed",
+  "browser_visual_check": "unavailable: browser policy blocks file URLs",
+  "sample_source": "/tmp/aisim-enclosure-workflow-check/runs/20261125T012501.476669Z/prediction/prediction.json",
+  "published_results": "only formal full runs; current running row has no final metric values"
+}

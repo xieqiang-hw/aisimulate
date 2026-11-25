@@ -1,0 +1,2816 @@
+{
+  "model": "enclosure",
+  "info": {
+    "name": "GLM-5.2",
+    "model": "zai-org/GLM-5.2-FP8",
+    "hardware": "H200 SXM；算子级性能模型",
+    "precision": "GLM-5.2-FP8；KV FP8，容量使用已验证的 GLM DSA 布局",
+    "deployment": "1P1D；P/D 各 8 卡，共 16 卡",
+    "parallelism": "Attention TP8 / DP1；MoE TP1 / EP8",
+    "hbm": "P/D 自动 KV 容量，memory_fraction=0.9；64 token / KV 块",
+    "cache": "P：HBM + 256／128／64 GB 本地 DRAM；D：HBM；P、D 共用盘框，无本地 SSD",
+    "enclosure": "167.616 TB；整框读 80／40／20 / 写 80 GB/s；固定时延 0.1 ms",
+    "transfer": "H2D/D2H 各 25 GB/s/TP 分片；盘框直达 HBM；P→D 经盘框交接",
+    "scheduler": "P/D 每轮 16,384 token；序列上限 32/256；Chunked Prefill",
+    "memory": "进程树预算 20.0 GB",
+    "sla": "原始 TTFT ≤ 1 秒，且单请求平均 TPOT ≤ 30 ms",
+    "context": "输入＋输出合计不超过 128K token",
+    "requests": 607190,
+    "sessions": 10962,
+    "source": "SWE-chat Claude Code 主会话，verified-interleave 版",
+    "encoding": "compact Mooncake；连续输入＋输出哈希；每段 16 token",
+    "timeline": "标称 8×；全程 47.60 天，全程平均密度 4.869×",
+    "arrival": "按时间戳独立到达，未启用 session_id＋delay 完成依赖",
+    "note": "只收录正式 compact 场景 2 全量实验。盘框读写为整框共享预算，与场景 1 每 TP 分片本地 SSD 的带宽口径不同。"
+  },
+  "rows": [
+    {
+      "id": "20261125T021230.161422Z",
+      "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T021230.161422Z",
+      "budget": 16384,
+      "factor": 8,
+      "speedup": 1.0,
+      "dram_gb": 256,
+      "dram_actual_gb": 255.986405376,
+      "read_gbps": 80.0,
+      "write_gbps": 80.0,
+      "enclosure_tb": 167.616001253376,
+      "status": "已完成",
+      "values": {
+        "hbm": 91.02940130922157,
+        "dram": 3.4613420151755556,
+        "enclosure": 3.6414847295455797,
+        "reuse": 98.13222805394271,
+        "completed": 607190,
+        "sla": 95.45792914903078,
+        "mean_ttft": 0.2669857660810991,
+        "p99_ttft": 2.674243004888296,
+        "tpot": 12.141392962153649,
+        "adjusted_mean": 0.23620184675349165,
+        "adjusted_p99": 2.098357470074684,
+        "memory": 11.781046272,
+        "enclosure_read": 1715.769677266944,
+        "enclosure_write": 324.922622509056,
+        "decode_writeback": 2212249,
+        "pd_reuse": 5242963
+      },
+      "wall_seconds": 1904.1445746109998,
+      "bundle": "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x",
+      "manifest": {
+        "format": "mooncake",
+        "trace_block_size": 16,
+        "includes_input_token_ids": false,
+        "context_limit": 131072,
+        "request_count": 607190,
+        "model_mapping": {
+          "target_model": "zai-org/GLM-5.2-FP8"
+        },
+        "scope": "Claude Code main transcripts with verified tool interleaving and explicit-root recovery",
+        "extraction_policy": "requestId and tool ID linkage required to join interleaved fragments",
+        "includes_output_token_ids": false,
+        "max_sessions": 0,
+        "timestamp_policy": "Relative milliseconds from parent replay, shifted by session start segment; first_response_event_at remains the original arrival proxy",
+        "history_policy": "logged messages only; system prompts and tool schemas omitted",
+        "output_policy": "rendered completion plus EOS; lengths always recorded",
+        "source_models_by_extracted_call": {
+          "claude-opus-4-6": 326064,
+          "claude-opus-4-7": 82694,
+          "claude-opus-5": 81177,
+          "claude-opus-4-8": 75938,
+          "claude-sonnet-4-6": 58777,
+          "claude-fable-5": 38845,
+          "claude-sonnet-5": 18798,
+          "claude-sonnet-4-5-20250929": 10115,
+          "claude-opus-4-5-20251101": 8624,
+          "claude-haiku-4-5-20251001": 3168,
+          "glm-5": 1415,
+          "claude-fable-5-1": 1033,
+          "glm-4.7": 783,
+          "claude-sonnet-4-20250514": 279,
+          "codex-gpt-5-6-sol": 267,
+          "claude-opus-4-6-thinking": 241,
+          "claude-opus-4-1-20250805": 181,
+          "MiniMax-M2.7": 171,
+          "MiniMax-M3": 160,
+          "MiniMax-M2.5": 110,
+          "glm-5-turbo": 105,
+          "kimi-k2.5": 81,
+          "claude-4.6-sonnet": 70,
+          "glm-5:cloud": 68,
+          "qwen3-coder:30b": 47,
+          "claude-opus-4-20250514": 30,
+          "glm-5.1": 29,
+          "kimi-for-coding": 27,
+          "deepseek-v4-flash": 23,
+          "gpt-5.3-codex": 17,
+          "stepfun/step-3.5-flash:free": 15,
+          "anthropic/claude-sonnet-4.5": 12,
+          "moonshotai/kimi-k2.6-20260420": 9,
+          "GLM-4.7": 5,
+          "gpt-5.5": 5,
+          "claude-sonnet-4-5": 4,
+          "zai-org/GLM-5.2": 4,
+          "nemotron-3-super": 2,
+          "kimi-k3": 2,
+          "glm-5.2": 1
+        },
+        "diagnostics": {
+          "indexed_sessions": 17968,
+          "other_client_sessions": 5551,
+          "attempted_sessions": 11334,
+          "paused_at_compaction": 987,
+          "trailing_input_events": 2402,
+          "extracted_calls": 709396,
+          "tokenized_input_tokens": 49148374008,
+          "emitted_requests": 607190,
+          "emitted_input_tokens": 27671109639,
+          "meta_user_events": 15757,
+          "paused_at_ambiguous_assistant": 1228,
+          "incomplete_calls_discarded": 1984,
+          "verified_interleave_boundaries": 101327,
+          "over_context_limit": 102111,
+          "over_context_input_tokens": 21477264369,
+          "paused_at_unresolved_interleave": 841,
+          "unmatched_tool_results": 672,
+          "paused_at_noncontiguous_response": 20,
+          "sessions_without_calls": 363,
+          "sessions_missing_initial_input": 2,
+          "calls_missing_initial_history": 95,
+          "missing_transcripts": 149,
+          "invalid_transcripts": 6,
+          "non_main_or_delta_only_sessions": 934
+        },
+        "tokenizer_files": {
+          "tokenizer.json": "19e773648cb4e65de8660ea6365e10acca112d42a854923df93db4a6f333a82d",
+          "tokenizer_config.json": "98b1271574f41abf89427ae2dda030d94dc9478f0edc5a8bd240db213c6fd5fc",
+          "chat_template.jinja": "172dc74a35e1752df75ecfb2b2cf9326d2852bb1379868ebeec9571654489679"
+        },
+        "files": {
+          "requests.jsonl": {
+            "size": 35558013985,
+            "sha256": "40b7753a46affbf2ae2cc47c656fd8f37c298349d613d664f4b9f82abcf8f5ce"
+          },
+          "source_requests.jsonl": {
+            "size": 1028997711,
+            "sha256": "0080a2ebbb864817bff10e94de63606b16729882f5c6a3f82fb3cd5045c67de5"
+          }
+        },
+        "includes_output_hash_ids": true,
+        "hash_ids_scope": "input_output",
+        "hash_block_size": 16,
+        "compact_conversion": {
+          "source_bundle": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-exact",
+          "source_manifest_sha256": "0c9c17f2d0322ecca1a14883659923d4ef57e305584b7d9a1aa54020880a856d",
+          "hash_algorithm": "sha256-chain-uint32le-truncated64",
+          "input_tokens": 27671109639,
+          "output_tokens": 153681422,
+          "sample_limit": 0,
+          "semantics": "full-sequence block identity; output blocks become visible only after KV computation"
+        },
+        "overlay": {
+          "factor": 8,
+          "segment_ms": 2503327372,
+          "replay_speedup": 1,
+          "parent_bundle": "claude-code-main-glm52-128k-compact",
+          "parent_manifest_sha256": "294263219626143ed590fc94c45a81631b01aab3af74720236e950acf32621ae",
+          "session_assignment": "first retained request",
+          "source_span_ms": 20026618971,
+          "replay_span_ms": 4112771425,
+          "effective_density_multiplier": 4.869373203982519,
+          "session_count": 10962,
+          "crossing_sessions": 51,
+          "overflow_sessions": 51,
+          "overflow_requests": 3217
+        }
+      },
+      "config": {
+        "traffic": {
+          "source": {
+            "type": "trace",
+            "format": "mooncake",
+            "paths": [
+              "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x/requests.jsonl"
+            ],
+            "block_size": 16
+          },
+          "load": {
+            "type": "trace_timestamps",
+            "speedup": 1.0
+          }
+        },
+        "engine": {
+          "mode": "disaggregated",
+          "model": "zai-org/GLM-5.2-FP8",
+          "hardware": "h200_sxm",
+          "backend": "vllm",
+          "backend_version": "0.24.0",
+          "context_length": 131072,
+          "estimation_mode": "op_level",
+          "fallback_policy": "deny",
+          "database_mode": "SILICON",
+          "enable_chunked_prefill": true,
+          "kv_transfer": {
+            "enclosure": {
+              "num_blocks": 5436678,
+              "read_bandwidth_gbps": 80.0,
+              "write_bandwidth_gbps": 80.0,
+              "latency_to_first_byte_ms": 0.1
+            }
+          },
+          "workers": {
+            "prefill": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 32
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                },
+                "host_offload": {
+                  "scope": "dp_rank_local",
+                  "connector": "offloading_v0_24",
+                  "num_host_blocks": 8303,
+                  "d2h_bandwidth_gbps": 25.0,
+                  "h2d_bandwidth_gbps": 25.0,
+                  "latency_to_first_byte_ms": 0.0
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            },
+            "decode": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 256
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            }
+          }
+        },
+        "evaluation": {
+          "sla": {
+            "ttft_ms": 1000.0,
+            "itl_ms": 30.0
+          }
+        },
+        "execution": {
+          "resources": {
+            "initialization_timeout_seconds": 3600.0,
+            "memory_limit_gb": 20.0
+          }
+        }
+      },
+      "cells": [
+        "已完成",
+        "607,190",
+        "95.458%",
+        "2.67",
+        "0.27",
+        "12.14",
+        "91.029%",
+        "3.461%",
+        "3.641%",
+        "98.132%",
+        "1,715.770",
+        "31 分 44 秒",
+        "0.24",
+        "2.10",
+        "11.781",
+        "324.923",
+        "2,212,249",
+        "5,242,963"
+      ],
+      "attempts": [
+        {
+          "id": "20261125T021230.161422Z",
+          "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T021230.161422Z",
+          "status": "已完成",
+          "error": null,
+          "wall_seconds": 1904.1445746109998
+        }
+      ]
+    },
+    {
+      "id": "20261125T030237.183307Z",
+      "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T030237.183307Z",
+      "budget": 16384,
+      "factor": 8,
+      "speedup": 1.0,
+      "dram_gb": 256,
+      "dram_actual_gb": 255.986405376,
+      "read_gbps": 40.0,
+      "write_gbps": 80.0,
+      "enclosure_tb": 167.616001253376,
+      "status": "已完成",
+      "values": {
+        "hbm": 91.01866953865384,
+        "dram": 3.485321740190442,
+        "enclosure": 3.62782184414155,
+        "reuse": 98.13181312298583,
+        "completed": 607190,
+        "sla": 93.7011479108681,
+        "mean_ttft": 0.3127626874276558,
+        "p99_ttft": 3.2971591848134993,
+        "tpot": 12.14367143389159,
+        "adjusted_mean": 0.2810204858602557,
+        "adjusted_p99": 2.881270425587311,
+        "memory": 11.824832512,
+        "enclosure_read": 1723.214371147776,
+        "enclosure_write": 324.922622509056,
+        "decode_writeback": 2210801,
+        "pd_reuse": 5227017
+      },
+      "wall_seconds": 1831.8081912260004,
+      "bundle": "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x",
+      "manifest": {
+        "format": "mooncake",
+        "trace_block_size": 16,
+        "includes_input_token_ids": false,
+        "context_limit": 131072,
+        "request_count": 607190,
+        "model_mapping": {
+          "target_model": "zai-org/GLM-5.2-FP8"
+        },
+        "scope": "Claude Code main transcripts with verified tool interleaving and explicit-root recovery",
+        "extraction_policy": "requestId and tool ID linkage required to join interleaved fragments",
+        "includes_output_token_ids": false,
+        "max_sessions": 0,
+        "timestamp_policy": "Relative milliseconds from parent replay, shifted by session start segment; first_response_event_at remains the original arrival proxy",
+        "history_policy": "logged messages only; system prompts and tool schemas omitted",
+        "output_policy": "rendered completion plus EOS; lengths always recorded",
+        "source_models_by_extracted_call": {
+          "claude-opus-4-6": 326064,
+          "claude-opus-4-7": 82694,
+          "claude-opus-5": 81177,
+          "claude-opus-4-8": 75938,
+          "claude-sonnet-4-6": 58777,
+          "claude-fable-5": 38845,
+          "claude-sonnet-5": 18798,
+          "claude-sonnet-4-5-20250929": 10115,
+          "claude-opus-4-5-20251101": 8624,
+          "claude-haiku-4-5-20251001": 3168,
+          "glm-5": 1415,
+          "claude-fable-5-1": 1033,
+          "glm-4.7": 783,
+          "claude-sonnet-4-20250514": 279,
+          "codex-gpt-5-6-sol": 267,
+          "claude-opus-4-6-thinking": 241,
+          "claude-opus-4-1-20250805": 181,
+          "MiniMax-M2.7": 171,
+          "MiniMax-M3": 160,
+          "MiniMax-M2.5": 110,
+          "glm-5-turbo": 105,
+          "kimi-k2.5": 81,
+          "claude-4.6-sonnet": 70,
+          "glm-5:cloud": 68,
+          "qwen3-coder:30b": 47,
+          "claude-opus-4-20250514": 30,
+          "glm-5.1": 29,
+          "kimi-for-coding": 27,
+          "deepseek-v4-flash": 23,
+          "gpt-5.3-codex": 17,
+          "stepfun/step-3.5-flash:free": 15,
+          "anthropic/claude-sonnet-4.5": 12,
+          "moonshotai/kimi-k2.6-20260420": 9,
+          "GLM-4.7": 5,
+          "gpt-5.5": 5,
+          "claude-sonnet-4-5": 4,
+          "zai-org/GLM-5.2": 4,
+          "nemotron-3-super": 2,
+          "kimi-k3": 2,
+          "glm-5.2": 1
+        },
+        "diagnostics": {
+          "indexed_sessions": 17968,
+          "other_client_sessions": 5551,
+          "attempted_sessions": 11334,
+          "paused_at_compaction": 987,
+          "trailing_input_events": 2402,
+          "extracted_calls": 709396,
+          "tokenized_input_tokens": 49148374008,
+          "emitted_requests": 607190,
+          "emitted_input_tokens": 27671109639,
+          "meta_user_events": 15757,
+          "paused_at_ambiguous_assistant": 1228,
+          "incomplete_calls_discarded": 1984,
+          "verified_interleave_boundaries": 101327,
+          "over_context_limit": 102111,
+          "over_context_input_tokens": 21477264369,
+          "paused_at_unresolved_interleave": 841,
+          "unmatched_tool_results": 672,
+          "paused_at_noncontiguous_response": 20,
+          "sessions_without_calls": 363,
+          "sessions_missing_initial_input": 2,
+          "calls_missing_initial_history": 95,
+          "missing_transcripts": 149,
+          "invalid_transcripts": 6,
+          "non_main_or_delta_only_sessions": 934
+        },
+        "tokenizer_files": {
+          "tokenizer.json": "19e773648cb4e65de8660ea6365e10acca112d42a854923df93db4a6f333a82d",
+          "tokenizer_config.json": "98b1271574f41abf89427ae2dda030d94dc9478f0edc5a8bd240db213c6fd5fc",
+          "chat_template.jinja": "172dc74a35e1752df75ecfb2b2cf9326d2852bb1379868ebeec9571654489679"
+        },
+        "files": {
+          "requests.jsonl": {
+            "size": 35558013985,
+            "sha256": "40b7753a46affbf2ae2cc47c656fd8f37c298349d613d664f4b9f82abcf8f5ce"
+          },
+          "source_requests.jsonl": {
+            "size": 1028997711,
+            "sha256": "0080a2ebbb864817bff10e94de63606b16729882f5c6a3f82fb3cd5045c67de5"
+          }
+        },
+        "includes_output_hash_ids": true,
+        "hash_ids_scope": "input_output",
+        "hash_block_size": 16,
+        "compact_conversion": {
+          "source_bundle": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-exact",
+          "source_manifest_sha256": "0c9c17f2d0322ecca1a14883659923d4ef57e305584b7d9a1aa54020880a856d",
+          "hash_algorithm": "sha256-chain-uint32le-truncated64",
+          "input_tokens": 27671109639,
+          "output_tokens": 153681422,
+          "sample_limit": 0,
+          "semantics": "full-sequence block identity; output blocks become visible only after KV computation"
+        },
+        "overlay": {
+          "factor": 8,
+          "segment_ms": 2503327372,
+          "replay_speedup": 1,
+          "parent_bundle": "claude-code-main-glm52-128k-compact",
+          "parent_manifest_sha256": "294263219626143ed590fc94c45a81631b01aab3af74720236e950acf32621ae",
+          "session_assignment": "first retained request",
+          "source_span_ms": 20026618971,
+          "replay_span_ms": 4112771425,
+          "effective_density_multiplier": 4.869373203982519,
+          "session_count": 10962,
+          "crossing_sessions": 51,
+          "overflow_sessions": 51,
+          "overflow_requests": 3217
+        }
+      },
+      "config": {
+        "traffic": {
+          "source": {
+            "type": "trace",
+            "format": "mooncake",
+            "paths": [
+              "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x/requests.jsonl"
+            ],
+            "block_size": 16
+          },
+          "load": {
+            "type": "trace_timestamps",
+            "speedup": 1.0
+          }
+        },
+        "engine": {
+          "mode": "disaggregated",
+          "model": "zai-org/GLM-5.2-FP8",
+          "hardware": "h200_sxm",
+          "backend": "vllm",
+          "backend_version": "0.24.0",
+          "context_length": 131072,
+          "estimation_mode": "op_level",
+          "fallback_policy": "deny",
+          "database_mode": "SILICON",
+          "enable_chunked_prefill": true,
+          "kv_transfer": {
+            "enclosure": {
+              "num_blocks": 5436678,
+              "read_bandwidth_gbps": 40.0,
+              "write_bandwidth_gbps": 80.0,
+              "latency_to_first_byte_ms": 0.1
+            }
+          },
+          "workers": {
+            "prefill": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 32
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                },
+                "host_offload": {
+                  "scope": "dp_rank_local",
+                  "connector": "offloading_v0_24",
+                  "num_host_blocks": 8303,
+                  "d2h_bandwidth_gbps": 25.0,
+                  "h2d_bandwidth_gbps": 25.0,
+                  "latency_to_first_byte_ms": 0.0
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            },
+            "decode": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 256
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            }
+          }
+        },
+        "evaluation": {
+          "sla": {
+            "ttft_ms": 1000.0,
+            "itl_ms": 30.0
+          }
+        },
+        "execution": {
+          "resources": {
+            "initialization_timeout_seconds": 3600.0,
+            "memory_limit_gb": 20.0
+          }
+        }
+      },
+      "cells": [
+        "已完成",
+        "607,190",
+        "93.701%",
+        "3.30",
+        "0.31",
+        "12.14",
+        "91.019%",
+        "3.485%",
+        "3.628%",
+        "98.132%",
+        "1,723.214",
+        "30 分 32 秒",
+        "0.28",
+        "2.88",
+        "11.825",
+        "324.923",
+        "2,210,801",
+        "5,227,017"
+      ],
+      "attempts": [
+        {
+          "id": "20261125T030237.183307Z",
+          "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T030237.183307Z",
+          "status": "已完成",
+          "error": null,
+          "wall_seconds": 1831.8081912260004
+        }
+      ]
+    },
+    {
+      "id": "20261125T033734.358392Z",
+      "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T033734.358392Z",
+      "budget": 16384,
+      "factor": 8,
+      "speedup": 1.0,
+      "dram_gb": 256,
+      "dram_actual_gb": 255.986405376,
+      "read_gbps": 20.0,
+      "write_gbps": 80.0,
+      "enclosure_tb": 167.616001253376,
+      "status": "已完成",
+      "values": {
+        "hbm": 90.70064276940579,
+        "dram": 3.674023966740859,
+        "enclosure": 3.7535540191569114,
+        "reuse": 98.12822075530356,
+        "completed": 607190,
+        "sla": 90.81951283782671,
+        "mean_ttft": 0.5193251843307702,
+        "p99_ttft": 7.375083760619163,
+        "tpot": 12.156147831057368,
+        "adjusted_mean": 0.43428805570236856,
+        "adjusted_p99": 6.341046497505691,
+        "memory": 11.777241088,
+        "enclosure_read": 1824.116270186496,
+        "enclosure_write": 324.922622509056,
+        "decode_writeback": 2204792,
+        "pd_reuse": 5342616
+      },
+      "wall_seconds": 1897.957732713001,
+      "bundle": "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x",
+      "manifest": {
+        "format": "mooncake",
+        "trace_block_size": 16,
+        "includes_input_token_ids": false,
+        "context_limit": 131072,
+        "request_count": 607190,
+        "model_mapping": {
+          "target_model": "zai-org/GLM-5.2-FP8"
+        },
+        "scope": "Claude Code main transcripts with verified tool interleaving and explicit-root recovery",
+        "extraction_policy": "requestId and tool ID linkage required to join interleaved fragments",
+        "includes_output_token_ids": false,
+        "max_sessions": 0,
+        "timestamp_policy": "Relative milliseconds from parent replay, shifted by session start segment; first_response_event_at remains the original arrival proxy",
+        "history_policy": "logged messages only; system prompts and tool schemas omitted",
+        "output_policy": "rendered completion plus EOS; lengths always recorded",
+        "source_models_by_extracted_call": {
+          "claude-opus-4-6": 326064,
+          "claude-opus-4-7": 82694,
+          "claude-opus-5": 81177,
+          "claude-opus-4-8": 75938,
+          "claude-sonnet-4-6": 58777,
+          "claude-fable-5": 38845,
+          "claude-sonnet-5": 18798,
+          "claude-sonnet-4-5-20250929": 10115,
+          "claude-opus-4-5-20251101": 8624,
+          "claude-haiku-4-5-20251001": 3168,
+          "glm-5": 1415,
+          "claude-fable-5-1": 1033,
+          "glm-4.7": 783,
+          "claude-sonnet-4-20250514": 279,
+          "codex-gpt-5-6-sol": 267,
+          "claude-opus-4-6-thinking": 241,
+          "claude-opus-4-1-20250805": 181,
+          "MiniMax-M2.7": 171,
+          "MiniMax-M3": 160,
+          "MiniMax-M2.5": 110,
+          "glm-5-turbo": 105,
+          "kimi-k2.5": 81,
+          "claude-4.6-sonnet": 70,
+          "glm-5:cloud": 68,
+          "qwen3-coder:30b": 47,
+          "claude-opus-4-20250514": 30,
+          "glm-5.1": 29,
+          "kimi-for-coding": 27,
+          "deepseek-v4-flash": 23,
+          "gpt-5.3-codex": 17,
+          "stepfun/step-3.5-flash:free": 15,
+          "anthropic/claude-sonnet-4.5": 12,
+          "moonshotai/kimi-k2.6-20260420": 9,
+          "GLM-4.7": 5,
+          "gpt-5.5": 5,
+          "claude-sonnet-4-5": 4,
+          "zai-org/GLM-5.2": 4,
+          "nemotron-3-super": 2,
+          "kimi-k3": 2,
+          "glm-5.2": 1
+        },
+        "diagnostics": {
+          "indexed_sessions": 17968,
+          "other_client_sessions": 5551,
+          "attempted_sessions": 11334,
+          "paused_at_compaction": 987,
+          "trailing_input_events": 2402,
+          "extracted_calls": 709396,
+          "tokenized_input_tokens": 49148374008,
+          "emitted_requests": 607190,
+          "emitted_input_tokens": 27671109639,
+          "meta_user_events": 15757,
+          "paused_at_ambiguous_assistant": 1228,
+          "incomplete_calls_discarded": 1984,
+          "verified_interleave_boundaries": 101327,
+          "over_context_limit": 102111,
+          "over_context_input_tokens": 21477264369,
+          "paused_at_unresolved_interleave": 841,
+          "unmatched_tool_results": 672,
+          "paused_at_noncontiguous_response": 20,
+          "sessions_without_calls": 363,
+          "sessions_missing_initial_input": 2,
+          "calls_missing_initial_history": 95,
+          "missing_transcripts": 149,
+          "invalid_transcripts": 6,
+          "non_main_or_delta_only_sessions": 934
+        },
+        "tokenizer_files": {
+          "tokenizer.json": "19e773648cb4e65de8660ea6365e10acca112d42a854923df93db4a6f333a82d",
+          "tokenizer_config.json": "98b1271574f41abf89427ae2dda030d94dc9478f0edc5a8bd240db213c6fd5fc",
+          "chat_template.jinja": "172dc74a35e1752df75ecfb2b2cf9326d2852bb1379868ebeec9571654489679"
+        },
+        "files": {
+          "requests.jsonl": {
+            "size": 35558013985,
+            "sha256": "40b7753a46affbf2ae2cc47c656fd8f37c298349d613d664f4b9f82abcf8f5ce"
+          },
+          "source_requests.jsonl": {
+            "size": 1028997711,
+            "sha256": "0080a2ebbb864817bff10e94de63606b16729882f5c6a3f82fb3cd5045c67de5"
+          }
+        },
+        "includes_output_hash_ids": true,
+        "hash_ids_scope": "input_output",
+        "hash_block_size": 16,
+        "compact_conversion": {
+          "source_bundle": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-exact",
+          "source_manifest_sha256": "0c9c17f2d0322ecca1a14883659923d4ef57e305584b7d9a1aa54020880a856d",
+          "hash_algorithm": "sha256-chain-uint32le-truncated64",
+          "input_tokens": 27671109639,
+          "output_tokens": 153681422,
+          "sample_limit": 0,
+          "semantics": "full-sequence block identity; output blocks become visible only after KV computation"
+        },
+        "overlay": {
+          "factor": 8,
+          "segment_ms": 2503327372,
+          "replay_speedup": 1,
+          "parent_bundle": "claude-code-main-glm52-128k-compact",
+          "parent_manifest_sha256": "294263219626143ed590fc94c45a81631b01aab3af74720236e950acf32621ae",
+          "session_assignment": "first retained request",
+          "source_span_ms": 20026618971,
+          "replay_span_ms": 4112771425,
+          "effective_density_multiplier": 4.869373203982519,
+          "session_count": 10962,
+          "crossing_sessions": 51,
+          "overflow_sessions": 51,
+          "overflow_requests": 3217
+        }
+      },
+      "config": {
+        "traffic": {
+          "source": {
+            "type": "trace",
+            "format": "mooncake",
+            "paths": [
+              "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x/requests.jsonl"
+            ],
+            "block_size": 16
+          },
+          "load": {
+            "type": "trace_timestamps",
+            "speedup": 1.0
+          }
+        },
+        "engine": {
+          "mode": "disaggregated",
+          "model": "zai-org/GLM-5.2-FP8",
+          "hardware": "h200_sxm",
+          "backend": "vllm",
+          "backend_version": "0.24.0",
+          "context_length": 131072,
+          "estimation_mode": "op_level",
+          "fallback_policy": "deny",
+          "database_mode": "SILICON",
+          "enable_chunked_prefill": true,
+          "kv_transfer": {
+            "enclosure": {
+              "num_blocks": 5436678,
+              "read_bandwidth_gbps": 20.0,
+              "write_bandwidth_gbps": 80.0,
+              "latency_to_first_byte_ms": 0.1
+            }
+          },
+          "workers": {
+            "prefill": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 32
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                },
+                "host_offload": {
+                  "scope": "dp_rank_local",
+                  "connector": "offloading_v0_24",
+                  "num_host_blocks": 8303,
+                  "d2h_bandwidth_gbps": 25.0,
+                  "h2d_bandwidth_gbps": 25.0,
+                  "latency_to_first_byte_ms": 0.0
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            },
+            "decode": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 256
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            }
+          }
+        },
+        "evaluation": {
+          "sla": {
+            "ttft_ms": 1000.0,
+            "itl_ms": 30.0
+          }
+        },
+        "execution": {
+          "resources": {
+            "initialization_timeout_seconds": 3600.0,
+            "memory_limit_gb": 20.0
+          }
+        }
+      },
+      "cells": [
+        "已完成",
+        "607,190",
+        "90.820%",
+        "7.38",
+        "0.52",
+        "12.16",
+        "90.701%",
+        "3.674%",
+        "3.754%",
+        "98.128%",
+        "1,824.116",
+        "31 分 38 秒",
+        "0.43",
+        "6.34",
+        "11.777",
+        "324.923",
+        "2,204,792",
+        "5,342,616"
+      ],
+      "attempts": [
+        {
+          "id": "20261125T033734.358392Z",
+          "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T033734.358392Z",
+          "status": "已完成",
+          "error": null,
+          "wall_seconds": 1897.957732713001
+        }
+      ]
+    },
+    {
+      "id": "20261125T041339.276577Z",
+      "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T041339.276577Z",
+      "budget": 16384,
+      "factor": 8,
+      "speedup": 1.0,
+      "dram_gb": 128,
+      "dram_actual_gb": 128.008617984,
+      "read_gbps": 80.0,
+      "write_gbps": 80.0,
+      "enclosure_tb": 167.616001253376,
+      "status": "已完成",
+      "values": {
+        "hbm": 90.35015887025881,
+        "dram": 0.08093882859122446,
+        "enclosure": 7.699991492198793,
+        "reuse": 98.13108919104883,
+        "completed": 607190,
+        "sla": 94.48080501984552,
+        "mean_ttft": 0.2841002066394967,
+        "p99_ttft": 2.8082096017003058,
+        "tpot": 12.141936279184062,
+        "adjusted_mean": 0.2527445224046774,
+        "adjusted_p99": 2.2421600571870806,
+        "memory": 11.826221056,
+        "enclosure_read": 2259.632727465984,
+        "enclosure_write": 324.922622509056,
+        "decode_writeback": 2211692,
+        "pd_reuse": 9791463
+      },
+      "wall_seconds": 2328.903318687,
+      "bundle": "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x",
+      "manifest": {
+        "format": "mooncake",
+        "trace_block_size": 16,
+        "includes_input_token_ids": false,
+        "context_limit": 131072,
+        "request_count": 607190,
+        "model_mapping": {
+          "target_model": "zai-org/GLM-5.2-FP8"
+        },
+        "scope": "Claude Code main transcripts with verified tool interleaving and explicit-root recovery",
+        "extraction_policy": "requestId and tool ID linkage required to join interleaved fragments",
+        "includes_output_token_ids": false,
+        "max_sessions": 0,
+        "timestamp_policy": "Relative milliseconds from parent replay, shifted by session start segment; first_response_event_at remains the original arrival proxy",
+        "history_policy": "logged messages only; system prompts and tool schemas omitted",
+        "output_policy": "rendered completion plus EOS; lengths always recorded",
+        "source_models_by_extracted_call": {
+          "claude-opus-4-6": 326064,
+          "claude-opus-4-7": 82694,
+          "claude-opus-5": 81177,
+          "claude-opus-4-8": 75938,
+          "claude-sonnet-4-6": 58777,
+          "claude-fable-5": 38845,
+          "claude-sonnet-5": 18798,
+          "claude-sonnet-4-5-20250929": 10115,
+          "claude-opus-4-5-20251101": 8624,
+          "claude-haiku-4-5-20251001": 3168,
+          "glm-5": 1415,
+          "claude-fable-5-1": 1033,
+          "glm-4.7": 783,
+          "claude-sonnet-4-20250514": 279,
+          "codex-gpt-5-6-sol": 267,
+          "claude-opus-4-6-thinking": 241,
+          "claude-opus-4-1-20250805": 181,
+          "MiniMax-M2.7": 171,
+          "MiniMax-M3": 160,
+          "MiniMax-M2.5": 110,
+          "glm-5-turbo": 105,
+          "kimi-k2.5": 81,
+          "claude-4.6-sonnet": 70,
+          "glm-5:cloud": 68,
+          "qwen3-coder:30b": 47,
+          "claude-opus-4-20250514": 30,
+          "glm-5.1": 29,
+          "kimi-for-coding": 27,
+          "deepseek-v4-flash": 23,
+          "gpt-5.3-codex": 17,
+          "stepfun/step-3.5-flash:free": 15,
+          "anthropic/claude-sonnet-4.5": 12,
+          "moonshotai/kimi-k2.6-20260420": 9,
+          "GLM-4.7": 5,
+          "gpt-5.5": 5,
+          "claude-sonnet-4-5": 4,
+          "zai-org/GLM-5.2": 4,
+          "nemotron-3-super": 2,
+          "kimi-k3": 2,
+          "glm-5.2": 1
+        },
+        "diagnostics": {
+          "indexed_sessions": 17968,
+          "other_client_sessions": 5551,
+          "attempted_sessions": 11334,
+          "paused_at_compaction": 987,
+          "trailing_input_events": 2402,
+          "extracted_calls": 709396,
+          "tokenized_input_tokens": 49148374008,
+          "emitted_requests": 607190,
+          "emitted_input_tokens": 27671109639,
+          "meta_user_events": 15757,
+          "paused_at_ambiguous_assistant": 1228,
+          "incomplete_calls_discarded": 1984,
+          "verified_interleave_boundaries": 101327,
+          "over_context_limit": 102111,
+          "over_context_input_tokens": 21477264369,
+          "paused_at_unresolved_interleave": 841,
+          "unmatched_tool_results": 672,
+          "paused_at_noncontiguous_response": 20,
+          "sessions_without_calls": 363,
+          "sessions_missing_initial_input": 2,
+          "calls_missing_initial_history": 95,
+          "missing_transcripts": 149,
+          "invalid_transcripts": 6,
+          "non_main_or_delta_only_sessions": 934
+        },
+        "tokenizer_files": {
+          "tokenizer.json": "19e773648cb4e65de8660ea6365e10acca112d42a854923df93db4a6f333a82d",
+          "tokenizer_config.json": "98b1271574f41abf89427ae2dda030d94dc9478f0edc5a8bd240db213c6fd5fc",
+          "chat_template.jinja": "172dc74a35e1752df75ecfb2b2cf9326d2852bb1379868ebeec9571654489679"
+        },
+        "files": {
+          "requests.jsonl": {
+            "size": 35558013985,
+            "sha256": "40b7753a46affbf2ae2cc47c656fd8f37c298349d613d664f4b9f82abcf8f5ce"
+          },
+          "source_requests.jsonl": {
+            "size": 1028997711,
+            "sha256": "0080a2ebbb864817bff10e94de63606b16729882f5c6a3f82fb3cd5045c67de5"
+          }
+        },
+        "includes_output_hash_ids": true,
+        "hash_ids_scope": "input_output",
+        "hash_block_size": 16,
+        "compact_conversion": {
+          "source_bundle": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-exact",
+          "source_manifest_sha256": "0c9c17f2d0322ecca1a14883659923d4ef57e305584b7d9a1aa54020880a856d",
+          "hash_algorithm": "sha256-chain-uint32le-truncated64",
+          "input_tokens": 27671109639,
+          "output_tokens": 153681422,
+          "sample_limit": 0,
+          "semantics": "full-sequence block identity; output blocks become visible only after KV computation"
+        },
+        "overlay": {
+          "factor": 8,
+          "segment_ms": 2503327372,
+          "replay_speedup": 1,
+          "parent_bundle": "claude-code-main-glm52-128k-compact",
+          "parent_manifest_sha256": "294263219626143ed590fc94c45a81631b01aab3af74720236e950acf32621ae",
+          "session_assignment": "first retained request",
+          "source_span_ms": 20026618971,
+          "replay_span_ms": 4112771425,
+          "effective_density_multiplier": 4.869373203982519,
+          "session_count": 10962,
+          "crossing_sessions": 51,
+          "overflow_sessions": 51,
+          "overflow_requests": 3217
+        }
+      },
+      "config": {
+        "traffic": {
+          "source": {
+            "type": "trace",
+            "format": "mooncake",
+            "paths": [
+              "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x/requests.jsonl"
+            ],
+            "block_size": 16
+          },
+          "load": {
+            "type": "trace_timestamps",
+            "speedup": 1.0
+          }
+        },
+        "engine": {
+          "mode": "disaggregated",
+          "model": "zai-org/GLM-5.2-FP8",
+          "hardware": "h200_sxm",
+          "backend": "vllm",
+          "backend_version": "0.24.0",
+          "context_length": 131072,
+          "estimation_mode": "op_level",
+          "fallback_policy": "deny",
+          "database_mode": "SILICON",
+          "enable_chunked_prefill": true,
+          "kv_transfer": {
+            "enclosure": {
+              "num_blocks": 5436678,
+              "read_bandwidth_gbps": 80.0,
+              "write_bandwidth_gbps": 80.0,
+              "latency_to_first_byte_ms": 0.1
+            }
+          },
+          "workers": {
+            "prefill": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 32
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                },
+                "host_offload": {
+                  "scope": "dp_rank_local",
+                  "connector": "offloading_v0_24",
+                  "num_host_blocks": 4152,
+                  "d2h_bandwidth_gbps": 25.0,
+                  "h2d_bandwidth_gbps": 25.0,
+                  "latency_to_first_byte_ms": 0.0
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            },
+            "decode": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 256
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            }
+          }
+        },
+        "evaluation": {
+          "sla": {
+            "ttft_ms": 1000.0,
+            "itl_ms": 30.0
+          }
+        },
+        "execution": {
+          "resources": {
+            "initialization_timeout_seconds": 3600.0,
+            "memory_limit_gb": 20.0
+          }
+        }
+      },
+      "cells": [
+        "已完成",
+        "607,190",
+        "94.481%",
+        "2.81",
+        "0.28",
+        "12.14",
+        "90.350%",
+        "0.081%",
+        "7.700%",
+        "98.131%",
+        "2,259.633",
+        "38 分 49 秒",
+        "0.25",
+        "2.24",
+        "11.826",
+        "324.923",
+        "2,211,692",
+        "9,791,463"
+      ],
+      "attempts": [
+        {
+          "id": "20261125T041339.276577Z",
+          "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T041339.276577Z",
+          "status": "已完成",
+          "error": null,
+          "wall_seconds": 2328.903318687
+        }
+      ]
+    },
+    {
+      "id": "20261125T045648.626043Z",
+      "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T045648.626043Z",
+      "budget": 16384,
+      "factor": 8,
+      "speedup": 1.0,
+      "dram_gb": 128,
+      "dram_actual_gb": 128.008617984,
+      "read_gbps": 40.0,
+      "write_gbps": 80.0,
+      "enclosure_tb": 167.616001253376,
+      "status": "已完成",
+      "values": {
+        "hbm": 90.32905498221028,
+        "dram": 0.17370041399516858,
+        "enclosure": 7.627468777129512,
+        "reuse": 98.13022417333497,
+        "completed": 607190,
+        "sla": 92.13672820698628,
+        "mean_ttft": 0.35477056803300894,
+        "p99_ttft": 3.9369026390314104,
+        "tpot": 12.146070951093135,
+        "adjusted_mean": 0.3196484579475747,
+        "adjusted_p99": 3.405735012249588,
+        "memory": 11.775225856,
+        "enclosure_read": 2267.434316279808,
+        "enclosure_write": 324.922622509056,
+        "decode_writeback": 2209362,
+        "pd_reuse": 9680972
+      },
+      "wall_seconds": 2463.0578504229998,
+      "bundle": "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x",
+      "manifest": {
+        "format": "mooncake",
+        "trace_block_size": 16,
+        "includes_input_token_ids": false,
+        "context_limit": 131072,
+        "request_count": 607190,
+        "model_mapping": {
+          "target_model": "zai-org/GLM-5.2-FP8"
+        },
+        "scope": "Claude Code main transcripts with verified tool interleaving and explicit-root recovery",
+        "extraction_policy": "requestId and tool ID linkage required to join interleaved fragments",
+        "includes_output_token_ids": false,
+        "max_sessions": 0,
+        "timestamp_policy": "Relative milliseconds from parent replay, shifted by session start segment; first_response_event_at remains the original arrival proxy",
+        "history_policy": "logged messages only; system prompts and tool schemas omitted",
+        "output_policy": "rendered completion plus EOS; lengths always recorded",
+        "source_models_by_extracted_call": {
+          "claude-opus-4-6": 326064,
+          "claude-opus-4-7": 82694,
+          "claude-opus-5": 81177,
+          "claude-opus-4-8": 75938,
+          "claude-sonnet-4-6": 58777,
+          "claude-fable-5": 38845,
+          "claude-sonnet-5": 18798,
+          "claude-sonnet-4-5-20250929": 10115,
+          "claude-opus-4-5-20251101": 8624,
+          "claude-haiku-4-5-20251001": 3168,
+          "glm-5": 1415,
+          "claude-fable-5-1": 1033,
+          "glm-4.7": 783,
+          "claude-sonnet-4-20250514": 279,
+          "codex-gpt-5-6-sol": 267,
+          "claude-opus-4-6-thinking": 241,
+          "claude-opus-4-1-20250805": 181,
+          "MiniMax-M2.7": 171,
+          "MiniMax-M3": 160,
+          "MiniMax-M2.5": 110,
+          "glm-5-turbo": 105,
+          "kimi-k2.5": 81,
+          "claude-4.6-sonnet": 70,
+          "glm-5:cloud": 68,
+          "qwen3-coder:30b": 47,
+          "claude-opus-4-20250514": 30,
+          "glm-5.1": 29,
+          "kimi-for-coding": 27,
+          "deepseek-v4-flash": 23,
+          "gpt-5.3-codex": 17,
+          "stepfun/step-3.5-flash:free": 15,
+          "anthropic/claude-sonnet-4.5": 12,
+          "moonshotai/kimi-k2.6-20260420": 9,
+          "GLM-4.7": 5,
+          "gpt-5.5": 5,
+          "claude-sonnet-4-5": 4,
+          "zai-org/GLM-5.2": 4,
+          "nemotron-3-super": 2,
+          "kimi-k3": 2,
+          "glm-5.2": 1
+        },
+        "diagnostics": {
+          "indexed_sessions": 17968,
+          "other_client_sessions": 5551,
+          "attempted_sessions": 11334,
+          "paused_at_compaction": 987,
+          "trailing_input_events": 2402,
+          "extracted_calls": 709396,
+          "tokenized_input_tokens": 49148374008,
+          "emitted_requests": 607190,
+          "emitted_input_tokens": 27671109639,
+          "meta_user_events": 15757,
+          "paused_at_ambiguous_assistant": 1228,
+          "incomplete_calls_discarded": 1984,
+          "verified_interleave_boundaries": 101327,
+          "over_context_limit": 102111,
+          "over_context_input_tokens": 21477264369,
+          "paused_at_unresolved_interleave": 841,
+          "unmatched_tool_results": 672,
+          "paused_at_noncontiguous_response": 20,
+          "sessions_without_calls": 363,
+          "sessions_missing_initial_input": 2,
+          "calls_missing_initial_history": 95,
+          "missing_transcripts": 149,
+          "invalid_transcripts": 6,
+          "non_main_or_delta_only_sessions": 934
+        },
+        "tokenizer_files": {
+          "tokenizer.json": "19e773648cb4e65de8660ea6365e10acca112d42a854923df93db4a6f333a82d",
+          "tokenizer_config.json": "98b1271574f41abf89427ae2dda030d94dc9478f0edc5a8bd240db213c6fd5fc",
+          "chat_template.jinja": "172dc74a35e1752df75ecfb2b2cf9326d2852bb1379868ebeec9571654489679"
+        },
+        "files": {
+          "requests.jsonl": {
+            "size": 35558013985,
+            "sha256": "40b7753a46affbf2ae2cc47c656fd8f37c298349d613d664f4b9f82abcf8f5ce"
+          },
+          "source_requests.jsonl": {
+            "size": 1028997711,
+            "sha256": "0080a2ebbb864817bff10e94de63606b16729882f5c6a3f82fb3cd5045c67de5"
+          }
+        },
+        "includes_output_hash_ids": true,
+        "hash_ids_scope": "input_output",
+        "hash_block_size": 16,
+        "compact_conversion": {
+          "source_bundle": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-exact",
+          "source_manifest_sha256": "0c9c17f2d0322ecca1a14883659923d4ef57e305584b7d9a1aa54020880a856d",
+          "hash_algorithm": "sha256-chain-uint32le-truncated64",
+          "input_tokens": 27671109639,
+          "output_tokens": 153681422,
+          "sample_limit": 0,
+          "semantics": "full-sequence block identity; output blocks become visible only after KV computation"
+        },
+        "overlay": {
+          "factor": 8,
+          "segment_ms": 2503327372,
+          "replay_speedup": 1,
+          "parent_bundle": "claude-code-main-glm52-128k-compact",
+          "parent_manifest_sha256": "294263219626143ed590fc94c45a81631b01aab3af74720236e950acf32621ae",
+          "session_assignment": "first retained request",
+          "source_span_ms": 20026618971,
+          "replay_span_ms": 4112771425,
+          "effective_density_multiplier": 4.869373203982519,
+          "session_count": 10962,
+          "crossing_sessions": 51,
+          "overflow_sessions": 51,
+          "overflow_requests": 3217
+        }
+      },
+      "config": {
+        "traffic": {
+          "source": {
+            "type": "trace",
+            "format": "mooncake",
+            "paths": [
+              "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x/requests.jsonl"
+            ],
+            "block_size": 16
+          },
+          "load": {
+            "type": "trace_timestamps",
+            "speedup": 1.0
+          }
+        },
+        "engine": {
+          "mode": "disaggregated",
+          "model": "zai-org/GLM-5.2-FP8",
+          "hardware": "h200_sxm",
+          "backend": "vllm",
+          "backend_version": "0.24.0",
+          "context_length": 131072,
+          "estimation_mode": "op_level",
+          "fallback_policy": "deny",
+          "database_mode": "SILICON",
+          "enable_chunked_prefill": true,
+          "kv_transfer": {
+            "enclosure": {
+              "num_blocks": 5436678,
+              "read_bandwidth_gbps": 40.0,
+              "write_bandwidth_gbps": 80.0,
+              "latency_to_first_byte_ms": 0.1
+            }
+          },
+          "workers": {
+            "prefill": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 32
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                },
+                "host_offload": {
+                  "scope": "dp_rank_local",
+                  "connector": "offloading_v0_24",
+                  "num_host_blocks": 4152,
+                  "d2h_bandwidth_gbps": 25.0,
+                  "h2d_bandwidth_gbps": 25.0,
+                  "latency_to_first_byte_ms": 0.0
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            },
+            "decode": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 256
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            }
+          }
+        },
+        "evaluation": {
+          "sla": {
+            "ttft_ms": 1000.0,
+            "itl_ms": 30.0
+          }
+        },
+        "execution": {
+          "resources": {
+            "initialization_timeout_seconds": 3600.0,
+            "memory_limit_gb": 20.0
+          }
+        }
+      },
+      "cells": [
+        "已完成",
+        "607,190",
+        "92.137%",
+        "3.94",
+        "0.35",
+        "12.15",
+        "90.329%",
+        "0.174%",
+        "7.627%",
+        "98.130%",
+        "2,267.434",
+        "41 分 3 秒",
+        "0.32",
+        "3.41",
+        "11.775",
+        "324.923",
+        "2,209,362",
+        "9,680,972"
+      ],
+      "attempts": [
+        {
+          "id": "20261125T045648.626043Z",
+          "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T045648.626043Z",
+          "status": "已完成",
+          "error": null,
+          "wall_seconds": 2463.0578504229998
+        }
+      ]
+    },
+    {
+      "id": "20261125T060932.189320Z",
+      "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T060932.189320Z",
+      "budget": 16384,
+      "factor": 8,
+      "speedup": 1.0,
+      "dram_gb": 64,
+      "dram_actual_gb": 64.004308992,
+      "read_gbps": 80.0,
+      "write_gbps": 80.0,
+      "enclosure_tb": 167.616001253376,
+      "status": "已完成",
+      "values": {
+        "hbm": 89.85732358544684,
+        "dram": 0.00675592711817089,
+        "enclosure": 8.266903054642622,
+        "reuse": 98.13098256720762,
+        "completed": 607190,
+        "sla": 94.34641545479998,
+        "mean_ttft": 0.28653852265077023,
+        "p99_ttft": 2.834072814464569,
+        "tpot": 12.141977559739406,
+        "adjusted_mean": 0.2551461557876015,
+        "adjusted_p99": 2.268031965494156,
+        "memory": 11.77786368,
+        "enclosure_read": 2335.57874214912,
+        "enclosure_write": 324.922622509056,
+        "decode_writeback": 2211612,
+        "pd_reuse": 10350571
+      },
+      "wall_seconds": 3722.322024407,
+      "bundle": "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x",
+      "manifest": {
+        "format": "mooncake",
+        "trace_block_size": 16,
+        "includes_input_token_ids": false,
+        "context_limit": 131072,
+        "request_count": 607190,
+        "model_mapping": {
+          "target_model": "zai-org/GLM-5.2-FP8"
+        },
+        "scope": "Claude Code main transcripts with verified tool interleaving and explicit-root recovery",
+        "extraction_policy": "requestId and tool ID linkage required to join interleaved fragments",
+        "includes_output_token_ids": false,
+        "max_sessions": 0,
+        "timestamp_policy": "Relative milliseconds from parent replay, shifted by session start segment; first_response_event_at remains the original arrival proxy",
+        "history_policy": "logged messages only; system prompts and tool schemas omitted",
+        "output_policy": "rendered completion plus EOS; lengths always recorded",
+        "source_models_by_extracted_call": {
+          "claude-opus-4-6": 326064,
+          "claude-opus-4-7": 82694,
+          "claude-opus-5": 81177,
+          "claude-opus-4-8": 75938,
+          "claude-sonnet-4-6": 58777,
+          "claude-fable-5": 38845,
+          "claude-sonnet-5": 18798,
+          "claude-sonnet-4-5-20250929": 10115,
+          "claude-opus-4-5-20251101": 8624,
+          "claude-haiku-4-5-20251001": 3168,
+          "glm-5": 1415,
+          "claude-fable-5-1": 1033,
+          "glm-4.7": 783,
+          "claude-sonnet-4-20250514": 279,
+          "codex-gpt-5-6-sol": 267,
+          "claude-opus-4-6-thinking": 241,
+          "claude-opus-4-1-20250805": 181,
+          "MiniMax-M2.7": 171,
+          "MiniMax-M3": 160,
+          "MiniMax-M2.5": 110,
+          "glm-5-turbo": 105,
+          "kimi-k2.5": 81,
+          "claude-4.6-sonnet": 70,
+          "glm-5:cloud": 68,
+          "qwen3-coder:30b": 47,
+          "claude-opus-4-20250514": 30,
+          "glm-5.1": 29,
+          "kimi-for-coding": 27,
+          "deepseek-v4-flash": 23,
+          "gpt-5.3-codex": 17,
+          "stepfun/step-3.5-flash:free": 15,
+          "anthropic/claude-sonnet-4.5": 12,
+          "moonshotai/kimi-k2.6-20260420": 9,
+          "GLM-4.7": 5,
+          "gpt-5.5": 5,
+          "claude-sonnet-4-5": 4,
+          "zai-org/GLM-5.2": 4,
+          "nemotron-3-super": 2,
+          "kimi-k3": 2,
+          "glm-5.2": 1
+        },
+        "diagnostics": {
+          "indexed_sessions": 17968,
+          "other_client_sessions": 5551,
+          "attempted_sessions": 11334,
+          "paused_at_compaction": 987,
+          "trailing_input_events": 2402,
+          "extracted_calls": 709396,
+          "tokenized_input_tokens": 49148374008,
+          "emitted_requests": 607190,
+          "emitted_input_tokens": 27671109639,
+          "meta_user_events": 15757,
+          "paused_at_ambiguous_assistant": 1228,
+          "incomplete_calls_discarded": 1984,
+          "verified_interleave_boundaries": 101327,
+          "over_context_limit": 102111,
+          "over_context_input_tokens": 21477264369,
+          "paused_at_unresolved_interleave": 841,
+          "unmatched_tool_results": 672,
+          "paused_at_noncontiguous_response": 20,
+          "sessions_without_calls": 363,
+          "sessions_missing_initial_input": 2,
+          "calls_missing_initial_history": 95,
+          "missing_transcripts": 149,
+          "invalid_transcripts": 6,
+          "non_main_or_delta_only_sessions": 934
+        },
+        "tokenizer_files": {
+          "tokenizer.json": "19e773648cb4e65de8660ea6365e10acca112d42a854923df93db4a6f333a82d",
+          "tokenizer_config.json": "98b1271574f41abf89427ae2dda030d94dc9478f0edc5a8bd240db213c6fd5fc",
+          "chat_template.jinja": "172dc74a35e1752df75ecfb2b2cf9326d2852bb1379868ebeec9571654489679"
+        },
+        "files": {
+          "requests.jsonl": {
+            "size": 35558013985,
+            "sha256": "40b7753a46affbf2ae2cc47c656fd8f37c298349d613d664f4b9f82abcf8f5ce"
+          },
+          "source_requests.jsonl": {
+            "size": 1028997711,
+            "sha256": "0080a2ebbb864817bff10e94de63606b16729882f5c6a3f82fb3cd5045c67de5"
+          }
+        },
+        "includes_output_hash_ids": true,
+        "hash_ids_scope": "input_output",
+        "hash_block_size": 16,
+        "compact_conversion": {
+          "source_bundle": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-exact",
+          "source_manifest_sha256": "0c9c17f2d0322ecca1a14883659923d4ef57e305584b7d9a1aa54020880a856d",
+          "hash_algorithm": "sha256-chain-uint32le-truncated64",
+          "input_tokens": 27671109639,
+          "output_tokens": 153681422,
+          "sample_limit": 0,
+          "semantics": "full-sequence block identity; output blocks become visible only after KV computation"
+        },
+        "overlay": {
+          "factor": 8,
+          "segment_ms": 2503327372,
+          "replay_speedup": 1,
+          "parent_bundle": "claude-code-main-glm52-128k-compact",
+          "parent_manifest_sha256": "294263219626143ed590fc94c45a81631b01aab3af74720236e950acf32621ae",
+          "session_assignment": "first retained request",
+          "source_span_ms": 20026618971,
+          "replay_span_ms": 4112771425,
+          "effective_density_multiplier": 4.869373203982519,
+          "session_count": 10962,
+          "crossing_sessions": 51,
+          "overflow_sessions": 51,
+          "overflow_requests": 3217
+        }
+      },
+      "config": {
+        "traffic": {
+          "source": {
+            "type": "trace",
+            "format": "mooncake",
+            "paths": [
+              "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x/requests.jsonl"
+            ],
+            "block_size": 16
+          },
+          "load": {
+            "type": "trace_timestamps",
+            "speedup": 1.0
+          }
+        },
+        "engine": {
+          "mode": "disaggregated",
+          "model": "zai-org/GLM-5.2-FP8",
+          "hardware": "h200_sxm",
+          "backend": "vllm",
+          "backend_version": "0.24.0",
+          "context_length": 131072,
+          "estimation_mode": "op_level",
+          "fallback_policy": "deny",
+          "database_mode": "SILICON",
+          "enable_chunked_prefill": true,
+          "kv_transfer": {
+            "enclosure": {
+              "num_blocks": 5436678,
+              "read_bandwidth_gbps": 80.0,
+              "write_bandwidth_gbps": 80.0,
+              "latency_to_first_byte_ms": 0.1
+            }
+          },
+          "workers": {
+            "prefill": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 32
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                },
+                "host_offload": {
+                  "scope": "dp_rank_local",
+                  "connector": "offloading_v0_24",
+                  "num_host_blocks": 2076,
+                  "d2h_bandwidth_gbps": 25.0,
+                  "h2d_bandwidth_gbps": 25.0,
+                  "latency_to_first_byte_ms": 0.0
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            },
+            "decode": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 256
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            }
+          }
+        },
+        "evaluation": {
+          "sla": {
+            "ttft_ms": 1000.0,
+            "itl_ms": 30.0
+          }
+        },
+        "execution": {
+          "resources": {
+            "initialization_timeout_seconds": 3600.0,
+            "memory_limit_gb": 20.0
+          }
+        }
+      },
+      "cells": [
+        "已完成",
+        "607,190",
+        "94.346%",
+        "2.83",
+        "0.29",
+        "12.14",
+        "89.857%",
+        "0.007%",
+        "8.267%",
+        "98.131%",
+        "2,335.579",
+        "62 分 2 秒",
+        "0.26",
+        "2.27",
+        "11.778",
+        "324.923",
+        "2,211,612",
+        "10,350,571"
+      ],
+      "attempts": [
+        {
+          "id": "20261125T060932.189320Z",
+          "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T060932.189320Z",
+          "status": "已完成",
+          "error": null,
+          "wall_seconds": 3722.322024407
+        }
+      ]
+    },
+    {
+      "id": "20261125T071602.157543Z",
+      "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T071602.157543Z",
+      "budget": 16384,
+      "factor": 8,
+      "speedup": 1.0,
+      "dram_gb": 64,
+      "dram_actual_gb": 64.004308992,
+      "read_gbps": 40.0,
+      "write_gbps": 80.0,
+      "enclosure_tb": 167.616001253376,
+      "status": "已完成",
+      "values": {
+        "hbm": 89.77732054874606,
+        "dram": 0.031020830432842043,
+        "enclosure": 8.32152799812048,
+        "reuse": 98.12986937729939,
+        "completed": 607190,
+        "sla": 91.86366705644032,
+        "mean_ttft": 0.3669967216932762,
+        "p99_ttft": 4.207903904557228,
+        "tpot": 12.147210580169817,
+        "adjusted_mean": 0.3292773563537351,
+        "adjusted_p99": 3.585292146921158,
+        "memory": 11.8311936,
+        "enclosure_read": 2363.514989002752,
+        "enclosure_write": 324.922622509056,
+        "decode_writeback": 2208990,
+        "pd_reuse": 10393487
+      },
+      "wall_seconds": 3107.4384172009995,
+      "bundle": "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x",
+      "manifest": {
+        "format": "mooncake",
+        "trace_block_size": 16,
+        "includes_input_token_ids": false,
+        "context_limit": 131072,
+        "request_count": 607190,
+        "model_mapping": {
+          "target_model": "zai-org/GLM-5.2-FP8"
+        },
+        "scope": "Claude Code main transcripts with verified tool interleaving and explicit-root recovery",
+        "extraction_policy": "requestId and tool ID linkage required to join interleaved fragments",
+        "includes_output_token_ids": false,
+        "max_sessions": 0,
+        "timestamp_policy": "Relative milliseconds from parent replay, shifted by session start segment; first_response_event_at remains the original arrival proxy",
+        "history_policy": "logged messages only; system prompts and tool schemas omitted",
+        "output_policy": "rendered completion plus EOS; lengths always recorded",
+        "source_models_by_extracted_call": {
+          "claude-opus-4-6": 326064,
+          "claude-opus-4-7": 82694,
+          "claude-opus-5": 81177,
+          "claude-opus-4-8": 75938,
+          "claude-sonnet-4-6": 58777,
+          "claude-fable-5": 38845,
+          "claude-sonnet-5": 18798,
+          "claude-sonnet-4-5-20250929": 10115,
+          "claude-opus-4-5-20251101": 8624,
+          "claude-haiku-4-5-20251001": 3168,
+          "glm-5": 1415,
+          "claude-fable-5-1": 1033,
+          "glm-4.7": 783,
+          "claude-sonnet-4-20250514": 279,
+          "codex-gpt-5-6-sol": 267,
+          "claude-opus-4-6-thinking": 241,
+          "claude-opus-4-1-20250805": 181,
+          "MiniMax-M2.7": 171,
+          "MiniMax-M3": 160,
+          "MiniMax-M2.5": 110,
+          "glm-5-turbo": 105,
+          "kimi-k2.5": 81,
+          "claude-4.6-sonnet": 70,
+          "glm-5:cloud": 68,
+          "qwen3-coder:30b": 47,
+          "claude-opus-4-20250514": 30,
+          "glm-5.1": 29,
+          "kimi-for-coding": 27,
+          "deepseek-v4-flash": 23,
+          "gpt-5.3-codex": 17,
+          "stepfun/step-3.5-flash:free": 15,
+          "anthropic/claude-sonnet-4.5": 12,
+          "moonshotai/kimi-k2.6-20260420": 9,
+          "GLM-4.7": 5,
+          "gpt-5.5": 5,
+          "claude-sonnet-4-5": 4,
+          "zai-org/GLM-5.2": 4,
+          "nemotron-3-super": 2,
+          "kimi-k3": 2,
+          "glm-5.2": 1
+        },
+        "diagnostics": {
+          "indexed_sessions": 17968,
+          "other_client_sessions": 5551,
+          "attempted_sessions": 11334,
+          "paused_at_compaction": 987,
+          "trailing_input_events": 2402,
+          "extracted_calls": 709396,
+          "tokenized_input_tokens": 49148374008,
+          "emitted_requests": 607190,
+          "emitted_input_tokens": 27671109639,
+          "meta_user_events": 15757,
+          "paused_at_ambiguous_assistant": 1228,
+          "incomplete_calls_discarded": 1984,
+          "verified_interleave_boundaries": 101327,
+          "over_context_limit": 102111,
+          "over_context_input_tokens": 21477264369,
+          "paused_at_unresolved_interleave": 841,
+          "unmatched_tool_results": 672,
+          "paused_at_noncontiguous_response": 20,
+          "sessions_without_calls": 363,
+          "sessions_missing_initial_input": 2,
+          "calls_missing_initial_history": 95,
+          "missing_transcripts": 149,
+          "invalid_transcripts": 6,
+          "non_main_or_delta_only_sessions": 934
+        },
+        "tokenizer_files": {
+          "tokenizer.json": "19e773648cb4e65de8660ea6365e10acca112d42a854923df93db4a6f333a82d",
+          "tokenizer_config.json": "98b1271574f41abf89427ae2dda030d94dc9478f0edc5a8bd240db213c6fd5fc",
+          "chat_template.jinja": "172dc74a35e1752df75ecfb2b2cf9326d2852bb1379868ebeec9571654489679"
+        },
+        "files": {
+          "requests.jsonl": {
+            "size": 35558013985,
+            "sha256": "40b7753a46affbf2ae2cc47c656fd8f37c298349d613d664f4b9f82abcf8f5ce"
+          },
+          "source_requests.jsonl": {
+            "size": 1028997711,
+            "sha256": "0080a2ebbb864817bff10e94de63606b16729882f5c6a3f82fb3cd5045c67de5"
+          }
+        },
+        "includes_output_hash_ids": true,
+        "hash_ids_scope": "input_output",
+        "hash_block_size": 16,
+        "compact_conversion": {
+          "source_bundle": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-exact",
+          "source_manifest_sha256": "0c9c17f2d0322ecca1a14883659923d4ef57e305584b7d9a1aa54020880a856d",
+          "hash_algorithm": "sha256-chain-uint32le-truncated64",
+          "input_tokens": 27671109639,
+          "output_tokens": 153681422,
+          "sample_limit": 0,
+          "semantics": "full-sequence block identity; output blocks become visible only after KV computation"
+        },
+        "overlay": {
+          "factor": 8,
+          "segment_ms": 2503327372,
+          "replay_speedup": 1,
+          "parent_bundle": "claude-code-main-glm52-128k-compact",
+          "parent_manifest_sha256": "294263219626143ed590fc94c45a81631b01aab3af74720236e950acf32621ae",
+          "session_assignment": "first retained request",
+          "source_span_ms": 20026618971,
+          "replay_span_ms": 4112771425,
+          "effective_density_multiplier": 4.869373203982519,
+          "session_count": 10962,
+          "crossing_sessions": 51,
+          "overflow_sessions": 51,
+          "overflow_requests": 3217
+        }
+      },
+      "config": {
+        "traffic": {
+          "source": {
+            "type": "trace",
+            "format": "mooncake",
+            "paths": [
+              "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x/requests.jsonl"
+            ],
+            "block_size": 16
+          },
+          "load": {
+            "type": "trace_timestamps",
+            "speedup": 1.0
+          }
+        },
+        "engine": {
+          "mode": "disaggregated",
+          "model": "zai-org/GLM-5.2-FP8",
+          "hardware": "h200_sxm",
+          "backend": "vllm",
+          "backend_version": "0.24.0",
+          "context_length": 131072,
+          "estimation_mode": "op_level",
+          "fallback_policy": "deny",
+          "database_mode": "SILICON",
+          "enable_chunked_prefill": true,
+          "kv_transfer": {
+            "enclosure": {
+              "num_blocks": 5436678,
+              "read_bandwidth_gbps": 40.0,
+              "write_bandwidth_gbps": 80.0,
+              "latency_to_first_byte_ms": 0.1
+            }
+          },
+          "workers": {
+            "prefill": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 32
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                },
+                "host_offload": {
+                  "scope": "dp_rank_local",
+                  "connector": "offloading_v0_24",
+                  "num_host_blocks": 2076,
+                  "d2h_bandwidth_gbps": 25.0,
+                  "h2d_bandwidth_gbps": 25.0,
+                  "latency_to_first_byte_ms": 0.0
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            },
+            "decode": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 256
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            }
+          }
+        },
+        "evaluation": {
+          "sla": {
+            "ttft_ms": 1000.0,
+            "itl_ms": 30.0
+          }
+        },
+        "execution": {
+          "resources": {
+            "initialization_timeout_seconds": 3600.0,
+            "memory_limit_gb": 20.0
+          }
+        }
+      },
+      "cells": [
+        "已完成",
+        "607,190",
+        "91.864%",
+        "4.21",
+        "0.37",
+        "12.15",
+        "89.777%",
+        "0.031%",
+        "8.322%",
+        "98.130%",
+        "2,363.515",
+        "51 分 47 秒",
+        "0.33",
+        "3.59",
+        "11.831",
+        "324.923",
+        "2,208,990",
+        "10,393,487"
+      ],
+      "attempts": [
+        {
+          "id": "20261125T071602.157543Z",
+          "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T071602.157543Z",
+          "status": "已完成",
+          "error": null,
+          "wall_seconds": 3107.4384172009995
+        }
+      ]
+    },
+    {
+      "id": "20261125T081219.593559Z",
+      "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T081219.593559Z",
+      "budget": 16384,
+      "factor": 8,
+      "speedup": 1.0,
+      "dram_gb": 64,
+      "dram_actual_gb": 64.004308992,
+      "read_gbps": 20.0,
+      "write_gbps": 80.0,
+      "enclosure_tb": 167.616001253376,
+      "status": "失败",
+      "values": {
+        "memory": 20.003475456
+      },
+      "wall_seconds": 1347.7064429029997,
+      "bundle": "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x",
+      "manifest": {
+        "format": "mooncake",
+        "trace_block_size": 16,
+        "includes_input_token_ids": false,
+        "context_limit": 131072,
+        "request_count": 607190,
+        "model_mapping": {
+          "target_model": "zai-org/GLM-5.2-FP8"
+        },
+        "scope": "Claude Code main transcripts with verified tool interleaving and explicit-root recovery",
+        "extraction_policy": "requestId and tool ID linkage required to join interleaved fragments",
+        "includes_output_token_ids": false,
+        "max_sessions": 0,
+        "timestamp_policy": "Relative milliseconds from parent replay, shifted by session start segment; first_response_event_at remains the original arrival proxy",
+        "history_policy": "logged messages only; system prompts and tool schemas omitted",
+        "output_policy": "rendered completion plus EOS; lengths always recorded",
+        "source_models_by_extracted_call": {
+          "claude-opus-4-6": 326064,
+          "claude-opus-4-7": 82694,
+          "claude-opus-5": 81177,
+          "claude-opus-4-8": 75938,
+          "claude-sonnet-4-6": 58777,
+          "claude-fable-5": 38845,
+          "claude-sonnet-5": 18798,
+          "claude-sonnet-4-5-20250929": 10115,
+          "claude-opus-4-5-20251101": 8624,
+          "claude-haiku-4-5-20251001": 3168,
+          "glm-5": 1415,
+          "claude-fable-5-1": 1033,
+          "glm-4.7": 783,
+          "claude-sonnet-4-20250514": 279,
+          "codex-gpt-5-6-sol": 267,
+          "claude-opus-4-6-thinking": 241,
+          "claude-opus-4-1-20250805": 181,
+          "MiniMax-M2.7": 171,
+          "MiniMax-M3": 160,
+          "MiniMax-M2.5": 110,
+          "glm-5-turbo": 105,
+          "kimi-k2.5": 81,
+          "claude-4.6-sonnet": 70,
+          "glm-5:cloud": 68,
+          "qwen3-coder:30b": 47,
+          "claude-opus-4-20250514": 30,
+          "glm-5.1": 29,
+          "kimi-for-coding": 27,
+          "deepseek-v4-flash": 23,
+          "gpt-5.3-codex": 17,
+          "stepfun/step-3.5-flash:free": 15,
+          "anthropic/claude-sonnet-4.5": 12,
+          "moonshotai/kimi-k2.6-20260420": 9,
+          "GLM-4.7": 5,
+          "gpt-5.5": 5,
+          "claude-sonnet-4-5": 4,
+          "zai-org/GLM-5.2": 4,
+          "nemotron-3-super": 2,
+          "kimi-k3": 2,
+          "glm-5.2": 1
+        },
+        "diagnostics": {
+          "indexed_sessions": 17968,
+          "other_client_sessions": 5551,
+          "attempted_sessions": 11334,
+          "paused_at_compaction": 987,
+          "trailing_input_events": 2402,
+          "extracted_calls": 709396,
+          "tokenized_input_tokens": 49148374008,
+          "emitted_requests": 607190,
+          "emitted_input_tokens": 27671109639,
+          "meta_user_events": 15757,
+          "paused_at_ambiguous_assistant": 1228,
+          "incomplete_calls_discarded": 1984,
+          "verified_interleave_boundaries": 101327,
+          "over_context_limit": 102111,
+          "over_context_input_tokens": 21477264369,
+          "paused_at_unresolved_interleave": 841,
+          "unmatched_tool_results": 672,
+          "paused_at_noncontiguous_response": 20,
+          "sessions_without_calls": 363,
+          "sessions_missing_initial_input": 2,
+          "calls_missing_initial_history": 95,
+          "missing_transcripts": 149,
+          "invalid_transcripts": 6,
+          "non_main_or_delta_only_sessions": 934
+        },
+        "tokenizer_files": {
+          "tokenizer.json": "19e773648cb4e65de8660ea6365e10acca112d42a854923df93db4a6f333a82d",
+          "tokenizer_config.json": "98b1271574f41abf89427ae2dda030d94dc9478f0edc5a8bd240db213c6fd5fc",
+          "chat_template.jinja": "172dc74a35e1752df75ecfb2b2cf9326d2852bb1379868ebeec9571654489679"
+        },
+        "files": {
+          "requests.jsonl": {
+            "size": 35558013985,
+            "sha256": "40b7753a46affbf2ae2cc47c656fd8f37c298349d613d664f4b9f82abcf8f5ce"
+          },
+          "source_requests.jsonl": {
+            "size": 1028997711,
+            "sha256": "0080a2ebbb864817bff10e94de63606b16729882f5c6a3f82fb3cd5045c67de5"
+          }
+        },
+        "includes_output_hash_ids": true,
+        "hash_ids_scope": "input_output",
+        "hash_block_size": 16,
+        "compact_conversion": {
+          "source_bundle": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-exact",
+          "source_manifest_sha256": "0c9c17f2d0322ecca1a14883659923d4ef57e305584b7d9a1aa54020880a856d",
+          "hash_algorithm": "sha256-chain-uint32le-truncated64",
+          "input_tokens": 27671109639,
+          "output_tokens": 153681422,
+          "sample_limit": 0,
+          "semantics": "full-sequence block identity; output blocks become visible only after KV computation"
+        },
+        "overlay": {
+          "factor": 8,
+          "segment_ms": 2503327372,
+          "replay_speedup": 1,
+          "parent_bundle": "claude-code-main-glm52-128k-compact",
+          "parent_manifest_sha256": "294263219626143ed590fc94c45a81631b01aab3af74720236e950acf32621ae",
+          "session_assignment": "first retained request",
+          "source_span_ms": 20026618971,
+          "replay_span_ms": 4112771425,
+          "effective_density_multiplier": 4.869373203982519,
+          "session_count": 10962,
+          "crossing_sessions": 51,
+          "overflow_sessions": 51,
+          "overflow_requests": 3217
+        }
+      },
+      "config": {
+        "traffic": {
+          "source": {
+            "type": "trace",
+            "format": "mooncake",
+            "paths": [
+              "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x/requests.jsonl"
+            ],
+            "block_size": 16
+          },
+          "load": {
+            "type": "trace_timestamps",
+            "speedup": 1.0
+          }
+        },
+        "engine": {
+          "mode": "disaggregated",
+          "model": "zai-org/GLM-5.2-FP8",
+          "hardware": "h200_sxm",
+          "backend": "vllm",
+          "backend_version": "0.24.0",
+          "context_length": 131072,
+          "estimation_mode": "op_level",
+          "fallback_policy": "deny",
+          "database_mode": "SILICON",
+          "enable_chunked_prefill": true,
+          "kv_transfer": {
+            "enclosure": {
+              "num_blocks": 5436678,
+              "read_bandwidth_gbps": 20.0,
+              "write_bandwidth_gbps": 80.0,
+              "latency_to_first_byte_ms": 0.1
+            }
+          },
+          "workers": {
+            "prefill": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 32
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                },
+                "host_offload": {
+                  "scope": "dp_rank_local",
+                  "connector": "offloading_v0_24",
+                  "num_host_blocks": 2076,
+                  "d2h_bandwidth_gbps": 25.0,
+                  "h2d_bandwidth_gbps": 25.0,
+                  "latency_to_first_byte_ms": 0.0
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            },
+            "decode": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 256
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            }
+          }
+        },
+        "evaluation": {
+          "sla": {
+            "ttft_ms": 1000.0,
+            "itl_ms": 30.0
+          }
+        },
+        "execution": {
+          "resources": {
+            "initialization_timeout_seconds": 3600.0,
+            "memory_limit_gb": 20.0
+          }
+        }
+      },
+      "error": "owned process tree exceeded the memory budget",
+      "cells": [
+        "失败",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "22 分 28 秒",
+        "—",
+        "—",
+        "20.003",
+        "—",
+        "—",
+        "—"
+      ],
+      "attempts": [
+        {
+          "id": "20261125T081219.593559Z",
+          "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T081219.593559Z",
+          "status": "失败",
+          "error": "owned process tree exceeded the memory budget",
+          "wall_seconds": 1347.7064429029997
+        }
+      ]
+    },
+    {
+      "id": "20261125T083928.793082Z",
+      "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T083928.793082Z",
+      "budget": 16384,
+      "factor": 8,
+      "speedup": 1.0,
+      "dram_gb": 128,
+      "dram_actual_gb": 128.008617984,
+      "read_gbps": 20.0,
+      "write_gbps": 80.0,
+      "enclosure_tb": 167.616001253376,
+      "status": "失败",
+      "values": {
+        "memory": 20.004794368
+      },
+      "wall_seconds": 1368.406902089002,
+      "bundle": "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x",
+      "manifest": {
+        "format": "mooncake",
+        "trace_block_size": 16,
+        "includes_input_token_ids": false,
+        "context_limit": 131072,
+        "request_count": 607190,
+        "model_mapping": {
+          "target_model": "zai-org/GLM-5.2-FP8"
+        },
+        "scope": "Claude Code main transcripts with verified tool interleaving and explicit-root recovery",
+        "extraction_policy": "requestId and tool ID linkage required to join interleaved fragments",
+        "includes_output_token_ids": false,
+        "max_sessions": 0,
+        "timestamp_policy": "Relative milliseconds from parent replay, shifted by session start segment; first_response_event_at remains the original arrival proxy",
+        "history_policy": "logged messages only; system prompts and tool schemas omitted",
+        "output_policy": "rendered completion plus EOS; lengths always recorded",
+        "source_models_by_extracted_call": {
+          "claude-opus-4-6": 326064,
+          "claude-opus-4-7": 82694,
+          "claude-opus-5": 81177,
+          "claude-opus-4-8": 75938,
+          "claude-sonnet-4-6": 58777,
+          "claude-fable-5": 38845,
+          "claude-sonnet-5": 18798,
+          "claude-sonnet-4-5-20250929": 10115,
+          "claude-opus-4-5-20251101": 8624,
+          "claude-haiku-4-5-20251001": 3168,
+          "glm-5": 1415,
+          "claude-fable-5-1": 1033,
+          "glm-4.7": 783,
+          "claude-sonnet-4-20250514": 279,
+          "codex-gpt-5-6-sol": 267,
+          "claude-opus-4-6-thinking": 241,
+          "claude-opus-4-1-20250805": 181,
+          "MiniMax-M2.7": 171,
+          "MiniMax-M3": 160,
+          "MiniMax-M2.5": 110,
+          "glm-5-turbo": 105,
+          "kimi-k2.5": 81,
+          "claude-4.6-sonnet": 70,
+          "glm-5:cloud": 68,
+          "qwen3-coder:30b": 47,
+          "claude-opus-4-20250514": 30,
+          "glm-5.1": 29,
+          "kimi-for-coding": 27,
+          "deepseek-v4-flash": 23,
+          "gpt-5.3-codex": 17,
+          "stepfun/step-3.5-flash:free": 15,
+          "anthropic/claude-sonnet-4.5": 12,
+          "moonshotai/kimi-k2.6-20260420": 9,
+          "GLM-4.7": 5,
+          "gpt-5.5": 5,
+          "claude-sonnet-4-5": 4,
+          "zai-org/GLM-5.2": 4,
+          "nemotron-3-super": 2,
+          "kimi-k3": 2,
+          "glm-5.2": 1
+        },
+        "diagnostics": {
+          "indexed_sessions": 17968,
+          "other_client_sessions": 5551,
+          "attempted_sessions": 11334,
+          "paused_at_compaction": 987,
+          "trailing_input_events": 2402,
+          "extracted_calls": 709396,
+          "tokenized_input_tokens": 49148374008,
+          "emitted_requests": 607190,
+          "emitted_input_tokens": 27671109639,
+          "meta_user_events": 15757,
+          "paused_at_ambiguous_assistant": 1228,
+          "incomplete_calls_discarded": 1984,
+          "verified_interleave_boundaries": 101327,
+          "over_context_limit": 102111,
+          "over_context_input_tokens": 21477264369,
+          "paused_at_unresolved_interleave": 841,
+          "unmatched_tool_results": 672,
+          "paused_at_noncontiguous_response": 20,
+          "sessions_without_calls": 363,
+          "sessions_missing_initial_input": 2,
+          "calls_missing_initial_history": 95,
+          "missing_transcripts": 149,
+          "invalid_transcripts": 6,
+          "non_main_or_delta_only_sessions": 934
+        },
+        "tokenizer_files": {
+          "tokenizer.json": "19e773648cb4e65de8660ea6365e10acca112d42a854923df93db4a6f333a82d",
+          "tokenizer_config.json": "98b1271574f41abf89427ae2dda030d94dc9478f0edc5a8bd240db213c6fd5fc",
+          "chat_template.jinja": "172dc74a35e1752df75ecfb2b2cf9326d2852bb1379868ebeec9571654489679"
+        },
+        "files": {
+          "requests.jsonl": {
+            "size": 35558013985,
+            "sha256": "40b7753a46affbf2ae2cc47c656fd8f37c298349d613d664f4b9f82abcf8f5ce"
+          },
+          "source_requests.jsonl": {
+            "size": 1028997711,
+            "sha256": "0080a2ebbb864817bff10e94de63606b16729882f5c6a3f82fb3cd5045c67de5"
+          }
+        },
+        "includes_output_hash_ids": true,
+        "hash_ids_scope": "input_output",
+        "hash_block_size": 16,
+        "compact_conversion": {
+          "source_bundle": "/home/xieqiang/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-exact",
+          "source_manifest_sha256": "0c9c17f2d0322ecca1a14883659923d4ef57e305584b7d9a1aa54020880a856d",
+          "hash_algorithm": "sha256-chain-uint32le-truncated64",
+          "input_tokens": 27671109639,
+          "output_tokens": 153681422,
+          "sample_limit": 0,
+          "semantics": "full-sequence block identity; output blocks become visible only after KV computation"
+        },
+        "overlay": {
+          "factor": 8,
+          "segment_ms": 2503327372,
+          "replay_speedup": 1,
+          "parent_bundle": "claude-code-main-glm52-128k-compact",
+          "parent_manifest_sha256": "294263219626143ed590fc94c45a81631b01aab3af74720236e950acf32621ae",
+          "session_assignment": "first retained request",
+          "source_span_ms": 20026618971,
+          "replay_span_ms": 4112771425,
+          "effective_density_multiplier": 4.869373203982519,
+          "session_count": 10962,
+          "crossing_sessions": 51,
+          "overflow_sessions": 51,
+          "overflow_requests": 3217
+        }
+      },
+      "config": {
+        "traffic": {
+          "source": {
+            "type": "trace",
+            "format": "mooncake",
+            "paths": [
+              "/mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact-overlay-8x/requests.jsonl"
+            ],
+            "block_size": 16
+          },
+          "load": {
+            "type": "trace_timestamps",
+            "speedup": 1.0
+          }
+        },
+        "engine": {
+          "mode": "disaggregated",
+          "model": "zai-org/GLM-5.2-FP8",
+          "hardware": "h200_sxm",
+          "backend": "vllm",
+          "backend_version": "0.24.0",
+          "context_length": 131072,
+          "estimation_mode": "op_level",
+          "fallback_policy": "deny",
+          "database_mode": "SILICON",
+          "enable_chunked_prefill": true,
+          "kv_transfer": {
+            "enclosure": {
+              "num_blocks": 5436678,
+              "read_bandwidth_gbps": 20.0,
+              "write_bandwidth_gbps": 80.0,
+              "latency_to_first_byte_ms": 0.1
+            }
+          },
+          "workers": {
+            "prefill": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 32
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                },
+                "host_offload": {
+                  "scope": "dp_rank_local",
+                  "connector": "offloading_v0_24",
+                  "num_host_blocks": 4152,
+                  "d2h_bandwidth_gbps": 25.0,
+                  "h2d_bandwidth_gbps": 25.0,
+                  "latency_to_first_byte_ms": 0.0
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            },
+            "decode": {
+              "parallelism": {
+                "replicas": 1,
+                "tensor": 8,
+                "pipeline": 1,
+                "attention_data": 1,
+                "moe_tensor": 1,
+                "moe_expert": 8
+              },
+              "scheduler": {
+                "max_batched_tokens": 16384,
+                "max_sequences": 256
+              },
+              "kv_cache": {
+                "block_size": 64,
+                "prefix_caching": true,
+                "bytes_per_token": "auto",
+                "capacity": {
+                  "type": "default",
+                  "memory_fraction": 0.9
+                }
+              },
+              "timing": {
+                "type": "default"
+              },
+              "startup_seconds": 0.0
+            }
+          }
+        },
+        "evaluation": {
+          "sla": {
+            "ttft_ms": 1000.0,
+            "itl_ms": 30.0
+          }
+        },
+        "execution": {
+          "resources": {
+            "initialization_timeout_seconds": 3600.0,
+            "memory_limit_gb": 20.0
+          }
+        }
+      },
+      "error": "owned process tree exceeded the memory budget",
+      "cells": [
+        "失败",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "22 分 48 秒",
+        "—",
+        "—",
+        "20.005",
+        "—",
+        "—",
+        "—"
+      ],
+      "attempts": [
+        {
+          "id": "20261125T054209.554768Z",
+          "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T054209.554768Z",
+          "status": "失败",
+          "error": "owned process tree exceeded the memory budget",
+          "wall_seconds": 1381.2293077920003
+        },
+        {
+          "id": "20261125T083928.793082Z",
+          "source": "/home/xieqiang/project/results/swe-chat-enclosure-h200-ep8-compact/20261125T083928.793082Z",
+          "status": "失败",
+          "error": "owned process tree exceeded the memory budget",
+          "wall_seconds": 1368.406902089002
+        }
+      ]
+    }
+  ],
+  "columns": [
+    "状态",
+    "完成请求",
+    "联合 SLA 达标率",
+    "P99 TTFT（秒）",
+    "平均 TTFT（秒）",
+    "TPOT（ms）",
+    "HBM 复用",
+    "DRAM 直接复用",
+    "盘框恢复复用",
+    "总复用率",
+    "盘框累计读（TB）",
+    "实际耗时",
+    "扣排队后平均 TTFT（秒）",
+    "扣排队后 P99 TTFT（秒）",
+    "内存峰值（GB）",
+    "盘框累计写（TB）",
+    "D 生成块写回（块）",
+    "P 复用 D 生成块（块次）"
+  ],
+  "metrics": [
+    {
+      "key": "sla",
+      "label": "联合 SLA 达标率",
+      "unit": "%"
+    },
+    {
+      "key": "mean_ttft",
+      "label": "平均 TTFT",
+      "unit": "秒"
+    },
+    {
+      "key": "p99_ttft",
+      "label": "P99 TTFT",
+      "unit": "秒"
+    },
+    {
+      "key": "adjusted_mean",
+      "label": "扣排队后平均 TTFT",
+      "unit": "秒"
+    },
+    {
+      "key": "adjusted_p99",
+      "label": "扣排队后 P99 TTFT",
+      "unit": "秒"
+    },
+    {
+      "key": "tpot",
+      "label": "TPOT",
+      "unit": "ms"
+    },
+    {
+      "key": "hbm",
+      "label": "HBM 复用率",
+      "unit": "%"
+    },
+    {
+      "key": "dram",
+      "label": "DRAM 直接复用率",
+      "unit": "%"
+    },
+    {
+      "key": "enclosure",
+      "label": "盘框恢复复用率",
+      "unit": "%"
+    },
+    {
+      "key": "reuse",
+      "label": "总前缀复用率",
+      "unit": "%"
+    },
+    {
+      "key": "enclosure_read",
+      "label": "整框累计读取量",
+      "unit": "TB"
+    },
+    {
+      "key": "enclosure_write",
+      "label": "整框累计写入量",
+      "unit": "TB"
+    },
+    {
+      "key": "decode_writeback",
+      "label": "D 生成块写回",
+      "unit": "块"
+    },
+    {
+      "key": "pd_reuse",
+      "label": "P 复用 D 生成块",
+      "unit": "块次"
+    },
+    {
+      "key": "memory",
+      "label": "进程树内存峰值",
+      "unit": "GB"
+    }
+  ],
+  "generated": "2026-11-25T18:42:40+08:00",
+  "md_path": "enclosure_experiments.md",
+  "scope_note": "盘框带宽按整框共享计，DRAM↔HBM 按每 TP 分片计。P→D 经盘框交接；未完成实验仅展示状态。"
+}

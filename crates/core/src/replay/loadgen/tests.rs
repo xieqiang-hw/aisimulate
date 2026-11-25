@@ -866,6 +866,7 @@ fn test_from_applied_compute_agentic_can_share_initial_prefix_blocks_across_sess
 #[test]
 fn test_turn_to_direct_request_repeats_hash_ids_by_block_size() {
     let turn = TurnTrace {
+        input_output_hashes: false,
         mooncake_prompt: None,
         input_token_ids: None,
         input_length: 6,
@@ -1790,4 +1791,41 @@ fn legacy_anonymous_session_marker_is_part_of_graph_digest() {
         authored.nodes()[0].session_id()
     );
     assert_ne!(authored.graph_digest(), digest);
+}
+
+#[test]
+fn compact_input_output_hashes_validate_and_reconstruct_crossing_block() {
+    let row = serde_json::json!({
+        "input_length": 3, "output_length": 3, "hash_ids": [100, 200],
+        "hash_ids_scope": "input_output", "hash_block_size": 4,
+        "timestamp": 0
+    });
+    let make = |row: serde_json::Value| {
+        Trace::from_mooncake_rows(vec![serde_json::from_value(row).unwrap()], 4)
+    };
+    let trace = make(row.clone()).unwrap();
+    assert!(trace.sessions[0].turns[0].output_token_ids.is_none());
+    let mut driver = trace.into_trace_driver_with_block_size(8).unwrap();
+    let ready = driver.pop_ready(0.0, 1).pop().unwrap();
+    assert_eq!(ready.request.tokens, [0, 0, 0]);
+    assert_eq!(ready.request.output_token_ids.unwrap(), [0, 1, 1]);
+    assert!(
+        make(row.clone())
+            .unwrap()
+            .into_trace_driver_with_block_size(2)
+            .is_err()
+    );
+    for (key, value) in [
+        ("hash_ids", serde_json::json!([100])),
+        ("hash_block_size", serde_json::json!(16)),
+        ("hash_ids_scope", serde_json::json!("unknown")),
+        ("output_token_ids", serde_json::json!([1, 2, 3])),
+    ] {
+        let mut invalid = row.clone();
+        invalid[key] = value;
+        assert!(make(invalid).is_err(), "{key}");
+    }
+    let delta_trace = make(row.clone()).unwrap();
+    // Compact encodings describe complete input histories, never deltas.
+    assert!(WorkloadDriver::new_trace_accumulating_deltas(delta_trace, 8).is_err());
 }

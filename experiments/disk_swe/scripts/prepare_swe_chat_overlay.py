@@ -34,6 +34,8 @@ def index_bundle(bundle, manifest):
             starts.setdefault(session, timestamp)
             records.append((timestamp, starts[session], offset, sources.tell() - len(raw_source)))
             previous = timestamp
+            if len(records) % 100_000 == 0:
+                print(f"Indexed {len(records):,}/{manifest['request_count']:,} requests", flush=True)
             for digest, raw in zip(digests, (raw_request, raw_source)):
                 digest.update(raw)
         if requests.read(1) or len(records) != manifest["request_count"] or not records:
@@ -87,6 +89,8 @@ def overlay(bundle, target, manifest_bytes, records, starts, factor):
                 sidecar.write(encoded)
                 hashes[0].update(updated)
                 hashes[1].update(encoded)
+                if (ordinal + 1) % 100_000 == 0:
+                    print(f"Exported {ordinal + 1:,}/{len(records):,} requests for {factor}x", flush=True)
 
         for name, digest in zip((REQUESTS, SOURCES), hashes):
             files[name] = {"size": (stage / name).stat().st_size, "sha256": digest.hexdigest()}
@@ -119,12 +123,12 @@ def overlay(bundle, target, manifest_bytes, records, starts, factor):
           f"effective {span / actual_span:.3f}x, {overflow_requests:,} tail requests", flush=True)
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bundle", type=Path, default=Path.home() / "project/data/swe_chat/derived/mooncake-v1/claude-code-main-glm52-128k")
     parser.add_argument("--output-root", type=Path)
     parser.add_argument("--factors", type=int, nargs="+", choices=SUPPORTED_FACTORS, default=FACTORS)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     bundle = args.bundle.resolve()
     output = (args.output_root or bundle.parent).resolve()
     manifest_bytes = (bundle / "manifest.json").read_bytes()

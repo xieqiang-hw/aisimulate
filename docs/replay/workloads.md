@@ -678,3 +678,34 @@ native `ReplaySpec.max_in_flight` selects source-side concurrency. The SDK's
 which are distinct from this public YAML. See [Sweeper SDK](../sweeper/sdk.md)
 for that mapping and [candidate-relative load](../sweeper/search-space.md)
 for capacity-based search. Do not substitute SDK YAML for CLI YAML.
+
+### Compact full-sequence Mooncake hashes
+
+Ordinary Mooncake JSONL also supports an explicitly marked full-sequence encoding:
+
+\u0060\u0060\u0060json
+{"input_length":100,"output_length":70,"hash_ids":[11,22,33,44,55,66,77,88,99,110,121],"hash_ids_scope":"input_output","hash_block_size":16,"timestamp":0}
+\u0060\u0060\u0060
+
+| Row field | Meaning |
+| --- | --- |
+| \u0060hash_ids_scope\u0060 | Omit for existing input-only hashes; \u0060input_output\u0060 declares continuous hashes of input followed by planned output. Other values are rejected. |
+| \u0060hash_block_size\u0060 | Required for \u0060input_output\u0060 and must equal \u0060traffic.source.block_size\u0060. |
+| \u0060hash_ids\u0060 | Exactly ceil((input_length + output_length) / hash_block_size) uint64 block identifiers. Equal complete prefixes must have equal IDs across requests. |
+| \u0060input_length\u0060 / \u0060output_length\u0060 | Required token counts; the split need not align to a hash block. Token-ID arrays must be absent in compact rows. |
+
+This representation is for offline full-prompt Mooncake replay, not delta
+accumulation or content-serving validation. Native KV block size must be a
+multiple of the trace hash block size. Do not mix compact and legacy rows in one
+trace. The native engine receives deterministic surrogate token values; complete
+KV-prefix equality is preserved, but literal token values and numeric internal
+hashes are not. Output plans are expanded only when a request is dispatched.
+Visibility and writeback still depend on actual computed KV positions, including
+the final sampled token rule. Existing Mooncake files retain their previous behavior.
+
+The SWE-chat converter at
+\u0060experiments/disk_swe/scripts/compact_swe_chat_hashes.py\u0060 computes a SHA-256
+prefix chain over uint32 little-endian token segments and serializes its first
+64 bits as each ID. As with the engine's existing 64-bit hashes, hash collisions
+are theoretically possible. Timestamp, session, delay, priorities and lengths
+are preserved. The original token bundle should remain the provenance source.

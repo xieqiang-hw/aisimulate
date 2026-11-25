@@ -506,10 +506,20 @@ impl TurnTrace {
         arrival_timestamp_ms: Option<f64>,
     ) -> Result<DirectRequest> {
         let tokens = self.synthesize_tokens(trace_block_size)?;
+        let output_token_ids = if self.input_output_hashes {
+            let total = self
+                .input_length
+                .checked_add(self.max_output_tokens)
+                .ok_or_else(|| anyhow!("input_output length overflow"))?;
+            let all = synthesize_trace_tokens(total, &self.hash_ids, trace_block_size)?;
+            Some(all[self.input_length..].to_vec())
+        } else {
+            self.output_token_ids.clone()
+        };
         Ok(DirectRequest {
             tokens,
             max_output_tokens: self.max_output_tokens,
-            output_token_ids: self.output_token_ids.clone(),
+            output_token_ids,
             uuid: Some(request_uuid),
             dp_rank: 0,
             preferred_dp_rank: None,
@@ -544,6 +554,7 @@ struct MooncakeTraceBuilder {
     sessions: Vec<SessionTrace>,
     session_indices: HashMap<String, usize>,
     last_timestamps: Vec<Option<f64>>,
+    input_output_hashes: Option<bool>,
 }
 
 impl MooncakeTraceBuilder {
@@ -554,6 +565,7 @@ impl MooncakeTraceBuilder {
             sessions: Vec::new(),
             session_indices: HashMap::new(),
             last_timestamps: Vec::new(),
+            input_output_hashes: None,
         }
     }
 
@@ -567,6 +579,39 @@ impl MooncakeTraceBuilder {
         raw: MooncakeRow,
         location: Option<(&Arc<PathBuf>, u64, usize)>,
     ) -> Result<()> {
+        let input_output_hashes = match raw.hash_ids_scope.as_deref() {
+            None => false,
+            Some("input_output") => true,
+            Some(scope) => bail!(
+                "trace line {} unsupported hash_ids_scope {scope}",
+                line_idx + 1
+            ),
+        };
+        ensure!(
+            self.input_output_hashes
+                .is_none_or(|mode| mode == input_output_hashes),
+            "cannot mix input_output hashes and legacy Mooncake rows in one trace"
+        );
+        self.input_output_hashes = Some(input_output_hashes);
+        if input_output_hashes {
+            ensure!(
+                raw.input_length.is_some(),
+                "input_output hashes require input_length"
+            );
+            ensure!(
+                raw.hash_block_size == Some(self.trace_block_size),
+                "input_output hash_block_size must match traffic.source.block_size"
+            );
+            ensure!(
+                raw.input_token_ids.is_none() && raw.output_token_ids.is_none(),
+                "input_output hashes cannot be combined with token ID arrays"
+            );
+        } else {
+            ensure!(
+                raw.hash_block_size.is_none(),
+                "hash_block_size requires input_output scope"
+            );
+        }
         let request_id = raw.request_id;
         let raw_session_id = raw.session_id;
         let session_id = raw_session_id
@@ -597,6 +642,16 @@ impl MooncakeTraceBuilder {
         let output_length = raw
             .output_length
             .ok_or_else(|| anyhow!("trace line {} is missing output_length", line_idx + 1))?;
+        if input_output_hashes {
+            let total = input_length
+                .checked_add(output_length)
+                .ok_or_else(|| anyhow!("input_output length overflow"))?;
+            ensure!(
+                hash_ids.len() == total.div_ceil(self.trace_block_size),
+                "trace line {} input_output hash count must cover input_length + output_length exactly",
+                line_idx + 1
+            );
+        }
         let output_token_ids = raw.output_token_ids;
         ensure!(
             raw.input_token_ids.is_none() || output_token_ids.is_some(),
@@ -639,7 +694,7 @@ impl MooncakeTraceBuilder {
             .get_mut(session_index)
             .expect("newly inserted session must exist");
         let turn_idx = session.turns.len();
-        let replay_key = output_token_ids.as_ref().map(|_| {
+        let replay_key = (output_token_ids.is_some() || input_output_hashes).then(|| {
             effective_replay_key(
                 request_id.as_deref(),
                 raw_session_id.as_deref(),
@@ -712,6 +767,7 @@ impl MooncakeTraceBuilder {
             output_token_ids,
             replay_key,
             hash_ids,
+            input_output_hashes,
             delay_after_previous_ms,
             priority,
             strict_priority,

@@ -4446,3 +4446,122 @@ fn enclosure_decode_block_is_restored_by_next_prefill() {
     assert_eq!(records[1].first_admission_g3_reused_input_tokens, Some(64));
     assert_eq!(records[2].first_admission_g3_reused_input_tokens, Some(0));
 }
+
+/// Compact hashes rename block contents but preserve every complete-prefix
+/// equality. Exercise D output -> P restoration, mixed input/output blocks,
+/// mismatch rejection, readmission-independent timestamps, and LRU pressure.
+#[test]
+fn enclosure_compact_input_output_hashes_match_exact_token_replay() {
+    use crate::replay::loadgen::{MooncakeRow, Trace};
+    use sha2::{Digest, Sha256};
+
+    let mut config = disagg_config();
+    config.num_prefill_workers = 1;
+    config.num_decode_workers = 1;
+    config.prefill_args.kv_cache_bytes_per_token = Some(16);
+    config.decode_args.kv_cache_bytes_per_token = Some(16);
+    config.prefill_args.native_host_offload = Some(crate::engine::NativeHostOffloadConfig::new(4));
+    let mut config = config.runtime_config(false).unwrap();
+    config.enclosure = Some(crate::replay::EnclosureHandoffConfig {
+        num_blocks: 3,
+        read_bandwidth_gbps: 1.0,
+        write_bandwidth_gbps: 1.0,
+        combined_bandwidth_gbps: Some(1.0),
+        prefill_write_bandwidth_gbps: None,
+        decode_read_bandwidth_gbps: None,
+        latency_to_first_byte_ms: 0.1,
+    });
+    let mut requests = Vec::new();
+    let mut first = request(1, 48, 17, 0.0);
+    first.output_token_ids = Some((10..27).collect());
+    requests.push(first);
+    let mut next = request(2, 65, 1, 100.0);
+    next.tokens[48..64].copy_from_slice(&(10..26).collect::<Vec<_>>());
+    next.tokens[64] = 99;
+    next.output_token_ids = Some(vec![30]);
+    requests.push(next.clone());
+    let mut mismatch = next;
+    mismatch.uuid = Some(Uuid::from_u128(3));
+    mismatch.arrival_timestamp_ms = Some(200.0);
+    mismatch.tokens[63] = 50;
+    requests.push(mismatch);
+    for i in 0..8 {
+        let mut req = request(4 + i, 129, 64, 300.0 + i as f64 * 100.0);
+        req.tokens.fill((i % 3 + 100) as u32);
+        req.output_token_ids = Some(vec![201; 64]);
+        requests.push(req);
+    }
+    let exact: Vec<MooncakeRow> = requests
+        .into_iter()
+        .map(|req| MooncakeRow {
+            input_length: Some(req.tokens.len()),
+            output_length: Some(req.max_output_tokens),
+            hash_ids: Some(vec![42; req.tokens.len().div_ceil(16)]),
+            input_token_ids: Some(req.tokens),
+            output_token_ids: req.output_token_ids,
+            timestamp: req.arrival_timestamp_ms,
+            ..Default::default()
+        })
+        .collect();
+    let compact = exact
+        .iter()
+        .cloned()
+        .map(|mut row| {
+            let mut tokens = row.input_token_ids.take().unwrap();
+            tokens.extend(row.output_token_ids.take().unwrap());
+            let mut parent = [0_u8; 32];
+            row.hash_ids = Some(
+                tokens
+                    .chunks(16)
+                    .map(|chunk| {
+                        let mut hash = Sha256::new();
+                        hash.update(parent);
+                        for token in chunk {
+                            hash.update(token.to_le_bytes());
+                        }
+                        parent = hash.finalize().into();
+                        u64::from_le_bytes(parent[..8].try_into().unwrap())
+                    })
+                    .collect(),
+            );
+            row.hash_ids_scope = Some("input_output".into());
+            row.hash_block_size = Some(16);
+            row
+        })
+        .collect();
+    let run = |rows| {
+        let trace = Trace::from_mooncake_rows(rows, 16).unwrap();
+        let driver = trace
+            .into_trace_driver_with_block_size(64)
+            .unwrap()
+            .with_deterministic_request_ids(1);
+        RoundRobinDisaggRuntime::new_round_robin_workload(&config, driver, ReplayMode::Trace)
+            .unwrap()
+            .with_per_request_records(true)
+            .run()
+            .unwrap()
+            .0
+            .finish()
+    };
+    let expected = run(exact);
+    let actual = run(compact);
+    assert_eq!(actual.request_counts.completed_requests, 11);
+    for (a, b) in actual.per_request.iter().zip(&expected.per_request) {
+        assert_eq!(
+            serde_json::to_value(a).unwrap(),
+            serde_json::to_value(b).unwrap()
+        );
+    }
+    assert_eq!(
+        serde_json::to_value(&actual.g3_offload).unwrap(),
+        serde_json::to_value(&expected.g3_offload).unwrap()
+    );
+    assert_eq!(
+        format!("{:?}", actual.latency),
+        format!("{:?}", expected.latency)
+    );
+    let io = actual.g3_offload.unwrap();
+    assert!(io.decode_writeback_blocks > 0);
+    assert!(io.prefill_decode_reuse_blocks > 0);
+    assert!(io.evictions > 0);
+}

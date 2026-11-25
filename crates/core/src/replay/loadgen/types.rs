@@ -97,6 +97,11 @@ pub struct MooncakeRow {
     pub output_token_ids: Option<Vec<u32>>,
     #[serde(default)]
     pub hash_ids: Option<Vec<u64>>,
+    /// Explicit compact full-sequence encoding; absent means legacy input-only hashes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hash_ids_scope: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hash_block_size: Option<usize>,
     #[serde(
         default,
         skip_serializing_if = "Option::is_none",
@@ -236,6 +241,8 @@ pub struct TurnTrace {
     pub output_token_ids: Option<Vec<u32>>,
     pub replay_key: Option<String>,
     pub hash_ids: Vec<u32>,
+    /// Hashes encode input followed by planned output, without literal token IDs.
+    pub input_output_hashes: bool,
     pub delay_after_previous_ms: f64,
     pub priority: i32,
     pub strict_priority: u32,
@@ -616,6 +623,7 @@ pub enum ReplayRequestPayload {
         input_length: usize,
         hash_ids: Vec<u32>,
         trace_block_size: usize,
+        full_sequence_identity: bool,
     },
 }
 
@@ -636,6 +644,28 @@ impl ReplayRequestPayload {
             input_length,
             hash_ids,
             trace_block_size,
+            full_sequence_identity: false,
+        }
+    }
+
+    pub(crate) fn with_full_sequence_identity(mut self) -> Self {
+        if let Self::Deferred {
+            full_sequence_identity,
+            ..
+        } = &mut self
+        {
+            *full_sequence_identity = true;
+        }
+        self
+    }
+
+    pub(crate) fn has_full_sequence_identity(&self) -> bool {
+        match self {
+            Self::Materialized(_) => true,
+            Self::Deferred {
+                full_sequence_identity,
+                ..
+            } => *full_sequence_identity,
         }
     }
 
@@ -719,6 +749,7 @@ impl ReplayRequestPayload {
                 input_length,
                 hash_ids,
                 trace_block_size,
+                ..
             } => {
                 request_metadata.tokens =
                     synthesize_validated_trace_tokens(input_length, &hash_ids, trace_block_size);

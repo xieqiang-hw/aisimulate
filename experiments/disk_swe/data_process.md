@@ -31,3 +31,51 @@
 在中间产物中保留计划输出 token 和调用依赖。逐 token 比较上一轮的「完整输入＋计划输出」和下一轮的完整输入，统计共同前缀中由 D 计算补齐的完整 64-token KV 块。后续可利用已有输出 token ID，补充 `wait_for` 后导出 `agentic_mooncake`。先用两轮构造样本验证 D 写入和 P 读回，再用重建负载测收益。
 
 [官方字段说明](https://huggingface.co/datasets/SALT-NLP/SWE-chat#dataset-schema)
+
+## 精确 token 包转为输入输出连续哈希包
+
+转换入口：\u0060scripts/compact_swe_chat_hashes.py\u0060。源数据保持不变，
+逐行读取完整输入与输出 token，连续每 16 token 生成链式块标识，
+输出省去两个 token 数组，保留长度、时间戳、会话及 delay 等字段。
+每行增加 \u0060hash_ids_scope: "input_output"\u0060 和 \u0060hash_block_size: 16\u0060。
+输入输出交界处不重新分块。manifest 最后写入，未完成的输出目录不能用于实验。
+脚本还保存原有 source_requests.jsonl，后续仍可用 prepare_swe_chat_overlay.py 生成叠加包。
+
+\u0060\u0060\u0060bash
+cd ~/project/aisimulate
+~/.venvs/aisim/bin/python -u experiments/disk_swe/scripts/compact_swe_chat_hashes.py \\
+  --bundle "$HOME/project/data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-exact" \\
+  --output-dir /mnt/d/aisim-data/swe_chat/derived/verified_interleave_mooncake_v1/claude-code-main-glm52-128k-compact
+\u0060\u0060\u0060
+
+新包适用于普通 Mooncake 全量输入回放。引擎 KV 块需为 trace 块大小的整数倍，
+当前为 64/16。它保留完整 KV 前缀的相等关系，但内部 token 是仿真替身，
+不能用于还原输出文本或校验真实服务输出。D 写回仍在实际计算完整块之后发生，
+提前提供输出块标识不会提前暴露 KV。旧 token 格式继续支持。
+
+## 场景 2 compact 8× 叠加与正式运行
+
+使用 scripts/prepare_enclosure_overlay.py 从 compact 原速包生成 8× 包。
+它复用 prepare_swe_chat_overlay.py 的会话整体平移逻辑，只修改时间戳，
+保留完整输入输出 hash_ids、格式标记、长度和侧表，并更新 manifest 与 SHA256。
+默认输出名为 claude-code-main-glm52-128k-compact-overlay-8x。
+标称叠加倍率和全程实际密度可能不同，会话越界尾部仍保留。
+
+scripts/run_enclosure_sample.py 保留历史文件名，但默认已改为正式
+swe_enclosure_h200_ep8_p256gb_8x.yaml 配置及 compact 8× 包。
+默认全量，P DRAM 256 GB，H200 1P1D TP8/EP8，P/D HBM 自动容量，
+盘框整框共享读写分别 80 GB/s，执行内存预算 20 GB。
+入口只预检 manifest 和首条记录，完整 SHA256 校验由通用 runner 执行，
+全部行的格式检查由原生引擎执行，避免额外扫描全部 JSON。
+
+运行命令（先完成数据生成，再启动实验）：
+
+\u0060\u0060\u0060bash
+cd ~/project/aisimulate
+~/.venvs/aisim/bin/python -u experiments/disk_swe/scripts/prepare_enclosure_overlay.py --factors 8
+~/.venvs/aisim/bin/python -u experiments/disk_swe/scripts/run_enclosure_sample.py --max-requests 0
+\u0060\u0060\u0060
+
+2026-11-25 验证：6 项转换/工作流测试通过；实际 200 条 compact 请求经
+新入口生成 8× 小样本并使用正式配置运行，200 条全部完成。
+验证记录见 analysis/compact_hash_validation/workflow_8x_validation.json。

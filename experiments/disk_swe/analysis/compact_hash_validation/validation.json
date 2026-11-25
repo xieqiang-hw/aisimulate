@@ -1,0 +1,102 @@
+{
+  "passed": true,
+  "completed_requests": {
+    "exact": 200,
+    "compact": 200
+  },
+  "request_records": {
+    "exact": 200,
+    "compact": 200
+  },
+  "summary_differences": [],
+  "request_differences": [],
+  "comparison": "All report fields and per-request records except random UUIDs, actual wall clock and timing provenance; numeric tolerance abs=1e-9, rel=1e-12",
+  "reports": {
+    "exact": "/tmp/aisim-compact-validation/actual-model-final/exact/20261124T130645.079695Z/prediction/prediction.json",
+    "compact": "/tmp/aisim-compact-validation/actual-model-final/compact/20261124T130648.783608Z/prediction/prediction.json"
+  },
+  "sizes": {
+    "exact": 29158769,
+    "compact": 6042409
+  },
+  "regression_tests": {
+    "rust_loadgen": 230,
+    "rust_enclosure": 3,
+    "python_converter": 3
+  },
+  "engine_reinstalled": true,
+  "scope": "Small-sample equivalence only; no full-dataset run or memory-capacity guarantee",
+  "broader_compile_check": "cargo check --tests encounters existing integration fixtures missing ReplayTopology::Disaggregated.enclosure; these files and topology definition were not changed in this task",
+  "metrics": {
+    "exact": {
+      "mean_ttft_ms": 229.866534131285,
+      "p99_ttft_ms": 1806.3220616057515,
+      "mean_tpot_ms": 10.88250484664208,
+      "first_admission_prefix_cache_reused_ratio": 0.950442052341256,
+      "total_input_tokens": 4675012,
+      "total_output_tokens": 41534,
+      "g3_offload": {
+        "cross_worker_read_blocks": 4203,
+        "decode_writeback_blocks": 636,
+        "evictions": 0,
+        "lookup_hits": 479,
+        "lookup_pending": 0,
+        "lookup_probes": 4361,
+        "pending_blocks": 0,
+        "prefill_decode_reuse_blocks": 479,
+        "prefill_dram_promotion_blocks": 3916,
+        "prefill_dram_promotion_bytes": 15091574784,
+        "read": {
+          "cancelled_jobs": 0,
+          "completed_bytes": 129642639360,
+          "completed_jobs": 376,
+          "submitted_jobs": 376,
+          "transfer_ms": 1658.1329915635022
+        },
+        "resident_blocks": 4163,
+        "write": {
+          "cancelled_jobs": 0,
+          "completed_bytes": 134421381120,
+          "completed_jobs": 836,
+          "submitted_jobs": 836,
+          "transfer_ms": 1763.867262989407
+        }
+      }
+    },
+    "compact": {
+      "mean_ttft_ms": 229.866534131285,
+      "p99_ttft_ms": 1806.3220616057515,
+      "mean_tpot_ms": 10.88250484664208,
+      "first_admission_prefix_cache_reused_ratio": 0.950442052341256,
+      "total_input_tokens": 4675012,
+      "total_output_tokens": 41534,
+      "g3_offload": {
+        "cross_worker_read_blocks": 4203,
+        "decode_writeback_blocks": 636,
+        "evictions": 0,
+        "lookup_hits": 479,
+        "lookup_pending": 0,
+        "lookup_probes": 4361,
+        "pending_blocks": 0,
+        "prefill_decode_reuse_blocks": 479,
+        "prefill_dram_promotion_blocks": 3916,
+        "prefill_dram_promotion_bytes": 15091574784,
+        "read": {
+          "cancelled_jobs": 0,
+          "completed_bytes": 129642639360,
+          "completed_jobs": 376,
+          "submitted_jobs": 376,
+          "transfer_ms": 1658.1329915635022
+        },
+        "resident_blocks": 4163,
+        "write": {
+          "cancelled_jobs": 0,
+          "completed_bytes": 134421381120,
+          "completed_jobs": 836,
+          "submitted_jobs": 836,
+          "transfer_ms": 1763.867262989407
+        }
+      }
+    }
+  }
+}

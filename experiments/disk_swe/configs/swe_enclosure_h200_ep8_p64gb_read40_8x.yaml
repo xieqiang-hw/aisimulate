@@ -1,0 +1,86 @@
+# 场景2；P DRAM 64 GB；整框共享读 40 GB/s、写 80 GB/s；compact 8x。
+traffic:
+  source:
+    type: trace
+    format: mooncake
+    paths:
+    - __SET_BY_RUNNER__
+    block_size: 16
+  load:
+    type: trace_timestamps
+    speedup: 1.0
+engine:
+  mode: disaggregated
+  model: zai-org/GLM-5.2-FP8
+  hardware: h200_sxm
+  backend: vllm
+  backend_version: 0.24.0
+  context_length: 131072
+  estimation_mode: op_level
+  fallback_policy: deny
+  database_mode: SILICON
+  enable_chunked_prefill: true
+  kv_transfer:
+    enclosure:
+      num_blocks: 5436678
+      read_bandwidth_gbps: 40.0
+      write_bandwidth_gbps: 80.0
+      latency_to_first_byte_ms: 0.1
+  workers:
+    prefill:
+      parallelism:
+        replicas: 1
+        tensor: 8
+        pipeline: 1
+        attention_data: 1
+        moe_tensor: 1
+        moe_expert: 8
+      scheduler:
+        max_batched_tokens: 16384
+        max_sequences: 32
+      kv_cache:
+        block_size: 64
+        prefix_caching: true
+        bytes_per_token: auto
+        capacity:
+          type: default
+          memory_fraction: 0.9
+        host_offload:
+          scope: dp_rank_local
+          connector: offloading_v0_24
+          num_host_blocks: 2076
+          d2h_bandwidth_gbps: 25.0
+          h2d_bandwidth_gbps: 25.0
+          latency_to_first_byte_ms: 0.0
+      timing:
+        type: default
+      startup_seconds: 0.0
+    decode:
+      parallelism:
+        replicas: 1
+        tensor: 8
+        pipeline: 1
+        attention_data: 1
+        moe_tensor: 1
+        moe_expert: 8
+      scheduler:
+        max_batched_tokens: 16384
+        max_sequences: 256
+      kv_cache:
+        block_size: 64
+        prefix_caching: true
+        bytes_per_token: auto
+        capacity:
+          type: default
+          memory_fraction: 0.9
+      timing:
+        type: default
+      startup_seconds: 0.0
+evaluation:
+  sla:
+    ttft_ms: 1000.0
+    itl_ms: 30.0
+execution:
+  resources:
+    initialization_timeout_seconds: 3600.0
+    memory_limit_gb: 20.0

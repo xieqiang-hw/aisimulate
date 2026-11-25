@@ -1648,8 +1648,7 @@ where
                 .flow
                 .state(uuid)?
                 .request_payload()?
-                .materialized_tokens()
-                .is_some();
+                .has_full_sequence_identity();
         let (request, handoff_id) = self.flow.prepare_prefill_submission(uuid)?;
         if let Some(enclosure) = &mut self.flow.enclosure {
             if let Err(error) = enclosure.register_prompt(
