@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MiniMax-M2.5 · 吞吐与调度</title>
+<style>
+:root{--bg:#f3f5f2;--paper:#fff;--ink:#183330;--muted:#60756f;--line:#dce5de;--a:#11786a;--b:#b25d27;--demand:#596eaa;--soft:#eaf2ed}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 "Segoe UI","Microsoft YaHei",sans-serif}main{max-width:1440px;margin:auto;padding:38px 32px 56px}header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;padding:12px 0 25px}.eyebrow{font-size:12px;letter-spacing:2px;color:var(--a);font-weight:700}h1{font-size:clamp(28px,3vw,43px);line-height:1.3;margin:10px 0 12px;letter-spacing:-1px}h2{font-size:23px;line-height:1.4;margin:0 0 8px}h3{font-size:17px;margin:0}.lead{max-width:800px;color:var(--muted);margin:0}nav{display:flex;gap:8px;flex-wrap:wrap;white-space:nowrap;padding-top:15px}nav a{padding:7px 13px;border:1px solid var(--line);border-radius:20px;color:var(--ink);text-decoration:none;background:var(--paper)}nav a:hover{border-color:var(--a)}.ribbon{display:flex;flex-wrap:wrap;gap:12px 28px;padding:15px 20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:25px;color:var(--muted)}.ribbon strong{color:var(--ink);font-size:17px;margin-right:5px}.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px}.controls{display:grid;grid-template-columns:.85fr 1.3fr 1.2fr .9fr;gap:16px}label{display:block;font-size:13px;font-weight:600;color:var(--muted)}select,input{width:100%;display:block;margin-top:6px;border:1px solid var(--line);border-radius:8px;padding:10px 11px;background:#f8faf7;color:var(--ink);font:inherit;min-height:43px}select:focus,input:focus,button:focus{outline:2px solid #86b7a8;outline-offset:2px}.config{display:grid;grid-template-columns:1fr 1fr;gap:8px}.a-label{color:var(--a)}.b-label{color:var(--b)}.range{display:flex;align-items:end;gap:10px;margin-top:17px;flex-wrap:wrap}.range label{width:130px}.range button{min-height:43px}.button,button{border:1px solid var(--line);border-radius:8px;background:#f7faf7;color:var(--ink);padding:9px 14px;font:inherit;cursor:pointer}button:hover{border-color:var(--a);background:#edf5ee}button.primary{background:var(--a);border-color:var(--a);color:white}.small{font-size:12px;color:var(--muted)}.hint{font-size:13px;color:var(--muted);margin:12px 0 0}.section-head{display:flex;justify-content:space-between;align-items:start;gap:18px;margin:28px 0 15px}.section-head p{color:var(--muted);margin:0;font-size:13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid .panel{margin:0}.chart-title{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.legend{font-size:12px;display:flex;gap:14px;flex-wrap:wrap;color:var(--muted)}.legend span:before{content:"";display:inline-block;width:16px;height:3px;background:var(--c);margin-right:5px;vertical-align:middle}.chart-subtitle{color:var(--muted);font-size:12px;margin:4px 0 9px}.plot{position:relative;height:285px;touch-action:none}.plot canvas{display:block;width:100%;height:100%}.tooltip{position:absolute;z-index:3;background:#183330f5;color:white;padding:10px 13px;border-radius:8px;pointer-events:none;font-size:12px;white-space:nowrap;box-shadow:0 4px 20px #0002;display:none;line-height:1.8}.tooltip b{color:#d2e8dc}.timeline-note{margin:12px 0 0;color:var(--muted);font-size:13px}.readout{display:flex;gap:24px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:10px;margin-top:8px;font-size:12px;color:var(--muted)}.readout strong{color:var(--ink)}.summary-wrap{overflow:auto;margin-top:15px}table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}th,td{text-align:right;padding:10px 12px;border-bottom:1px solid var(--line)}th{background:#f4f7f2;font-weight:600;color:var(--muted)}th:first-child,td:first-child{text-align:left}tbody tr:hover{background:#f5f8f2}.tag{padding:3px 8px;border-radius:5px;background:var(--soft);font-size:12px;white-space:nowrap}.compare-controls{display:flex;gap:14px;flex-wrap:wrap;margin:15px 0}.compare-controls label{min-width:190px}.compare-plot{height:330px}.notice{padding:15px 18px;background:#eef3e8;border-left:3px solid #8d9d60;font-size:13px;margin-top:18px;border-radius:0 8px 8px 0}.methods{display:grid;grid-template-columns:1fr 1fr;gap:22px}.methods p{margin:6px 0;color:var(--muted);font-size:13px}.methods strong{color:var(--ink)}details{margin-top:15px}summary{cursor:pointer;color:var(--a);font-weight:600}footer{color:var(--muted);font-size:12px;padding-top:20px}.status{padding:10px 0 0;font-size:12px;color:var(--muted)}.screen-test{display:none}@media(max-width:980px){.grid,.methods{grid-template-columns:1fr}.controls{grid-template-columns:1fr 1fr}header{display:block}main{padding:20px 16px}.plot{height:280px}}@media(max-width:550px){.controls{grid-template-columns:1fr}.panel{padding:16px}.range label{width:100px}nav{font-size:13px}.compare-controls label{min-width:130px;flex:1}.legend{gap:8px}}
+</style>
+</head>
+<body><main>
+<header><div><div class="eyebrow">AISIM · SCENARIO 01 · MiniMax-M2.5</div><h1>MiniMax-M2.5：负载、吞吐与调度</h1><p class="lead">按每 5 分钟观察输入需求、请求积压与 P/D 实际执行，结合整场时延和窗口汇总分析高峰负载。</p></div><nav><a href="#demandCompute">负载与积压</a><a href="#queueState">Prefill 等待与计算</a><a href="#execution">执行状态</a><a href="#windowSummary">窗口汇总</a><a href="#methods">统计口径</a></nav></header>
+<div class="ribbon"><span><strong id="requestCount">607,190</strong>条请求</span><span><strong id="caseCount">30</strong>组配置</span><span><strong id="mainDays">28.97 天</strong>主要负载</span><span><strong id="mainShare">99.47%</strong>请求集中在主要时段</span><span>H100 · MiniMax-M2.5 · 1P1D TP8/EP8</span></div>
+
+
+<section id="timeline"><div class="section-head"><div><h2>观察配置与时间范围</h2><p>全部图表共用所选配置和时间范围，悬停时联动定位。</p></div><button id="refreshIndex" type="button">刷新配置索引</button></div>
+<div class="panel"><div class="controls"><label>输出 token<select id="outputMode"><option value="original">原始输出长度</option><option value="one">每条 1 token</option></select></label><label>叠加负载<select id="speedup" aria-label="会话叠加倍率"></select></label>
+<div><div class="config"><label>DRAM<select id="dramA" aria-label="DRAM 容量"></select></label><label>读带宽<select id="bwA" aria-label="SSD 读带宽"></select></label></div></div>
+
+<label>时间范围<select id="window"><option value="busy">所选配置积压最高的一天</option><option value="main">主要负载 · 前 28.97 天</option><option value="whole">全部到达 · 47.60 天</option><option value="peak">最高输入量 · 5 分钟</option><option value="custom">自定义范围</option></select></label>
+<label>纵轴范围<select id="axis"><option value="zero">从 0 开始</option><option value="local">最小值附近</option></select></label>
+</div><div class="range"><label>起点（天）<input id="fromDay" type="number" step="0.01" min="0" value="0"></label><label>终点（天）<input id="toDay" type="number" step="0.01" min="0" value="28.973696"></label><button id="apply" class="primary">应用范围</button><button id="busyDay">所选配置积压最高的一天</button><button id="reset">回到主要负载</button><button id="download">导出当前视图 CSV</button></div><p class="hint">可在图内自由拖选时间区间，滚轮连续放大／缩小；双击恢复主要负载。悬停查看当前时间桶，所有图表联动。</p><p id="strengthNote" class="hint"></p><div id="status" class="status" role="status"></div><p id="rangeScopeNote" class="hint"></p></div>
+<section class="panel"><h3>当前配置的整场结果</h3><div class="summary-wrap"><table><thead><tr><th>叠加</th><th>配置</th><th>平均 TTFT（秒）</th><th>P99 TTFT（秒）</th><th>TPOT（ms）</th><th>联合 SLA</th><th>总复用率</th><th>SSD 累计读（TB）</th></tr></thead><tbody id="caseMetrics"></tbody></table></div><p class="small">联合 SLA：TTFT ≤ 1 秒且 TPOT ≤ 30 ms。下方执行忙碌比例不是 GPU 硬件算力利用率。</p></section>
+<section id="demandCompute">
+<div class="section-head"><div><h2>1. 负载与全链路积压</h2><p>对照输入高峰与未完成请求数，观察积压何时出现、多久回落。</p></div></div>
+<div class="grid">
+<article class="panel"><div class="chart-title"><h3>到达输入量</h3><div class="legend"><span style="--c:var(--demand)">到达输入</span></div></div><p class="chart-subtitle">完整输入 token/s · 包含可复用 KV 前缀</p><div class="plot"><canvas id="inputs" aria-label="每五分钟完整输入token需求"></canvas><div class="tooltip"></div></div></article>
+<article class="panel"><div class="chart-title"><h3>未完成请求数</h3><div class="legend"><span style="--c:var(--a)">所选配置</span></div></div><p class="chart-subtitle">请求数 · 桶末采样；涵盖 P、交接和 D</p><div class="plot"><canvas id="backlog" aria-label="每五分钟末未完成请求数量"></canvas><div class="tooltip"></div></div><div id="backlogReadout" class="readout"></div></article>
+</div>
+<p class="timeline-note">虚线标记主要负载的结束时刻。实线为桶末值。小时视图的辅助虚线展示桶内精确峰值。</p>
+</section>
+<section id="queueState">
+<div class="section-head"><div><h2>2. Prefill 等待与计算</h2><p>结合首次准入前的等待请求数和 P 的新计算速率，观察积压时 Prefill 的执行情况。</p></div></div>
+<div class="grid">
+<article class="panel"><div class="chart-title"><h3>P 首次准入前等待</h3><div class="legend"><span style="--c:var(--a)">所选配置</span></div></div><p class="chart-subtitle">请求数 · 包括调度与 KV 恢复等待，不能直接等同于算力排队</p><div class="plot"><canvas id="waiting" aria-label="每五分钟末P首次准入前等待请求数"></canvas><div class="tooltip"></div></div></article>
+<article class="panel"><div class="chart-title"><h3>P 实际 Prefill 计算速率</h3><div class="legend"><span style="--c:var(--a)">所选配置</span></div></div><p class="chart-subtitle">新计算 token/s · 排除前缀复用，包含重复执行；按执行批次开始时刻归桶</p><div class="plot"><canvas id="actualPrefill" aria-label="五分钟P实际Prefill计算速率"></canvas><div class="tooltip"></div></div></article>
+</div>
+</section>
+<section id="execution"><div class="section-head"><div><h2>3. P/D 执行状态</h2><p>忙碌占比、实际生成速率与 BS 使用相同时间范围。忙碌占比衡量模型执行时间，不等于芯片算力利用率。</p></div></div>
+<p id="executionStatus" class="hint"></p><div class="grid"><article class="panel"><div class="chart-title"><h3>D 记录的 Decode 生成速率</h3><div class="legend"><span style="--c:var(--a)">所选配置</span></div></div><p class="chart-subtitle">token/s · 使用逐轮 decode_generated_tokens，区别于请求完成时归属的全部输出</p><div class="plot"><canvas id="actualDecode" aria-label="五分钟D记录的Decode生成速率"></canvas><div class="tooltip"></div></div></article><article class="panel"><div class="chart-title"><h3 id="bsTitle">D · Decode BS 随时间变化</h3><div class="legend"><span style="--c:var(--a)">所选配置</span></div></div><div class="compare-controls"><label>BS 观察阶段<select id="execBsRole"><option value="decode">D · Decode</option><option value="prefill">P · Prefill</option></select></label><label>BS 统计方式<select id="execBsKind"><option value="active_mean_bs">执行期间平均 BS</option><option value="max_bs">桶内最大 BS</option></select></label><button id="downloadExecution">导出执行统计 CSV</button></div><p class="chart-subtitle" id="bsDescription">执行期间按执行时长加权的平均 BS，空闲桶留空</p><div class="plot"><canvas id="executionBs" aria-label="五分钟实际执行BS"></canvas><div class="tooltip"></div></div></article></div><div style="margin-top:18px"><article class="panel"><div class="chart-title"><h3>P / D 模型执行忙碌占比</h3><div class="legend"><span style="--c:var(--a)">P</span><span style="--c:var(--demand)">D（虚线）</span></div></div><p class="chart-subtitle">% · 每桶模型执行区间占用时间 ÷ 300 秒；跨桶区间已裁剪</p><div class="plot"><canvas id="executionBusy" aria-label="五分钟P和D模型执行忙碌占比"></canvas><div class="tooltip"></div></div></article></div></section>
+<section id="windowSummary"><div class="section-head"><div><h2>4. 当前窗口汇总</h2><p>所有汇总均对应上方所选配置和时间范围；整场时延与 SLA 则保留在顶部配置结果中。</p></div></div>
+<div class="panel"><h3>需求、完成与积压</h3><p class="hint">按上方所选范围内的完整时间桶汇总。主要时段、全部时段的精确边界统计另见可展开表。</p><div class="summary-wrap"><table><thead><tr><th>配置</th><th>到达请求/s</th><th>完成请求/s</th><th>输入需求 token/s</th><th>预期输出 token/s</th><th>完成归属输出 token/s</th><th>初／末未完成数</th></tr></thead><tbody id="viewRows"></tbody></table></div><details><summary>主要负载与全部时段：精确窗口统计</summary><div class="summary-wrap"><table><thead><tr><th>窗口 / 配置</th><th>到达请求/s</th><th>完成请求/s</th><th>窗口末未完成</th><th>逐事件精确峰值</th></tr></thead><tbody id="exactRows"></tbody></table></div></details></div><div class="panel"><h3>实际计算与执行状态</h3><div class="summary-wrap"><table><thead><tr><th>配置</th><th>P 忙碌占比</th><th>D 忙碌占比</th><th>P 计算 token/s</th><th>D 记录生成 token/s</th><th>P 执行期间平均 BS</th><th>D 执行期间平均 BS</th><th>P / D 最大 BS</th></tr></thead><tbody id="executionRows"></tbody></table></div><p class="hint">统计范围为当前视图内完整时间桶。平均 BS 排除空闲，并按执行时长加权；忙碌比例包含窗口内空闲时间。</p><details><summary>执行计数与整场报告的对账说明</summary><p class="small">整场 committed_prefill_tokens 汇总两侧完成批次的工作量快照；P 侧曲线取本阶段定价执行的 prefill_new_tokens，不能要求两者完全相等。这里保留原始计数差额，不把它补画为 P 执行量。Decode-only 计数也可能不包含在 Prefill 路径产生的输出；差额保留如下，不强行分摊到某个五分钟桶。</p><div class="summary-wrap"><table><thead><tr><th>配置</th><th>报告跨阶段 Prefill 总量</th><th>P 记录计算量</th><th>其他阶段 / 口径差额</th><th>报告输出总量</th><th>D Decode-only 记录</th><th>输出计数差额</th></tr></thead><tbody id="reconcileRows"></tbody></table></div></details></div></section></section>
+<section id="methods" class="panel"><h2>怎么读这些图</h2><div class="methods"><div><h3>积压回落，不代表响应及时</h3><p>若到达与完成长期相近，但积压在高峰上升后又回落，说明系统能消化总量，却会让一部分请求等更久。高峰中完成超过到达，可能是在处理此前积压。</p><h3>5 分钟曲线不是瞬时峰值</h3><p>请求和 token 速率是分桶平均；队列数是桶末采样。桶内发生再消退的等待可能在图上不明显，因此同时保留逐请求事件计算的精确峰值。</p></div><div><h3>归属时刻要区分</h3><p>到达需求按请求时间戳计入；完成吞吐按请求结束时刻计入。窗口汇总中的“完成归属输出”将请求全部输出归入完成桶；D 生成速率曲线则使用实际逐轮记录。</p><h3>还不能给出“算力吃满多少”</h3><p>本页所选配置均已采集逐轮记录，可以查看上方分时执行统计。忙碌比例表示模型执行时间占比，不是芯片算力利用率；最大可持续吞吐还需结合后续加压实验判断。</p></div></div><div class="notice">本页使用已有 32× 与 256× 独立请求开放式回放结果。每档叠加使用自己的 trace；不是带会话完成依赖的新数据。输入和输出 token 速率不能直接与 GPU 峰值 FLOPS 相除。</div><details><summary>数据与配置来源</summary><p class="small" id="source"></p><p class="small">模型 MiniMax-M2.5，H100 SXM（每卡 64 GB HBM），1P1D，各 TP8/EP8；HBM 自动 KV 容量，P 侧 DRAM + 本地 SSD，D 仅 HBM；SSD 写带宽固定 8 GB/s/TP，H2D/D2H 各 25 GB/s/TP，P/D 单轮预算 16,384 token，序列上限分别 32/256。</p><p class="small">32× 使用 speedup＝1，256× 使用 speedup＝0.125。每组使用自己的仿真时间轴。</p><p class="small">离线使用时将本页和 throughput_minimax_data 放在同一目录。当前配置的小时总览先加载，缩放到 3 天以内或导出时再读取五分钟明细。</p></details></section>
+<footer>小时总览保留桶内峰值。窗口汇总按当前分辨率的完整桶统计，CSV 始终导出五分钟数据。</footer>
+<div id="testResult" class="screen-test"></div>
+</main>
+<script>
+'use strict';
+globalThis.minimaxThroughput = {};
+const $=id=>document.getElementById(id), COLORS={a:'#11786a',b:'#b25d27',d:'#596eaa'}, plots=[];
+let D, overview, detail, selected, index=[], revision=0, range=[0,1], hover=null, pendingDetail;
+let loadQueue=Promise.resolve();
+function loadAsset(name,key){
+ const job=loadQueue.then(()=>new Promise((resolve,reject)=>{
+  const tag=document.createElement('script');
+  tag.onload=()=>{
+   const data=globalThis.minimaxThroughput[key];delete globalThis.minimaxThroughput[key];tag.remove();
+   if(data===undefined)reject(new Error('数据文件未返回内容'));else resolve(data);
+  };
+  tag.onerror=()=>{tag.remove();reject(new Error('无法读取 '+name))};
+  tag.src='throughput_minimax_data/'+name;document.head.append(tag);
+ }));
+ loadQueue=job.catch(()=>{});return job;
+}
+function detailAsset(){
+ if(detail)return Promise.resolve(detail);
+ if(!pendingDetail){
+  const rev=revision;
+  const request=loadAsset(selected.detail,'detail').then(data=>{
+   if(rev===revision)detail=data;
+   return data;
+  }).finally(()=>{if(rev===revision)pendingDetail=null;});
+  pendingDetail=request;
+ }
+ return pendingDetail;
+}
+function view(data){
+ return {...overview,...data,factor:selected.factor, cases:[{
+  ...overview.info,dram_gb:selected.dram,read_gbps_per_tp:selected.read,
+  series:data.series,execution:{streams:data.streams,reconciliation:overview.info.reconciliation}
+ }]};
+}
+function useView(){
+ if(!overview)return;
+ D=view(range[1]-range[0]<=3&&detail?detail:overview);
+}
+const binsPerDay=()=>86400/D.seconds;
+function fullSlice(seconds){
+ const bins=86400/seconds;
+ return [Math.max(0,Math.ceil(range[0]*bins-1e-7)),Math.min(Math.ceil(overview.count*300/seconds),Math.floor(range[1]*bins+1e-7))];
+}
+function chartSlice(){
+ const bins=binsPerDay();
+ return [Math.max(0,Math.floor(range[0]*bins+1e-7)),Math.min(D.demand.requests.length,Math.ceil(range[1]*bins-1e-7))];
+}
+const fmt=(x,n=2)=>Number.isFinite(x)?x.toLocaleString('zh-CN',{minimumFractionDigits:n,maximumFractionDigits:n}):'—';
+const label=c=>`${c.dram_gb===1000?'1 TB':c.dram_gb+' GB'} · ${c.read_gbps_per_tp} GB/s`;
+function options(el,values,unit,selected){el.replaceChildren(...values.map(v=>{const o=document.createElement('option');o.value=v;o.textContent=v===1000&&unit===' GB'?'1 TB':v+unit;return o}));el.value=selected??values[0]}
+function chosen(){return D?.cases[0]}
+function slice(){return fullSlice(D.seconds)}
+function sum(a,l,r){let n=0;for(let i=l;i<r;i++)n+=a[i];return n}
+function maximum(a,l,r){let v=0;for(let i=l;i<r;i++)v=Math.max(v,a[i]);return v}
+function setRange(lo,hi,kind='custom'){if(!D)return;lo=Math.max(0,Math.min(lo,D.whole_days-1/288));hi=Math.max(lo+1/288,Math.min(D.whole_days,hi));if(hi-lo<1/288){lo=Math.max(0,hi-1/288)}if(Math.floor(hi*288+1e-7)<=Math.ceil(lo*288-1e-7)){lo=Math.max(0,Math.min(Math.floor(lo*288),Math.floor(D.whole_days*288)-1))/288;hi=lo+1/288}range=[lo,hi];$('fromDay').value=lo.toFixed(6);$('toDay').value=hi.toFixed(6);$('window').value=kind;hover=null;render()}
+function pickWindow(v){if(!D)return;if(v==='main')setRange(0,D.main_days,'main');else if(v==='whole')setRange(0,D.whole_days,'whole');else if(v==='peak')setRange(D.peak.start_day,D.peak.end_day,'peak');else if(v==='busy')$('busyDay').click()}
+class Plot{
+constructor(id,spec){this.el=$(id);this.ctx=this.el.getContext('2d');this.spec=spec;this.tip=this.el.parentNode.querySelector('.tooltip');this.id=id;this.drag=null;this.el.addEventListener('mousemove',e=>this.queueMove(e));this.el.addEventListener('mouseleave',()=>{hover=null;for(const p of plots){p.tip.style.display='none';p.drawHover()}});this.el.addEventListener('mousedown',e=>{if(e.button===0)this.drag=this.day(e)});this.el.addEventListener('mouseup',e=>{if(this.drag!==null){const end=this.day(e),start=this.drag;this.drag=null;if(Math.abs(end-start)/(range[1]-range[0])>.01)setRange(Math.min(start,end),Math.max(start,end))}});this.el.addEventListener('dblclick',()=>pickWindow('main'));this.el.addEventListener('wheel',e=>{e.preventDefault();const center=this.day(e),scale=e.deltaY>0?1.5:1/1.5;setRange(center-(center-range[0])*scale,center+(range[1]-center)*scale)},{passive:false});plots.push(this)}
+day(e){const r=this.el.getBoundingClientRect(),w=r.width-84;return range[0]+Math.max(0,Math.min(1,(e.clientX-r.left-64)/w))*(range[1]-range[0])}
+queueMove(e){this.pointer={clientX:e.clientX,clientY:e.clientY};if(this.pointerFrame)return;this.pointerFrame=requestAnimationFrame(()=>{this.pointerFrame=null;this.move(this.pointer)})}
+move(e){if(!D)return;const day=this.day(e),i=Math.min(D.demand.requests.length-1,Math.max(0,Math.floor(day*binsPerDay()))),changed=hover!==i;hover=i;if(changed)for(const p of plots)p.drawHover();const spec=this.spec(chosen());this.tip.innerHTML='<b>第 '+fmt(i/binsPerDay(),5)+'–'+fmt((i+1)/binsPerDay(),5)+' 天</b><br>'+spec.map(s=>s.name+'：'+(s.values[i]==null?'—':fmt(s.values[i]*s.scale,s.integer?0:3))+' '+s.unit).join('<br>');this.tip.style.display='block';const r=this.el.getBoundingClientRect();this.tip.style.left=Math.max(4,Math.min(e.clientX-r.left+14,r.width-this.tip.offsetWidth-4))+'px';this.tip.style.top='14px'}
+drawHover(){if(!D||!this.base||!this.geometry)return;const c=this.ctx,{L,R,T,B}=this.geometry,[lo,hi]=chartSlice();c.save();c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,this.el.width,this.el.height);c.drawImage(this.base,0,0);c.restore();if(hover!==null&&hover>=lo&&hover<hi){const x=L+((hover+.5)/binsPerDay()-range[0])/(range[1]-range[0])*(R-L);c.save();c.beginPath();c.rect(L,T,R-L,B-T);c.clip();c.strokeStyle='#657e76';c.lineWidth=1;c.setLineDash([]);c.beginPath();c.moveTo(x,T);c.lineTo(x,B);c.stroke();c.restore()}}
+
+draw(){const box=this.el.getBoundingClientRect(),w=box.width,h=box.height,dpr=window.devicePixelRatio||1;this.el.width=Math.round(w*dpr);this.el.height=Math.round(h*dpr);const c=this.ctx;c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);const L=64,R=w-20,T=15,B=h-35,[lo,hi]=chartSlice(),spec=this.spec(chosen());if(hi<=lo)return;if(!spec.length){c.fillStyle='#71847a';c.font='13px Microsoft YaHei';c.textAlign='center';c.fillText('所选配置尚无执行记录',w/2,h/2);return;}let min=Infinity,max=0;for(const s of spec)for(let i=lo;i<hi;i++){if(s.values[i]==null)continue;const v=s.values[i]*s.scale;min=Math.min(min,v);max=Math.max(max,v)}if(!Number.isFinite(min)){min=0;max=1;}if($('axis').value==='zero')min=0;else min=Math.max(0,min-(max-min)*.12);max=max>min?max+(max-min)*.1:min+1;this.geometry={L,R,T,B};const xp=x=>L+(x-range[0])/(range[1]-range[0])*(R-L),yp=y=>B-(y-min)/(max-min)*(B-T);c.font='11px Segoe UI, Microsoft YaHei';c.lineWidth=1;c.setLineDash([]);for(let j=0;j<5;j++){const val=min+(max-min)*j/4,y=yp(val);c.strokeStyle='#e8eee8';c.beginPath();c.moveTo(L,y);c.lineTo(R,y);c.stroke();c.fillStyle='#71847a';c.textAlign='right';c.fillText(fmt(val,max>1000?0:max<2?2:1),L-9,y+4)}for(let j=0;j<5;j++){const x=range[0]+(range[1]-range[0])*j/4;c.textAlign='center';c.fillStyle='#71847a';c.fillText(fmt(x,range[1]-range[0]<.1?4:2),xp(x),h-12)}c.save();c.beginPath();c.rect(L,T,R-L,B-T);c.clip();if(D.main_days>range[0]&&D.main_days<range[1]){c.fillStyle='#edf0e9';c.fillRect(xp(D.main_days),T,R-xp(D.main_days),B-T);c.strokeStyle='#a1aa9e';c.setLineDash([4,4]);c.beginPath();c.moveTo(xp(D.main_days),T);c.lineTo(xp(D.main_days),B);c.stroke()}
+
+for(const s of [...spec].reverse()){
+ c.strokeStyle=s.color;c.lineWidth=s.dash?1.1:1.35;c.globalAlpha=s.dash?.85:.9;c.setLineDash(s.dash?[4,3]:[]);c.beginPath();let pen=false;
+ for(let i=lo;i<hi;i++){
+  if(s.values[i]==null){pen=false;continue;}
+  const x0=xp(i/binsPerDay()),x1=xp((i+1)/binsPerDay()),y=yp(s.values[i]*s.scale);
+  if(s.integer){if(!pen)c.moveTo(x1,y);else c.lineTo(x1,y)}
+  else{if(!pen)c.moveTo(x0,y);else c.lineTo(x0,y);c.lineTo(x1,y)}
+  pen=true;
+ }
+ c.stroke();if(s.integer&&hi-lo===1&&s.values[lo]!=null){c.fillStyle=s.color;c.beginPath();c.arc(Math.min(R-2,xp((lo+1)/binsPerDay())),yp(s.values[lo]*s.scale),3,0,Math.PI*2);c.fill()}
+}
+c.globalAlpha=1;c.setLineDash([]);c.restore();this.base=this.base||document.createElement('canvas');this.base.width=this.el.width;this.base.height=this.el.height;this.base.getContext('2d').drawImage(this.el,0,0);this.drawHover();}
+}
+const line=(name,values,color,scale,unit,dash=false,integer=false)=>({name,values,color,scale,unit,dash,integer});
+function withPeak(lines,key,scale,unit,color=COLORS.b){
+ const peaks=D.peaks[key];
+ return peaks?[...lines,line('桶内峰值',peaks,color,scale,unit,true)]:lines;
+}
+new Plot('backlog',a=>withPeak([line('未完成',a.series.unfinished_requests,COLORS.a,1,'条',false,true)],'backlog',1,'条'));
+new Plot('waiting',a=>withPeak([line('待首次准入',a.series.p_preadmission_waiting,COLORS.a,1,'条',false,true)],'waiting',1,'条'));
+new Plot('inputs',()=>withPeak([line('到达输入',D.demand.input,COLORS.d,1/D.seconds,'token/s')],'input',1/300,'token/s'));
+function render(){
+if(!overview)return;
+useView();
+if(D.seconds===3600&&range[1]-range[0]<=3&&!pendingDetail){
+ const rev=revision;
+ detailAsset().then(()=>{if(rev===revision)render()}).catch(e=>{if(rev===revision)$('status').textContent=e.message});
+}
+const a=chosen(),[l,r]=slice(),seconds=(r-l)*D.seconds;
+if(!seconds){
+ $('viewRows').innerHTML='<tr><td colspan="7">正在读取五分钟明细</td></tr>';
+ $('executionRows').innerHTML='';
+ for(const p of plots)p.draw();
+ return;
+}
+$('rangeScopeNote').textContent=range[1]>D.main_days?'当前视图包含主要负载结束后的稀疏尾段，平均值会被稀释。':'当前视图位于主要负载时段内。';
+$('status').textContent=D.factor+'× 叠加 │ '+($('outputMode').value==='one'?'每条 1 token │ ':'')+label(a)+' │ 第 '+fmt(l/binsPerDay(),5)+'–'+fmt(r/binsPerDay(),5)+' 天 · '+(D.seconds===3600?'小时总览':'五分钟明细');
+const req=sum(D.demand.requests,l,r)/seconds,inp=sum(D.demand.input,l,r)/seconds,out=sum(D.demand.output,l,r)/seconds;
+$('viewRows').innerHTML='<tr><td>'+label(a)+'</td>'+[req,sum(a.series.completed_requests,l,r)/seconds,inp,out,sum(a.series.completed_output_tokens,l,r)/seconds].map(v=>'<td>'+fmt(v,4)+'</td>').join('')+'<td>'+(l?a.series.unfinished_requests[l-1]:0)+' / '+a.series.unfinished_requests[r-1]+'</td></tr>';
+$('exactRows').innerHTML=['main','whole'].map(w=>{const x=a[w];return '<tr><td>'+(w==='main'?'主要负载':'全部时段')+'</td><td>'+fmt(x.arrival_request_per_s,4)+'</td><td>'+fmt(x.completion_request_per_s,4)+'</td><td>'+x.backlog_end+'</td><td>'+x.peak_inflight_requests+'</td></tr>'}).join('');
+$('backlogReadout').textContent='图内桶末采样峰值 '+maximum(a.series.unfinished_requests,l,r)+'；主要时段精确事件峰值 '+a.main.peak_inflight_requests;
+$('caseMetrics').innerHTML='<tr><td>'+D.factor+'×</td><td>'+label(a)+'</td>'+[fmt(a.mean_ttft_ms/1000,3),fmt(a.p99_ttft_ms/1000,3),fmt(a.mean_tpot_ms,3),a.sla_percent==null?'—':fmt(a.sla_percent,3)+'%',fmt(a.reuse_ratio*100,3)+'%',fmt(a.ssd_read_tb,3)].map(v=>'<td>'+v+'</td>').join('')+'</tr>';
+renderExecution();for(const p of plots){p.tip.style.display='none';p.draw()}
+}
+for(const id of ['dramA','bwA'])$(id).addEventListener('change',()=>syncFamilyUI(false));for(const id of ['axis'])$(id).addEventListener('change',render);$('window').addEventListener('change',e=>pickWindow(e.target.value));$('apply').onclick=()=>{const l=+$('fromDay').value,r=+$('toDay').value;if(!Number.isFinite(l)||!Number.isFinite(r)||r<=l){$('status').textContent='请选择终点大于起点的时间范围。';return}setRange(l,r)};$('reset').onclick=()=>pickWindow('main');$('busyDay').onclick=()=>{if(overview)setRange(overview.busy_day,overview.busy_day+1,'busy')};
+async function exportCurrent(execution){
+ if(!overview)return;
+ const rev=revision, [l,r]=fullSlice(300);
+ try{
+  const data=await detailAsset();
+  if(revision!==rev)return;
+  const {demand,series,streams}=data,p=streams.prefill,d=streams.decode;
+  const rows=[execution?
+   ['start_day','end_day','P_prefill_tokens','D_decode_only_tokens','P_compute_busy_percent','D_compute_busy_percent','P_active_mean_BS','D_active_mean_BS','P_max_BS','D_max_BS','P_G3_read_jobs_sample_max','P_H2D_loading_sample_max']:
+   ['start_day','end_day','arrivals','arrival_input_tokens','expected_output_tokens','completed','completed_output_tokens','unfinished_end','P_waiting_end']];
+  for(let i=l;i<r;i++)rows.push(execution?
+   [i/288,(i+1)/288,p.prefill_tokens[i],d.generated_tokens[i],p.busy_percent[i],d.busy_percent[i],p.active_mean_bs[i],d.active_mean_bs[i],p.max_bs[i],d.max_bs[i],p.g3_read_jobs_max[i],p.h2d_loading_max[i]]:
+   [i/288,(i+1)/288,demand.requests[i],demand.input[i],demand.output[i],series.completed_requests[i],series.completed_output_tokens[i],series.unfinished_requests[i],series.p_preadmission_waiting[i]]);
+  const url=URL.createObjectURL(new Blob([String.fromCharCode(0xfeff)+rows.map(row=>row.join(',')).join('\n')],{type:'text/csv;charset=utf-8'}));
+  const link=document.createElement('a');link.href=url;link.download='throughput_minimax_'+selected.key+(execution?'_execution':'')+'_5min.csv';link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+ }catch(e){if(revision===rev)$('status').textContent=e.message}
+}
+$('download').onclick=()=>exportCurrent(false);
+function executionLines(role,key,scale,unit,integer=false){
+ return [['当前',chosen(),COLORS.a]].filter(([n,c])=>c.execution).map(([n,c,color])=>line(n+' · '+(role==='prefill'?'P':'D'),c.execution.streams[role][key],color,scale,unit,false,integer));
+}
+new Plot('actualPrefill',()=>withPeak(executionLines('prefill','prefill_tokens',1/D.seconds,'token/s'),'prefill_prefill_tokens',1/300,'token/s'));
+new Plot('actualDecode',()=>withPeak(executionLines('decode','generated_tokens',1/D.seconds,'token/s'),'decode_generated_tokens',1/300,'token/s'));
+new Plot('executionBusy',()=>[['当前',chosen(),COLORS.a]].filter(([n,c])=>c.execution).flatMap(([n,c,color])=>['prefill','decode'].map(role=>line(n+' · '+(role==='prefill'?'P':'D'),c.execution.streams[role].busy_percent,role==='prefill'?COLORS.a:COLORS.d,1,'%',role==='decode'))));
+new Plot('executionBs',()=>executionLines($('execBsRole').value,$('execBsKind').value,1,'条',$('execBsKind').value==='max_bs'));
+function activeBS(s,l,r){let weight=0,total=0;for(let i=l;i<r;i++){if(s.active_mean_bs[i]!=null){weight+=s.busy_percent[i];total+=s.busy_percent[i]*s.active_mean_bs[i]}}return weight?total/weight:NaN}
+function renderExecution(){
+ const [l,r]=slice(),seconds=(r-l)*D.seconds,selected=[['当前',chosen()]],count=D.execution_ready_count||0;
+ $('executionStatus').textContent=`已有 ${count}/${D.cases.length} 组配置提供执行观测。`+selected.map(([n,c])=>`${n}：${label(c)} ${c.execution?'已采集':'未采集（不是 0）'}`).join('；');
+ const role=$('execBsRole').value,kind=$('execBsKind').value;
+ $('bsTitle').textContent=(role==='prefill'?'P · Prefill':'D · Decode')+' BS 随时间变化';
+ $('bsDescription').textContent=(kind==='active_mean_bs'?'执行期间按执行时长加权的平均 BS，空闲桶留空':'时间桶记录的最大 BS')+`；配置上限 P=32 / D=256`;
+ $('executionRows').innerHTML=selected.map(([n,c])=>{
+  if(!c.execution)return `<tr><td>${n} · ${label(c)}</td><td colspan="7">未采集执行记录</td></tr>`;
+  const p=c.execution.streams.prefill,d=c.execution.streams.decode;
+  return `<tr><td>${n} · ${label(c)}</td><td>${fmt(sum(p.busy_percent,l,r)/(r-l),3)}%</td><td>${fmt(sum(d.busy_percent,l,r)/(r-l),3)}%</td><td>${fmt(sum(p.prefill_tokens,l,r)/seconds,2)}</td><td>${fmt(sum(d.generated_tokens,l,r)/seconds,2)}</td><td>${fmt(activeBS(p,l,r),3)}</td><td>${fmt(activeBS(d,l,r),3)}</td><td>${maximum(p.max_bs,l,r)} / ${maximum(d.max_bs,l,r)}</td></tr>`;
+ }).join('');
+ $('reconcileRows').innerHTML=selected.filter(([n,c])=>c.execution).map(([n,c])=>{const s=c.execution.reconciliation;return `<tr><td>${n} · ${label(c)}</td><td>${fmt(s.report_prefill_tokens,0)}</td><td>${fmt(s.p_recorded_prefill_tokens,0)}</td><td>${fmt(s.other_stage_prefill_tokens,0)}</td><td>${fmt(s.report_output_tokens,0)}</td><td>${fmt(s.decode_recorded_output_tokens,0)}</td><td>${fmt(s.output_tokens_outside_decode_only_counter,0)}</td></tr>`}).join('');
+}
+for(const id of ['execBsRole','execBsKind'])$(id).addEventListener('change',render);
+$('downloadExecution').onclick=()=>exportCurrent(true);
+const values=(rows,key)=>[...new Set(rows.map(r=>r[key]))].sort((a,b)=>a-b);
+async function syncFamilyUI(factorsChanged=true){
+ if(!index.length)return;
+ const factor=+$('speedup').value||32;
+ const group=modeRows().filter(r=>r.factor===factor);
+ const keep=+$('dramA').value, read=+$('bwA').value;
+ if(factorsChanged)options($('dramA'),values(group,'dram'),' GB',values(group,'dram').includes(keep)?keep:256);
+ const subgroup=group.filter(r=>r.dram===+$('dramA').value);
+ options($('bwA'),values(subgroup,'read'),' GB/s',values(subgroup,'read').includes(read)?read:2);
+ selected=subgroup.find(r=>r.read===+$('bwA').value);
+ const rev=++revision;overview=null;detail=null;pendingDetail=null;D=null;
+ for(const id of ['demandCompute','queueState','execution','windowSummary'])$(id).hidden=true;
+ for(const id of ['caseMetrics','viewRows','exactRows','executionRows','reconcileRows'])$(id).textContent='';
+ $('rangeScopeNote').textContent='';
+ $('strengthNote').textContent=factor+'× 会话叠加，speedup＝'+(group[0]?.speed??'—')+'。小时视图的辅助虚线保留峰值，放大后可查看五分钟明细。';
+ const activeRows=modeRows();
+ const progress=activeRows.filter(r=>r.format===2&&r.chart_ready).length+'/'+activeRows.length+' 组图表已就绪';
+ $('caseCount').textContent=group.length;
+ $('requestCount').textContent='607,190';
+ $('mainDays').textContent=$('mainShare').textContent='—';
+ if(!selected?.chart_ready||selected.format!==2){
+  $('status').textContent=(selected?.aggregation_failed?'图表聚合失败':selected?.status==='已完成'?'轨迹图表正在生成':selected?.status||'配置不可用')+' · '+progress;
+  return;
+ }
+ $('status').textContent='加载所选配置 · '+progress;
+ try{
+  const value=await loadAsset(selected.hour,'hour');
+  if(revision!==rev)return;
+  overview=value;D=view(value);
+  for(const id of ['demandCompute','queueState','execution','windowSummary'])$(id).hidden=false;
+  $('mainDays').textContent=fmt(D.main_days,2)+' 天';$('mainShare').textContent=fmt(D.main_request_share*100,2)+'%';
+  $('window').querySelector('[value="main"]').textContent='主要负载 · 前 '+fmt(D.main_days,2)+' 天';
+  $('window').querySelector('[value="whole"]').textContent='全部到达 · '+fmt(D.whole_days,2)+' 天';
+  $('source').textContent='结果目录：'+D.source;
+  $('busyDay').click();
+ }catch(e){if(revision===rev)$('status').textContent=e.message}
+}
+const modeRows=()=>index.filter(r=>Boolean(r.output_token_limit)===($('outputMode').value==='one'));
+async function updateMode(){
+ const fs=values(modeRows(),'factor'), keep=+$('speedup').value;
+ if(!fs.length){$('status').textContent='当前输出模式没有配置。';return;}
+ options($('speedup'),fs,'× 叠加',fs.includes(keep)?keep:fs[0]);
+ await syncFamilyUI();
+}
+$('outputMode').addEventListener('change',updateMode);
+async function reload(){
+ try{
+  const original=await loadAsset('index.js?t='+Date.now(),'index');
+  const one=await loadAsset('decode1-index.js?t='+Date.now(),'decode1Index').catch(()=>[]);
+  index=[...original,...one];
+  await updateMode();
+ }catch(e){$('status').textContent=e.message}
+}
+$('speedup').addEventListener('change',()=>syncFamilyUI());
+$('refreshIndex').onclick=reload;
+let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(render,80)});
+reload();
+</script></body></html>

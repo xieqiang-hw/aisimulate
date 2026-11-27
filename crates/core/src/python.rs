@@ -121,6 +121,7 @@ struct RuntimeTraffic {
     trace_format: Option<String>,
     #[serde(default)]
     trace_block_size: Option<usize>,
+    trace_output_token_limit: Option<usize>,
     #[serde(default)]
     weka_nested_timestamp_basis: Option<WekaNestedTimestampBasis>,
     #[serde(default)]
@@ -3519,6 +3520,12 @@ fn build_runtime_input(
             || (traffic.source_type == "trace" && traffic.trace_format.as_deref() == Some("weka")),
         "weka_client requires Weka trace input"
     );
+    ensure!(
+        traffic.trace_output_token_limit.is_none()
+            || (traffic.source_type == "trace"
+                && traffic.trace_format.as_deref().unwrap_or("mooncake") == "mooncake"),
+        "output_token_limit requires Mooncake trace input"
+    );
     if traffic.source_type == "trace" {
         let paths = runtime_paths(&traffic)?;
         let trace_block_size = traffic.trace_block_size.unwrap_or(512);
@@ -3640,7 +3647,9 @@ fn build_runtime_input(
             "trace format {format:?} requires exactly one path"
         );
         let mut trace = match format {
-            "mooncake" => Trace::from_mooncake_lazy(&paths[0], trace_block_size)?,
+            "mooncake" => Trace::from_mooncake_lazy_with_output_limit(
+                &paths[0], trace_block_size, traffic.trace_output_token_limit,
+            )?,
             "mooncake-delta" => Trace::from_mooncake(&paths[0], trace_block_size)?,
             "applied_compute_agentic" => {
                 Trace::from_applied_compute_agentic(&paths[0], trace_block_size, 0.0, 0)?

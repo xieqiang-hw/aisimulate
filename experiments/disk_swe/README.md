@@ -39,7 +39,7 @@
 - [GLM-5.2 实验记录](glm52_experiments.md)与 [GLM-5.2 HTML 汇总](glm52_experiments.html)：DRAM、带宽、叠加负载对比。
 - [MiniMax 实验记录](minimax_experiments.md)与 [MiniMax HTML 汇总](minimax_experiments.html)：BF16 KV 的 DRAM、带宽及单步预算扫描。
 - [逐请求指标分布](experiments_h200_ep8_distributions.html)：TTFT、TPOT、等待等分布。
-- [吞吐与执行观测](throughput_8x.html)：原始 8× 数据的加压分析。
+- [吞吐与执行观测](throughput_glm52.html)：GLM 8×／16× 叠加负载的单配置吞吐与调度分析。
 - 旧 EP1 两批实验的结果、文档、专用配置和入口已清理；历史备份独立保留。
 
 ## 目录与入口

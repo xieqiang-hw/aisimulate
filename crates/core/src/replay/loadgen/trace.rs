@@ -550,6 +550,7 @@ impl TurnTrace {
 
 struct MooncakeTraceBuilder {
     trace_block_size: usize,
+    output_token_limit: Option<usize>,
     hash_id_interner: HashIdInterner,
     sessions: Vec<SessionTrace>,
     session_indices: HashMap<String, usize>,
@@ -561,6 +562,7 @@ impl MooncakeTraceBuilder {
     fn new(trace_block_size: usize) -> Self {
         Self {
             trace_block_size,
+            output_token_limit: None,
             hash_id_interner: HashIdInterner::default(),
             sessions: Vec::new(),
             session_indices: HashMap::new(),
@@ -652,7 +654,7 @@ impl MooncakeTraceBuilder {
                 line_idx + 1
             );
         }
-        let output_token_ids = raw.output_token_ids;
+        let mut output_token_ids = raw.output_token_ids;
         ensure!(
             raw.input_token_ids.is_none() || output_token_ids.is_some(),
             "trace line {} exact prompts require output_token_ids",
@@ -669,6 +671,20 @@ impl MooncakeTraceBuilder {
                 output_token_ids.len()
             );
         }
+        let output_length = if let Some(limit) = self.output_token_limit {
+            ensure!(
+                !input_output_hashes,
+                "output_token_limit does not support input_output Mooncake hashes"
+            );
+            let capped = output_length.min(limit);
+            if let Some(tokens) = output_token_ids.as_mut() {
+                tokens.truncate(capped);
+                tokens.shrink_to_fit();
+            }
+            capped
+        } else {
+            output_length
+        };
         let timestamp_ms = raw.timestamp;
         let explicit_delay_ms = raw.delay;
         let priority = raw.priority.unwrap_or(0);
@@ -791,15 +807,32 @@ impl MooncakeTraceBuilder {
 
 impl Trace {
     pub fn from_mooncake(path: &Path, trace_block_size: usize) -> Result<Self> {
-        Self::read_mooncake(path, trace_block_size, false)
+        Self::read_mooncake(path, trace_block_size, false, None)
     }
 
     /// Index exact prompts by byte position. Keep the trace unchanged during replay.
     pub fn from_mooncake_lazy(path: &Path, trace_block_size: usize) -> Result<Self> {
-        Self::read_mooncake(path, trace_block_size, true)
+        Self::from_mooncake_lazy_with_output_limit(path, trace_block_size, None)
     }
 
-    fn read_mooncake(path: &Path, trace_block_size: usize, lazy: bool) -> Result<Self> {
+    pub(crate) fn from_mooncake_lazy_with_output_limit(
+        path: &Path,
+        trace_block_size: usize,
+        output_token_limit: Option<usize>,
+    ) -> Result<Self> {
+        Self::read_mooncake(path, trace_block_size, true, output_token_limit)
+    }
+
+    fn read_mooncake(
+        path: &Path,
+        trace_block_size: usize,
+        lazy: bool,
+        output_token_limit: Option<usize>,
+    ) -> Result<Self> {
+        ensure!(
+            output_token_limit != Some(0),
+            "output_token_limit must be positive"
+        );
         if trace_block_size == 0 {
             bail!("trace_block_size must be greater than 0");
         }
@@ -808,6 +841,7 @@ impl Trace {
             .with_context(|| format!("failed to open trace file {}", path.display()))?;
         let mut reader = BufReader::new(file);
         let mut builder = MooncakeTraceBuilder::new(trace_block_size);
+        builder.output_token_limit = output_token_limit;
         let source = lazy
             .then(|| std::path::absolute(path).map(Arc::new))
             .transpose()?;

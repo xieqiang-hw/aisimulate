@@ -21,6 +21,7 @@ LEGACY=['experiments_h200_ep8_16x.md','experiments_h200_ep8_16x.html','experimen
         'experiments_minimax_h100_64gb_8x.workload.html','experiments_minimax_h100_64gb_32x.workload.html']
 COLUMNS=['状态','完成请求','联合 SLA 达标率','P99 TTFT（秒）','平均 TTFT（秒）','TPOT（ms）','HBM 复用','DRAM 直接复用','SSD 恢复复用','总复用率','SSD 累计读','实际耗时','扣排队后平均 TTFT（秒）','扣排队后 P99 TTFT（秒）','内存峰值（GB）']
 LABELS={'completed':'已完成','running':'运行中','pending':'待启动','failed':'失败','interrupted':'已中断','skipped':'已跳过'}
+DECODE1_PLAN=Path('/mnt/d/aisim-results/swe-chat-minimax-decode1/sweep.json')
 KEYS={'sla':2,'p99_ttft':3,'mean_ttft':4,'tpot':5,'hbm':6,'dram':7,'ssd':8,'reuse':9,'ssd_read':10,'adjusted_mean':12,'adjusted_p99':13,'memory':14}
 METRICS=[('sla','联合 SLA 达标率','%'),('mean_ttft','平均 TTFT','秒'),('p99_ttft','P99 TTFT','秒'),('adjusted_mean','扣排队后平均 TTFT','秒'),('adjusted_p99','扣排队后 P99 TTFT','秒'),('tpot','TPOT','ms'),('hbm','HBM 复用率','%'),('dram','DRAM 直接复用率','%'),('ssd','SSD 恢复复用率','%'),('reuse','总前缀复用率','%'),('ssd_read','SSD 累计读','TB'),('memory','进程树内存峰值','GB')]
 
@@ -52,7 +53,7 @@ def number(text):
 
 
 def finish_row(row):
-    row['id']=row_key(row)
+    row['id']=row_key(row) + ('/output1' if row.get('output_token_limit') == 1 else '')
     row['cells']=(row['cells']+['—']*len(COLUMNS))[:len(COLUMNS)]
     row['status']=row['cells'][0]
     row['values']={k:number(row['cells'][i]) for k,i in KEYS.items()}
@@ -102,8 +103,9 @@ def supplement_rows():
         path=Path(filename)
         if not path.is_file():continue
         plan=json.loads(path.read_text())
-        if len(plan.get('cases',[]))<30:continue # exclude the three-case smoke plan
+        if len(plan.get('cases',[]))<30:continue # exclude smoke plans
         for c in plan['cases']:
+            if c.get('budget') != 16384:continue
             cells=c.get('metrics_cells') or [LABELS.get(c['status'],c['status'])]+['—']*(len(COLUMNS)-1)
             r=dict(model='minimax',factor=c['factor'],speedup=c['speedup'],budget=c['budget'],dram_gb=c['dram_gb'],
                    read_gbps=c['read_gbps'],group='预算补测',source=str(path),cells=list(cells),
@@ -112,9 +114,72 @@ def supplement_rows():
     return rows
 
 
+
+def scheduler_plan_paths():
+    roots = [
+        Path('/mnt/d/aisim-results/swe-chat-scheduler-trace-supplement'),
+        Path('/mnt/e/aisim-results/swe-chat-minimax-256x-large-dram'),
+    ]
+    return sorted(path for root in roots for path in root.glob('*/sweep.json'))
+
+
+def scheduler_supplement_rows():
+    """Read only MiniMax scheduler supplements; preserve the native result metrics."""
+    from refresh_h200_ep8_report import finished_cells
+    cache_path=STATE/'scheduler_supplement_metrics.json'
+    cached=json.loads(cache_path.read_text()) if cache_path.exists() else {}
+    rows=[];changed=False
+    pattern=re.compile(r'minimax_p(\d+)gb_read(\d+)_overlay(\d+)_speed(.+)')
+    for plan_path in scheduler_plan_paths():
+        plan=json.loads(plan_path.read_text())
+        for case in plan:
+            match=pattern.fullmatch(case['name'])
+            if not match:continue
+            gb,read,factor,speed=match.groups()
+            root=Path(case['config']).parent
+            runs=sorted((root/'runs').glob('*/run.json'))
+            run=runs[-1] if runs else None
+            status=case['status']
+            cells=[LABELS.get(status,status)]+['—']*(len(COLUMNS)-1)
+            if status=='completed':
+                if run is None:raise ValueError(f'Missing run.json for {case["name"]}')
+                requests=run.parent/'prediction/requests.jsonl'
+                identity=[str(run),run.stat().st_mtime_ns,requests.stat().st_size,requests.stat().st_mtime_ns]
+                key=str(run)
+                if cached.get(key,{}).get('identity')!=identity:
+                    cells=finished_cells(run.parent.parent)
+                    if number(cells[1])!=607190:raise ValueError(f'Incomplete supplement: {run}')
+                    cached[key]=dict(identity=identity,cells=cells);changed=True
+                cells=list(cached[key]['cells'])
+            row=dict(model='minimax',factor=int(factor),speedup=float(speed.replace('p','.')),
+                     budget=16384,dram_gb=int(gb),read_gbps=float(read),group='调度轨迹补测',
+                     source=str(plan_path),cells=cells,detail_available=True,
+                     source_result=str(run.parent/'prediction') if run else None,
+                     scheduler_trace=True)
+            rows.append(finish_row(row))
+    if changed:atomic(cache_path,json.dumps(cached,ensure_ascii=False))
+    return rows
+
+
+def decode1_rows():
+    if not DECODE1_PLAN.is_file():
+        return []
+    rows = []
+    for case in json.loads(DECODE1_PLAN.read_text())["cases"]:
+        cells = case.get("metrics_cells") or [LABELS[case["status"]]]
+        rows.append(finish_row(dict(model="minimax", factor=case["factor"], speedup=case["speedup"],
+                                    budget=case["budget"], dram_gb=case["dram_gb"],
+                                    read_gbps=case["read_gbps"], output_token_limit=1,
+                                    group="单 token 对照", source=str(DECODE1_PLAN), cells=list(cells))))
+    return rows
+
+
 def signature(model):
     paths=[SOURCES/n for n in BASE_DOCS[model]]+[Path(__file__),Path(__file__).with_name('model_report_dashboard.html')]
-    if model=='minimax':paths.extend(Path(p) for p in registered_plans())
+    if model=='minimax':
+        paths.extend(Path(p) for p in registered_plans())
+        paths.extend(scheduler_plan_paths())
+        paths.append(DECODE1_PLAN)
     return [[str(p),p.stat().st_size,p.stat().st_mtime_ns] for p in paths if p.is_file()]
 
 
@@ -122,7 +187,7 @@ def config_info(model):
     shared=dict(deployment='1P1D；P/D 各 8 卡，共 16 卡',parallelism='Attention TP8 / DP1；MoE TP1 / EP8',
                 cache='P：HBM + 本地 DRAM + worker_local SSD；D：仅 HBM',ssd='约 56 TB；写 8 GB/s/TP 分片',
                 transfer='H2D / D2H 各 25 GB/s/TP；P→D 直接交接 50 GB/s/TP，destination_missing',
-                scheduler='P/D 序列上限 32/256；开启 Chunked Prefill',sla='TTFT ≤ 1 秒，且单请求平均 TPOT ≤ 30 ms',
+                scheduler='P/D 序列上限 32/256；开启 Chunked Prefill',token_budget='P/D 均为 16,384 token／轮',sla='TTFT ≤ 1 秒，且单请求平均 TPOT ≤ 30 ms',
                 context='128K（输入与输出合计筛选上限），回放含 output_token_ids',requests=607190,
                 source='SWE-chat Claude Code 主会话，verified-interleave 版；会话叠加，保留会话内间隔')
     if model=='glm52':
@@ -131,25 +196,26 @@ def config_info(model):
                       note='场景 1；不含吞吐承载能力、Prefill 排队诊断及盘框场景。')
     else:
         shared.update(name='MiniMax-M2.5',model='MiniMaxAI/MiniMax-M2.5',hardware='H100 SXM；每卡总 HBM 限 64 GB，计算、带宽及互联仍按 H100',
-                      precision='FP8 block 权重 / 计算，BF16 Attention / KV',hbm='P/D 自动 KV 容量，memory_fraction=0.9；预算增大也会改变可用 KV 块数',
+                      precision='FP8 block 权重 / 计算，BF16 Attention / KV',hbm='P/D 自动 KV 容量，memory_fraction=0.9；块大小 64 token',
                       note='沿用 GLM tokenizer 的长度与前缀关系，作为负载形状对照；不是 MiniMax 原生 tokenizer 重建。只保留 BF16 KV 版本。')
     return shared
 
 
 def markdown(model,rows,stamp):
     info=config_info(model);counts=Counter(r['status'] for r in rows)
-    text=f'# {info["name"]} · SWE-chat 场景 1 实验\n\n统一记录本模型的 DRAM、SSD 带宽及调度预算扫描。{info["note"]}\n\n'
+    text=f'# {info["name"]} · SWE-chat 场景 1 实验\n\n统一记录本模型在固定单轮 16,384 token 预算下的 DRAM、SSD 带宽与负载扫描。{info["note"]}\n\n'
     text+=f'更新时间：{stamp}。共 {len(rows)} 组；'+ '，'.join(f'{k} {v} 组' for k,v in counts.items())+'。\n\n'
     text+='## 1. 配置与数据\n\n| 项目 | 内容 |\n|---|---|\n'
-    for key,title in [('model','模型'),('hardware','GPU'),('precision','精度'),('deployment','部署'),('parallelism','并行'),('hbm','HBM KV'),('cache','缓存'),('ssd','SSD'),('transfer','传输'),('scheduler','调度'),('sla','联合 SLA'),('context','上下文')]:text+=f'| {title} | {info[key]} |\n'
+    for key,title in [('model','模型'),('hardware','GPU'),('precision','精度'),('deployment','部署'),('parallelism','并行'),('hbm','HBM KV'),('cache','缓存'),('ssd','SSD'),('transfer','传输'),('scheduler','调度'),('token_budget','单轮 token 预算'),('sla','联合 SLA'),('context','上下文')]:text+=f'| {title} | {info[key]} |\n'
     text+=f'\n每组全量 {info["requests"]:,} 条请求。{info["source"]}。speedup 小于 1 表示时间间隔放大，不等于更高的叠加倍率。\n\n'
     text+='扣排队后 TTFT 仅扣除 P 首次准入前调度等待，保留 KV 恢复、后续 chunk、交接与 D 侧等待。原始联合 SLA 不变。GB/TB 采用十进制；复用率按首次准入复用 token 总数／输入 token 总数。\n\n'
-    if model=='minimax':text+='预算补测在汇总校验后清理逐请求明细，只保留配置、汇总和日志；表中已完成值来自保存的 metrics_cells，缺失项不从旧实验拼补。\n\n'
+    if model=='minimax':text+='早期预算补测在汇总校验后清理逐请求明细，只保留配置、汇总和日志；新增调度轨迹补测保留逐请求结果与 gzip 调度记录。缺失项不从旧实验拼补。\n\n'
     text+='## 2. 实验结果\n\n'
-    groups=sorted({(r['budget'],r['factor'],r['speedup']) for r in rows})
-    for budget,factor,speed in groups:
-        rs=[r for r in rows if (r['budget'],r['factor'],r['speedup'])==(budget,factor,speed)];cs=Counter(r['status'] for r in rs)
-        text+=f'### 预算 {budget:,} token · {factor}× 叠加 · speedup={speed:g}\n\n共 {len(rs)} 组，已完成 {cs["已完成"]} 组。\n\n'
+    groups=sorted({(r['budget'],r['factor'],r['speedup'],r.get('output_token_limit',0)) for r in rows})
+    for budget,factor,speed,limit in groups:
+        rs=[r for r in rows if (r['budget'],r['factor'],r['speedup'],r.get('output_token_limit',0))==(budget,factor,speed,limit)];cs=Counter(r['status'] for r in rs)
+        suffix=' · 每条输出 1 token' if limit else ''
+        text+=f'### {factor}× 叠加 · speedup={speed:g}{suffix}\n\n共 {len(rs)} 组，已完成 {cs["已完成"]} 组。\n\n'
         cols=['P 侧 DRAM','SSD 读带宽（GB/s/TP）',*COLUMNS]
         text+='| '+' | '.join(cols)+' |\n| '+' | '.join(['---']*len(cols))+' |\n'
         for r in sorted(rs,key=lambda x:(x['read_gbps'],x['dram_gb'])):text+='| '+' | '.join([f'{r["dram_gb"]} GB',f'{r["read_gbps"]:g}',*r['cells']])+' |\n'
@@ -178,12 +244,14 @@ def refresh(model='all',budget_root=None,force=False):
             cache=STATE/(key+'_rows.json');old=json.loads(cache.read_text()) if cache.exists() else {}
             sig=signature(key)
             if not force and old.get('signature')==sig and (BASE/(MODEL_FILES[key]+'.html')).exists():continue
-            rows={r['id']:r for r in old.get('rows',[]) if r.get('group')!='预算补测'}
+            rows={r['id']:r for r in old.get('rows',[]) if r.get('group') not in ('预算补测','调度轨迹补测','单 token 对照')}
             for name in BASE_DOCS[key]:
                 for r in parse_rows(SOURCES/name,key):rows[r['id']]=r
             if key=='minimax':
                 for r in supplement_rows():rows[r['id']]=r
-            ordered=sorted(rows.values(),key=lambda r:(r['budget'],r['factor'],r['speedup'],r['read_gbps'],r['dram_gb']))
+                for r in scheduler_supplement_rows():rows[r['id']]=r
+                for r in decode1_rows():rows[r['id']]=r
+            ordered=sorted((r for r in rows.values() if r['budget']==16384),key=lambda r:(r['budget'],r['factor'],r['speedup'],r['read_gbps'],r['dram_gb']))
             assert ordered and len({r['id'] for r in ordered})==len(ordered)
             assert all(len(r['cells'])==len(COLUMNS) for r in ordered)
             for r in ordered:

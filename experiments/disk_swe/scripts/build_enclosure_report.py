@@ -109,15 +109,20 @@ def cells(row):
 
 def collect(root, cache):
     rows = []
+    archive = root / "bundle_manifest_archive.json"
+    archived_manifests = json.loads(archive.read_text()) if archive.is_file() else {}
     for path in sorted(root.glob("*/run.json")):
         meta = json.loads(path.read_text())
         run = path.parent
         cfg_path = run / "resolved.yaml"
         bundle = Path(meta["bundle"])
         manifest_path = bundle / "manifest.json"
-        if not cfg_path.exists() or not manifest_path.exists():
+        if not cfg_path.exists():
             continue
-        manifest = json.loads(manifest_path.read_text())
+        manifest = (json.loads(manifest_path.read_text()) if manifest_path.is_file()
+                    else archived_manifests.get(str(bundle)))
+        if manifest is None:
+            continue
         cfg = yaml.safe_load(cfg_path.read_text())
         e = cfg["engine"]
         enclosure = e.get("kv_transfer",{}).get("enclosure")
@@ -145,9 +150,17 @@ def collect(root, cache):
             signature = json.dumps([(str(p),p.stat().st_size,p.stat().st_mtime_ns)
                                     for p in files if p.exists()])
             try:
-                if signature not in cache:
-                    cache[signature] = completed_metrics(run,meta["selected_requests"])
-                row["values"] = cache[signature]
+                archived = run/"prediction/report_summary.json"
+                if not files[1].is_file() and archived.is_file():
+                    preserved = json.loads(archived.read_text())
+                    if (preserved.get("report") != "enclosure" or preserved.get("source") != str(run)
+                            or preserved["values"]["completed"] != meta["selected_requests"]):
+                        raise ValueError("Preserved report summary does not match this run")
+                    row["values"] = preserved["values"]
+                else:
+                    if signature not in cache:
+                        cache[signature] = completed_metrics(run,meta["selected_requests"])
+                    row["values"] = cache[signature]
             except (OSError,ValueError,KeyError) as error:
                 row["status"] = "失败"
                 row["error"] = f"报告校验失败：{error}"

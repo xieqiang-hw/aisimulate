@@ -1,0 +1,2 @@
+globalThis.glm52ThroughputData={};
+globalThis.glm52ThroughputIndex={"entries":[{"factor":8,"mode":"original","key":"8x-original","file":"8x-original.js"},{"factor":8,"mode":"one","key":"8x-one","file":"8x-one.js"},{"factor":16,"mode":"original","key":"16x-original","file":"16x-original.js"},{"factor":16,"mode":"one","key":"16x-one","file":"16x-one.js"},{"factor":32,"mode":"original","key":"32x-original","file":"32x-original.js"},{"factor":32,"mode":"one","key":"32x-one","file":"32x-one.js"}],"updated_at":"2026-11-26T19:32:47+08:00"};

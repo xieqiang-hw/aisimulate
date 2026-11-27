@@ -260,6 +260,61 @@ fn test_from_mooncake_preserves_output_token_replay_keys() {
 }
 
 #[test]
+fn mooncake_output_limit_preserves_arrivals_and_prompt_hashes() {
+    let file = write_trace(&[
+        serde_json::json!({"timestamp": 12, "input_length": 4, "output_length": 3,
+                           "output_token_ids": [10, 11, 12], "hash_ids": [1]}),
+        serde_json::json!({"timestamp": 25, "input_length": 4, "output_length": 2,
+                           "hash_ids": [1]}),
+    ]);
+    let original = Trace::from_mooncake_lazy(file.path(), 4).unwrap();
+    let capped = Trace::from_mooncake_lazy_with_output_limit(file.path(), 4, Some(1)).unwrap();
+    for (a, b) in original.sessions.iter().zip(&capped.sessions) {
+        assert_eq!(a.turns[0].hash_ids, b.turns[0].hash_ids);
+        assert_eq!(b.turns[0].max_output_tokens, 1);
+    }
+    assert_eq!(original.sessions[0].turns[0].max_output_tokens, 3);
+    assert_eq!(
+        capped.sessions[0].turns[0].output_token_ids.as_deref(),
+        Some(&[10][..])
+    );
+    assert!(capped.sessions[1].turns[0].output_token_ids.is_none());
+    assert!(Trace::from_mooncake_lazy_with_output_limit(file.path(), 4, Some(0)).is_err());
+
+    let mut original = WorkloadDriver::new_trace(original, 4).unwrap();
+    let mut capped = WorkloadDriver::new_trace(capped, 4).unwrap();
+    assert!(capped.pop_ready(11.0, 1).is_empty());
+    for now in [12.0, 25.0] {
+        let a = original.pop_ready(now, 1).pop().unwrap();
+        let b = capped.pop_ready(now, 1).pop().unwrap();
+        assert_eq!(a.request.tokens, b.request.tokens);
+        assert_eq!(a.replay_hashes, b.replay_hashes);
+    }
+}
+
+#[test]
+fn mooncake_output_limit_validates_the_original_record() {
+    let invalid = write_trace(&[serde_json::json!({
+        "input_length": 4, "output_length": 2, "output_token_ids": [10], "hash_ids": [1]
+    })]);
+    let error =
+        Trace::from_mooncake_lazy_with_output_limit(invalid.path(), 4, Some(1)).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("does not match output_token_ids length")
+    );
+
+    let compact = write_trace(&[serde_json::json!({
+        "input_length": 4, "output_length": 2, "hash_ids": [1, 2],
+        "hash_ids_scope": "input_output", "hash_block_size": 4
+    })]);
+    let error =
+        Trace::from_mooncake_lazy_with_output_limit(compact.path(), 4, Some(1)).unwrap_err();
+    assert!(error.to_string().contains("does not support input_output"));
+}
+
+#[test]
 fn test_from_mooncake_rejects_output_token_length_mismatch() {
     let file = write_trace(&[serde_json::json!({
         "input_length": 4,

@@ -1,0 +1,10 @@
+{
+  "single_configuration": true,
+  "families": {
+    "8": 3,
+    "16": 1
+  },
+  "removed_speedup_cases": 9,
+  "source_files_verified": true,
+  "ui_node_checks": "passed"
+}

@@ -61,6 +61,7 @@ the current SA convention.
 | `traffic.source.session.inter_turn_delay_ms` | `0` | `x` | `-` | Nonnegative. |
 | `traffic.source.paths` | Required for trace | `x` | `-` | One path except `dynamo`, which permits multiple. |
 | `traffic.source.format` | `mooncake` | `x` | `-` | See [Trace Format Compatibility](#trace-format-compatibility). |
+| `traffic.source.output_token_limit` | unset | `x` | `-` | Optional positive limit on each Mooncake request’s output tokens. |
 | `traffic.source.block_size` | `512`; embedded for `dynamo` and `weka` | `x` | `-` | Positive. For embedded formats, an explicit value is an equality assertion. |
 | `traffic.source.nested_timestamp_basis` | `auto` | `x` | `-` | `auto`, `absolute`, or `relative`; Weka only. |
 | `traffic.source.client` | `recorded` | `x` | `-` | `recorded` or `agentx`; Weka only. See [Weka client](#weka-client). |
@@ -601,6 +602,12 @@ AgentX parity. Pinned revisions, licenses and known differences are listed in
 <a id="mooncake-and-mooncake-delta-jsonl"></a>
 
 ## Mooncake and Mooncake Delta JSONL
+
+For ordinary Mooncake JSONL with input-only hashes, `traffic.source.output_token_limit`
+caps the recorded output length at load time and truncates any output token IDs
+to match. The original row is validated first. Input fields and trace timestamps
+are preserved. Omitting the field replays the original output lengths. Compact
+`input_output` hashes and Mooncake Delta do not support this option.
 
 Both formats use the same row schema. Rows with the same `session_id` are turns in file order.
 

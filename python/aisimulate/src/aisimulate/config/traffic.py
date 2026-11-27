@@ -98,6 +98,7 @@ class TraceSource(StrictModel):
     paths: list[str]
     format: TraceFormat = "mooncake"
     block_size: PositiveInt | None = None
+    output_token_limit: PositiveInt | None = None
     nested_timestamp_basis: WekaNestedTimestampBasis | None = None
     client: WekaClient | None = None
 
@@ -116,6 +117,8 @@ class TraceSource(StrictModel):
             self.block_size = 512
         if self.nested_timestamp_basis is not None and self.format != "weka":
             raise ValueError("nested_timestamp_basis is only valid for trace format 'weka'")
+        if self.output_token_limit is not None and self.format != "mooncake":
+            raise ValueError("output_token_limit is only valid for trace format 'mooncake'")
         if self.client is not None and self.format != "weka":
             raise ValueError("client is only valid for trace format 'weka'")
         return self

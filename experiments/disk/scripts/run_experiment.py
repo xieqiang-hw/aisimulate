@@ -35,6 +35,7 @@ def main(*, default_config=BASE/'configs/hbm_only.yaml',
     p.add_argument('--bundle', type=Path, required=True, help='Completed converter bundle directory containing manifest.json')
     p.add_argument('--output-root', type=Path, default=default_output_root)
     p.add_argument('--speedup', type=float, default=1.0)
+    p.add_argument('--output-token-limit', type=int, help='Cap output tokens per Mooncake request')
     p.add_argument('--max-requests', type=int, default=0, help='0 means all; otherwise chronological prefix, including tied boundary timestamps')
     p.add_argument('--dry-run', action='store_true', help='Verify bundle, save and validate config without running simulation')
     p.add_argument('--export-html', action='store_true', help='Capture telemetry and dashboard; can be large for 16 weeks')
@@ -43,6 +44,8 @@ def main(*, default_config=BASE/'configs/hbm_only.yaml',
     args=p.parse_args()
     if not math.isfinite(args.speedup) or args.speedup<=0 or args.max_requests<0:
         p.error('speedup must be finite and positive; max-requests must be nonnegative')
+    if args.output_token_limit is not None and args.output_token_limit <= 0:
+        p.error('--output-token-limit must be positive')
     bundle=args.bundle.expanduser().resolve()
     manifest_path=bundle/'manifest.json'
     if not manifest_path.is_file():
@@ -84,6 +87,8 @@ def main(*, default_config=BASE/'configs/hbm_only.yaml',
     config['traffic']['source']['paths']=[str(trace)]
     # Official engine accepts the same JSONL via mooncake (including u32 hash IDs).
     config['traffic']['source']['format']='mooncake'
+    if args.output_token_limit is not None:
+        config['traffic']['source']['output_token_limit']=args.output_token_limit
     config['traffic']['load']['speedup']=args.speedup
     cfg=out/'resolved.yaml'
     cfg.write_text(yaml.safe_dump(config,sort_keys=False),encoding='utf-8')
@@ -102,6 +107,8 @@ def main(*, default_config=BASE/'configs/hbm_only.yaml',
               'python':sys.version,'aisim':importlib.metadata.version('aisim'),
               'command':command,'status':'prepared','dry_run':args.dry_run,
               'engine_revision':subprocess.check_output(['git','-C',str(BASE.parents[1]),'rev-parse','HEAD'],text=True).strip()}
+    if (limit := config['traffic']['source'].get('output_token_limit')) is not None:
+        metadata['output_token_limit']=limit
     save(out/'run.json',metadata)
     print(f'Run directory: {out}',flush=True)
     if args.dry_run:

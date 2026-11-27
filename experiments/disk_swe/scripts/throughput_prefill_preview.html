@@ -1,0 +1,223 @@
+<section id="prefillLocal">
+<div class="section-head"><h2>3. 局部排队诊断</h2></div>
+<details id="pdPanel" class="panel" open>
+<summary>选择案例与时间范围</summary>
+<p class="hint">切换案例会跳到对应的关键片段。横轴为距局部窗口起点的秒数，各图游标联动。</p>
+<div class="compare-controls">
+<label>案例<select id="pdCase"></select></label>
+<label>时间范围<select id="pdRange"><option value="focus">关键片段</option><option value="window">案例附近 5 分钟</option><option value="wide">该倍率的两小时取样范围</option></select></label>
+</div>
+<p id="pdNote"></p><p id="pdSpan" class="small"></p>
+<div class="grid">
+<article class="panel"><h3>每轮 Prefill 新计算 token 数</h3><p class="chart-subtitle">条宽为计算时长，虚线为 16,384 token 预算</p><div class="plot"><canvas id="pdBatch" aria-label="每轮 Prefill 新计算 token 数"></canvas></div></article>
+<article class="panel"><h3>P 首次准入前等待请求数</h3><p class="chart-subtitle">按到达和首次准入事件计算，包含调度和 KV 恢复等待</p><div class="plot"><canvas id="pdQueue" aria-label="P 首次准入前等待请求数"></canvas></div></article>
+<article class="panel"><h3>逐请求 TTFT</h3><p class="chart-subtitle">按请求到达时刻绘点。蓝色为原始 TTFT，绿色为扣除 P 首次准入前调度等待后的 TTFT。</p><div class="plot"><canvas id="pdLatency" aria-label="逐请求 TTFT"></canvas></div></article>
+<article class="panel"><h3>交接与恢复状态</h3><p class="chart-subtitle" id="pdStateLegend"></p><div class="plot"><canvas id="pdState" aria-label="P/D 交接及恢复状态"></canvas></div></article>
+</div>
+<p id="pdHover" class="small" aria-live="off">将鼠标移到图上可查看对应时刻。</p>
+<details><summary>关键片段的批次与交接记录</summary><div id="pdEvidence" class="summary-wrap"></div></details>
+<p class="small"><a href="prefill_queue_diagnosis.html">查看原始 8× 诊断</a></p>
+</details>
+</section>
+<script id="pdData" type="application/json">__PREFILL_CASES__</script>
+<script>
+(() => {
+  const el = id => document.getElementById(id);
+  const details = el('pdPanel');
+  const config = el('speedup');
+  const select = el('pdCase');
+  const range = el('pdRange');
+  const colors = {input:'#596eaa', actual:'#11786a'};
+  const names = ['pdBatch','pdQueue','pdLatency','pdState'];
+  const fmt = (n, digits = 2) => n == null ? '—' : n.toLocaleString('zh-CN', {maximumFractionDigits:digits});
+  let allCases, data, factor, frame, hover;
+  const charts = new Map();
+  const active = () => data.cases[Number(select.value)];
+  function bounds() {
+    if (range.value === 'wide') return data.domain;
+    if (range.value === 'focus') return active().focus;
+    return active().window;
+  }
+  function canvas(id, lo, hi, ceiling) {
+    const node = el(id);
+    const box = node.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const w = box.width, h = box.height;
+    const left = 57, right = w - 16, top = 13, bottom = h - 28;
+    node.width = Math.round(w * dpr);
+    node.height = Math.round(h * dpr);
+    const c = node.getContext('2d');
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const x = t => left + (t - lo) / (hi - lo) * (right - left);
+    const y = v => bottom - v / ceiling * (bottom - top);
+    c.font = '11px Segoe UI, sans-serif';
+    c.fillStyle = '#536e65';
+    for (let i = 0; i <= 4; i++) {
+      const v = ceiling * i / 4;
+      c.strokeStyle = '#e5ece6';
+      c.beginPath(); c.moveTo(left,y(v)); c.lineTo(right,y(v)); c.stroke();
+      c.textAlign = 'right'; c.fillText(fmt(v,1),left-6,y(v)+4);
+      c.textAlign = 'center'; c.fillText(fmt((hi-lo)*i/4000,1),left+(right-left)*i/4,h-8);
+    }
+    c.save(); c.beginPath(); c.rect(left,top,right-left,bottom-top); c.clip();
+    return {node,c,x,y,left,right,top,bottom};
+  }
+  function saveChart(id, chart) {
+    chart.c.restore();
+    const image = document.createElement('canvas');
+    image.width = chart.node.width; image.height = chart.node.height;
+    image.getContext('2d').drawImage(chart.node,0,0);
+    charts.set(id, {...chart,image});
+  }
+  function step(chart, points, color, hi, dash = [], width = 1.6) {
+    if (!points.length) return;
+    const {c,x,y} = chart;
+    c.strokeStyle = color; c.lineWidth = width; c.setLineDash(dash); c.beginPath();
+    c.moveTo(x(points[0][0]),y(points[0][1]));
+    for (let i=1; i<points.length; i++) {
+      const [t,v] = points[i];
+      c.lineTo(x(t),y(points[i-1][1])); c.lineTo(x(t),y(v));
+    }
+    c.lineTo(x(hi),y(points.at(-1)[1])); c.stroke(); c.setLineDash([]);
+  }
+  function queue(lo, hi) {
+    let count = 0;
+    const events = new Map();
+    for (const [a,p] of data.requests) {
+      if (p == null || p <= a || a > hi || p <= lo) continue;
+      if (a <= lo) count++;
+      else events.set(a,(events.get(a)||0)+1);
+      if (p <= hi) events.set(p,(events.get(p)||0)-1);
+    }
+    return [[lo,count],...[...events].sort((a,b)=>a[0]-b[0]).map(([t,d])=>[t,count+=d])];
+  }
+  function stateSeries(lo,hi) {
+    return [
+      [0,2,'#ad3f00','P 保留交接 KV', []],
+      [1,1,'#174da5','D 待预留', [9,4]],
+      [0,3,'#75256e','P 连接器等待', [2,4]],
+      [0,4,'#00765a','P H2D 加载', [9,3,2,3]],
+      [0,5,'#38383e','P SSD 待读', [4,3]],
+    ].filter(([sid])=>factor!=='8'||sid===0)
+      .map(([sid,col,color,label,dash])=>{
+        let start=0;
+        const rows=[];
+        for (const row of data.states[sid]) {
+          if (row[0]<=lo) start=row[col];
+          else if (row[0]<=hi) rows.push([row[0],row[col]]);
+        }
+        return {color,label,dash,points:[[lo,start],...rows]};
+      });
+  }
+  function table(head, rows) {
+    return '<table><thead><tr>'+head.map(s=>'<th>'+s+'</th>').join('')+'</tr></thead><tbody>'+
+      rows.map(row=>'<tr>'+row.map(v=>'<td>'+v+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+  }
+  function evidence() {
+    const [lo,hi] = active().focus;
+    const batches = data.batches.filter(row=>row[2]>lo&&row[1]<hi);
+    const ms = value => value == null ? '—' : fmt((value-lo)/1000,6);
+    let html='<p class="small">下表时间相对关键片段起点。批次及请求各最多显示 12 条。</p>';
+    if (batches.length) html+=table(['计算开始（秒）','计算结束（秒）','新算 token','BS'],
+      batches.slice(0,12).map(row=>[ms(row[1]),ms(row[2]),fmt(row[3],0),row[4]]));
+    else html+='<p class="small">此范围没有 Prefill 计算批次。</p>';
+    const rows=data.requests.filter(([a,p,,,h,r])=>(a<=hi&&p>=lo)||(h!=null&&r!=null&&h<=hi&&r>=lo))
+      .sort((a,b)=>Number(b[7]===active().request_id)-Number(a[7]===active().request_id)||a[0]-b[0]);
+    html+=table(['请求','到达（秒）','P 首次准入（秒）','P 保留 KV（秒）','D 成功预留（秒）','P 释放 KV（秒）'],
+      rows.slice(0,12).map(([a,p,,,h,r,release,id])=>[id,ms(a),ms(p),ms(h),ms(r),ms(release)]));
+    el('pdEvidence').innerHTML=html;
+  }
+  function render() {
+    if (!details.open || !data) return;
+    const [lo,hi] = bounds();
+    el('pdNote').textContent=active().note;
+    el('pdSpan').textContent=factor+'× · 仿真时间第 '+fmt(lo/86400000,6)+'–'+fmt(hi/86400000,6)+' 天 · '+fmt((hi-lo)/1000)+' 秒';
+    const passes=data.batches.filter(row=>row[2]>lo&&row[1]<hi);
+    const b=canvas('pdBatch',lo,hi,18022.4);
+    b.c.fillStyle=colors.actual;
+    for(const [,a,z,t] of passes) b.c.fillRect(b.x(a),b.y(t),Math.max(.7,b.x(z)-b.x(a)),b.bottom-b.y(t));
+    b.c.setLineDash([5,4]); b.c.strokeStyle='#7f8b81'; b.c.beginPath();
+    b.c.moveTo(b.left,b.y(16384)); b.c.lineTo(b.right,b.y(16384)); b.c.stroke(); b.c.setLineDash([]);
+    saveChart('pdBatch',b);
+    const q=queue(lo,hi);
+    const qc=canvas('pdQueue',lo,hi,Math.max(4,q.reduce((m,[,v])=>Math.max(m,v),0)*1.1));
+    step(qc,q,colors.actual,hi); saveChart('pdQueue',qc);
+    const requests=data.requests.filter(row=>row[0]>=lo&&row[0]<=hi&&row[2]!=null);
+    const max=requests.reduce((m,r)=>Math.max(m,r[2]),0);
+    const l=canvas('pdLatency',lo,hi,Math.max(.1,max*1.08/1000));
+    for (const [col,color] of [[2,colors.input],[3,colors.actual]]) {
+      l.c.fillStyle=color; l.c.globalAlpha=.72;
+      for (const row of requests) if(row[col]!=null) {
+        l.c.beginPath(); l.c.arc(l.x(row[0]),l.y(row[col]/1000),2,0,2*Math.PI); l.c.fill();
+      }
+    }
+    l.c.globalAlpha=1; saveChart('pdLatency',l);
+    const series=stateSeries(lo,hi);
+    const st=canvas('pdState',lo,hi,Math.max(4,...series.map(s=>s.points.reduce((m,[,v])=>Math.max(m,v),0)*1.12)));
+    for(const s of series) step(st,s.points,s.color,hi,s.dash,2.1);
+    saveChart('pdState',st);
+    el('pdStateLegend').replaceChildren(...series.map(s=>{
+      const item=document.createElement('span');
+      item.style.cssText='display:inline-flex;align-items:center;gap:6px;margin:0 14px 4px 0;white-space:nowrap';
+      const sample=document.createElement('canvas');
+      sample.width=30;sample.height=10;
+      const ctx=sample.getContext('2d');
+      ctx.strokeStyle=s.color;ctx.lineWidth=2.1;ctx.setLineDash(s.dash);
+      ctx.beginPath();ctx.moveTo(0,5);ctx.lineTo(30,5);ctx.stroke();
+      item.replaceChildren(sample,document.createTextNode(s.label));
+      return item;
+    }));
+    hover=null;
+    el('pdHover').textContent='将鼠标移到图上可查看对应时刻。';
+    evidence();
+  }
+  function sync() {
+    const next=config.value;
+    if (!details.open) return;
+    if (!data || next!==factor) {
+      factor=next;
+      allCases ||= JSON.parse(el('pdData').textContent);
+      data=allCases[factor];
+      select.replaceChildren(...data.cases.map((item,i)=>{
+        const option=document.createElement('option');option.value=i;option.textContent=item.label;return option;
+      }));
+      select.value='0'; range.value='focus';
+    }
+    render();
+  }
+  document.addEventListener('DOMContentLoaded',sync);
+  details.addEventListener('toggle',sync);
+  config.addEventListener('change',sync);
+  select.addEventListener('change',()=>{ range.value='focus';render(); });
+  range.addEventListener('change',render);
+  window.addEventListener('resize',()=>{if(details.open)requestAnimationFrame(render);});
+  function cursor(){
+    frame=null;
+    if(!details.open||!data)return;
+    const [lo,hi]=bounds();
+    for(const {c,node,image,x,top,bottom} of charts.values()){
+      c.save(); c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,node.width,node.height);
+      c.drawImage(image,0,0); c.restore();
+      if(hover!=null){ c.strokeStyle='#536e65';c.beginPath();c.moveTo(x(hover),top);c.lineTo(x(hover),bottom);c.stroke(); }
+    }
+    if(hover==null){el('pdHover').textContent='将鼠标移到图上可查看对应时刻。';return;}
+    const pass=data.batches.find(row=>row[1]<=hover&&row[2]>hover);
+    const q=data.requests.reduce((n,[a,p])=>n+(a<=hover&&p!=null&&hover<p?1:0),0);
+    el('pdHover').textContent='窗口内 '+fmt((hover-lo)/1000,3)+' 秒 · P 准入前等待 '+q+' 条'+
+      (pass?' · 本轮 '+fmt(pass[3],0)+' token，BS '+pass[4]:'')+
+      ' · 窗口长度 '+fmt((hi-lo)/1000)+' 秒';
+  }
+  for(const id of names){
+    el(id).addEventListener('mousemove',e=>{
+      const chart=charts.get(id);if(!chart)return;
+      const [lo,hi]=bounds();
+      const ratio=(e.clientX-chart.node.getBoundingClientRect().left-chart.left)/(chart.right-chart.left);
+      hover=lo+(hi-lo)*Math.max(0,Math.min(ratio,1));
+      if(frame==null)frame=requestAnimationFrame(cursor);
+    });
+    el(id).addEventListener('mouseleave',()=>{
+      hover=null;if(frame==null)frame=requestAnimationFrame(cursor);
+    });
+  }
+})();
+</script>
